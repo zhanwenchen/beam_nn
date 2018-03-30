@@ -1,3 +1,0 @@
-input_dim,130
-output_dim,130
-layer_width,260

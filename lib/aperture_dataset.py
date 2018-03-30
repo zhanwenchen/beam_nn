@@ -1,8 +1,15 @@
+import os
+import h5py
+import numpy as np
+import warnings
+import torch
+from torch.utils.data import Dataset
+
 class ApertureDataset(Dataset):
     """Aperture domain dataset."""
 
     # REVIEW: k=4 bad?
-    def __init__(self, fname, num_samples, k=4):
+    def __init__(self, fname, num_samples, k):
         """
         Args:
             fname: file name for aperture domain data
