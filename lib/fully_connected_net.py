@@ -26,11 +26,11 @@ class FullyConnectedNet(nn.Module):
         self._initialize_weights()
 
     def forward(self, x):
-        for layer in self.layers[0:-1]:
+        for layer in self.layers[:-1]:
             x = self.relu(layer(x))
         x = self.layers[-1](x)
         return x
-        
+
     def _initialize_weights(self):
         for layer in self.layers:
             nn.init.kaiming_normal(layer.weight.data)

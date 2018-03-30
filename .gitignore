@@ -3,3 +3,4 @@ training_data/
 .DS_Store
 __pycache__/
 scan_batteries/
+save_here/

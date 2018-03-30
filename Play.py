@@ -52,5 +52,4 @@ optimizer = optim.SGD(nn_fc.parameters(), lr, momentum)
 
 fit(nn_fc, train_loader, train_loader2, validate_loader, optimizer, save_path, cuda=False)
 
-
 # In[ ]:
