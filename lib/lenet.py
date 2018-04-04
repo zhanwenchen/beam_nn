@@ -7,7 +7,7 @@ import torch.nn as nn
 
 # CNN Model (2 conv layer)
 class LeNet(nn.Module):
-    def __init__(self, input_size, output_size, hidden_size, batch_size, kernel_size=2, num_kernels=1):
+    def __init__(self, input_size, output_size, hidden_size, batch_size, kernel_size=2, num_kernels=1, stride=1):
         """
         kernel_size=2: The size of the sliding window.
         num_kernels=1: Essentially the number of neurons for a conv layer.
