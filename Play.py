@@ -50,16 +50,27 @@ from torch import optim
 # from lib.fully_connected_net import FullyConnectedNet
 from lib.fully_connected_net import FullyConnectedNet
 from lib.cnn import CNN
+from lib.lenet import LeNet
 from lib.fit import fit
+
+using_cuda = False
 
 lr = 0.5
 momentum = 0
 
 # fc = FullyConnectedNet(**model_params_dict)
 # optimizer_fc = optim.SGD(fc.parameters(), lr, momentum)
-cnn = CNN(input_dim, output_dim, layer_width)
-optimizer_cnn = optim.SGD(cnn.parameters(), lr, momentum)
+# cnn = CNN(input_dim, output_dim, layer_width)
+# optimizer_cnn = optim.SGD(cnn.parameters(), lr, momentum)
+lenet = LeNet(input_dim, output_dim, layer_width, batch_size)
 
+model = lenet
+optimizer = optim.SGD(model.parameters(), lr, momentum)
+
+if using_cuda:
+    model.cuda()
+
+print(model)
 # fit(nn_fc, train_loader, train_loader2, validate_loader, optimizer_fc, save_path, cuda=False)
-fit(cnn, train_loader, train_loader2, validate_loader, optimizer_cnn, save_path, cuda=False)
+fit(model, train_loader, train_loader2, validate_loader, optimizer, save_path, cuda=using_cuda)
 # In[ ]:

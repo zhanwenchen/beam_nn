@@ -47,7 +47,7 @@ def fit(model, loader, train2_loader, validate_loader, optimizer, save_path, cud
         epoch_list.append(epoch)
 
         # display results
-        print('E: {:02d} / Train: {:.3e} / Valid: {:.3e} / Diff Valid: {:.2f}% / Diff Valid-Train: {:.1f}% / Time: {:.2f}'.format(epoch, loss_train, loss_valid, diff_loss, (loss_valid - loss_train)/loss_train*100, time_epoch))
+        # print('E: {:02d} / Train: {:.3e} / Valid: {:.3e} / Diff Valid: {:.2f}% / Diff Valid-Train: {:.1f}% / Time: {:.2f}'.format(epoch, loss_train, loss_valid, diff_loss, (loss_valid - loss_train)/loss_train*100, time_epoch))
 
         # if validation loss improves
         if diff_loss < 0:
@@ -56,6 +56,7 @@ def fit(model, loader, train2_loader, validate_loader, optimizer, save_path, cud
             # record epoch and loss
             best_epoch = epoch
             loss_valid_best = loss_valid
+            print('Train: {:.3e} / Valid: {:.3e} / Diff Valid: {:.2f}% / Diff Valid-Train: {:.1f}%'.format(loss_train, loss_valid, diff_loss, (loss_valid - loss_train)/loss_train*100))
 
             # save the model
             torch.save(model.state_dict(), os.path.join(save_path, 'model.dat'))
@@ -88,6 +89,9 @@ def fit(model, loader, train2_loader, validate_loader, optimizer, save_path, cud
                 time_epoch_history=time_epoch_history,
                 epoch_list=epoch_list,
                 best_epoch=epoch)
+
+    diff_percent = (loss_valid - loss_train)/loss_train*100
+    return loss_train, diff_percent
 
 def train(model, loader, optimizer, cuda, loss_fn):
     model.train()
