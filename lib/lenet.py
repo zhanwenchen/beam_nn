@@ -7,20 +7,31 @@ import torch.nn as nn
 
 # CNN Model (2 conv layer)
 class LeNet(nn.Module):
-    def __init__(self, input_size, output_size, hidden_size, batch_size):
+    def __init__(self, input_size, output_size, hidden_size, batch_size, kernel_size=2, num_kernels=1):
+        """
+        kernel_size=2: The size of the sliding window.
+        num_kernels=1: Essentially the number of neurons for a conv layer.
+
+        """
         super(LeNet, self).__init__()
 
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.output_size = output_size
 
-        self.conv1 = nn.Conv1d(1, 1, 2) # NOTE: THIS IS CORRECT!!!! CONV doesn't depend on num_features!
+        input_channel = 1
+        self.conv1 = nn.Conv1d(input_channel, num_kernels, kernel_size) # NOTE: THIS IS CORRECT!!!! CONV doesn't depend on num_features!
         # self.pool1 = nn.AvgPool1d(2)
 
-        self.conv2 = nn.Conv1d(1, 1, 2)
+        # self.conv2 = nn.Conv1d(1, 1, 2) # CHANGED: let's try one layer for now
         # self.pool2 = nn.AvgPool1d(2)
 
-        self.fc1 = nn.Linear(128, hidden_size)
+        # TODO get num_features for any stride
+        if stride == 1:
+            conv_output_features = input_size - kernel_size + 1
+
+
+        self.fc1 = nn.Linear(conv_output_size, hidden_size)
         self.fc2 = nn.Linear(hidden_size, output_size)
 
 
@@ -31,8 +42,8 @@ class LeNet(nn.Module):
         x = F.relu(x)
         # x = self.pool1(x)
 
-        x = self.conv2(x)
-        x = F.relu(x)
+        # x = self.conv2(x)
+        # x = F.relu(x)
         # x = self.pool2(x)
 
         x = self.fc1(x)
