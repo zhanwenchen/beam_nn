@@ -31,12 +31,12 @@ class LeNet(nn.Module):
         if stride == 1:
             conv_output_features = input_size - kernel_size + 1
 
-
+        nn.init.kaiming_normal(self.conv1.weight.data)
+        self.conv1.bias.data.fill_(0)
         self.fcs = FullyConnectedNet(conv_output_features, output_size, hidden_size, num_hidden_layers)
 
 
     def forward(self, x):
-        batch_size, input_size = x.size()
         x = x.unsqueeze(1) # right now it's (32, 130, 1). Should be (130, 32, 1) or (1, 32, 130). NOTE it's not (1, 32, 130) or (32, 1, 130).  It has to be (1, 130, 32)
         x = self.conv1(x)
         x = F.relu(x)
