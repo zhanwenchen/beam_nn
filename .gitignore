@@ -4,3 +4,4 @@ training_data/
 __pycache__/
 scan_batteries/
 save_here/
+*.csv

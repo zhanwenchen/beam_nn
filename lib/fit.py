@@ -56,7 +56,6 @@ def fit(model, loader, train2_loader, validate_loader, optimizer, save_path, cud
             # record epoch and loss
             best_epoch = epoch
             loss_valid_best = loss_valid
-            print('Train: {:.3e} / Valid: {:.3e} / Diff Valid: {:.2f}% / Diff Valid-Train: {:.1f}%'.format(loss_train, loss_valid, diff_loss, (loss_valid - loss_train)/loss_train*100))
 
             # save the model
             torch.save(model.state_dict(), os.path.join(save_path, 'model.dat'))
@@ -73,12 +72,14 @@ def fit(model, loader, train2_loader, validate_loader, optimizer, save_path, cud
         else:
             num_epochs_increased += 1
 
+
         # stop training if we lose patience:
         if num_epochs_increased > patience:
             break
 
         # advance epoch counter
         epoch += 1
+
 
     # save the other stuff
     np.savez(os.path.join(save_path, 'loss_results'),
@@ -91,6 +92,7 @@ def fit(model, loader, train2_loader, validate_loader, optimizer, save_path, cud
                 best_epoch=epoch)
 
     diff_percent = (loss_valid - loss_train)/loss_train*100
+    # print('Train: {:.3e} / Valid: {:.3e} / Diff Valid: {:.2f}% / Diff Valid-Train: {:.1f}%'.format(loss_train, loss_valid, diff_loss, diff_percent))
     return loss_train, diff_percent
 
 def train(model, loader, optimizer, cuda, loss_fn):
