@@ -31,7 +31,7 @@ class LeNet(nn.Module):
             conv_output_features = input_size - kernel_size + 1
 
 
-        self.fc1 = nn.Linear(conv_output_size, hidden_size)
+        self.fc1 = nn.Linear(conv_output_features, hidden_size)
         self.fc2 = nn.Linear(hidden_size, output_size)
 
 
