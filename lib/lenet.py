@@ -20,9 +20,20 @@ class LeNet(nn.Module):
         self.hidden_size = hidden_size
         self.output_size = output_size
 
-        input_channel = 1
+        input_channel = 2
         self.conv1 = nn.Conv1d(input_channel, num_kernels, kernel_size) # NOTE: THIS IS CORRECT!!!! CONV doesn't depend on num_features!
+        # self.conv1 = nn.Conv2d(input_channel, num_kernels, kernel_size)
         # self.pool1 = nn.AvgPool1d(2)
+        # self.conv2 = nn.Conv2d(input_channel, num_kernels, kernel_size)
+
+        # NOTE: Imaginery data can be treated in two ways:
+        #      1. as a separate channel, still using conv1d.
+        #      2. as a separate dimension, using conv2d.
+        # FIXME: How do we have an NN output 2D, or 1D with another channel? 130 by 1 like it used to be.
+        # TODO 1. Equal conv, fc layers
+        # TODO 2. num_kernels try 16+
+        # TODO 3. try bigger strides
+        # TODO 4. try adam
 
         # self.conv2 = nn.Conv1d(1, 1, 2) # CHANGED: let's try one layer for now
         # self.pool2 = nn.AvgPool1d(2)
@@ -37,9 +48,19 @@ class LeNet(nn.Module):
 
 
     def forward(self, x):
-        x = x.unsqueeze(1) # right now it's (32, 130, 1). Should be (130, 32, 1) or (1, 32, 130). NOTE it's not (1, 32, 130) or (32, 1, 130).  It has to be (1, 130, 32)
+        # pytorch.conv1d accepts shape (Batch, Channel, Width)
+        # pytorch.conv2d accepts shape (Batch, Channel, Height, Width)
+        # print("x.size() was", x.size())
+        # x = x.transpose(1,2)
+        # print("x.size() is", x.size())
+
+        # x = x.unsqueeze(2) # right now it's (32, 130, 1). Should be (130, 32, 1) or (1, 32, 130). NOTE it's not (1, 32, 130) or (32, 1, 130).  It has to be (1, 130, 32)
+        # print("x.size() unsqueezed", x.size())
+        # print("lenet.forward: x.shape =", x.shape)
         x = self.conv1(x)
+        # print("lenet.forward: x.shape =", x.shape)
         x = F.relu(x)
+        # print("lenet.forward: x.shape =", x.shape)
         x = self.fcs.forward(x)
         # x = self.pool1(x)
 
@@ -50,4 +71,5 @@ class LeNet(nn.Module):
         # x = self.fc1(x)
         # x = F.relu(x)
         # x = self.fc2(x)
+        # print("lenet.forward: x.shape =", x.shape)
         return x

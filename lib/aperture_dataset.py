@@ -44,20 +44,47 @@ class ApertureDataset(Dataset):
             self.num_samples = num_samples
 
         # load the data
-        inputs = np.hstack([ f['/' + str(k) + '/aperture_data/real'][0:self.num_samples],
-                            f['/' + str(k) + '/aperture_data/imag'][0:self.num_samples] ] )
-        targets = np.hstack([ f['/' + str(k) + '/targets/real'][0:self.num_samples],
-                            f['/' + str(k) + '/targets/imag'][0:self.num_samples] ] )
+        # inputs = np.hstack([ f['/' + str(k) + '/aperture_data/real'][0:self.num_samples],
+        #                     f['/' + str(k) + '/aperture_data/imag'][0:self.num_samples] ] )
+        # print("inputs.shape used to be", inputs.shape)
+        # C = np.max(np.abs(inputs), axis=1)[:, np.newaxis]
+        # C[np.where(C==0)[0]] = 1
+        # # print("C.shape used to be", C.shape)
+        # print("x used to be", inputs[:2])
+        # print("C used to be", C[:2])
 
-        # normalize the training data
-        C = np.max(np.abs(inputs), axis=1)[:, np.newaxis]
-        C[np.where(C==0)[0]] = 1
-        inputs = inputs / C
-        targets = targets / C
+
+        x_real = np.array(f['/' + str(k) + '/aperture_data/real'][0:self.num_samples])
+        x_imaginery = np.array(f['/' + str(k) + '/aperture_data/imag'][0:self.num_samples])
+
+        y_real = np.array(f['/' + str(k) + '/targets/real'][0:self.num_samples])
+        y_imaginery = np.array(f['/' + str(k) + '/targets/imag'][0:self.num_samples])
+        x = np.stack((x_real, x_imaginery), axis=1)
+        # y = np.stack((y_real, y_imaginery), axis=1)
+        y = np.hstack((y_real, y_imaginery))
+
+        # inputs = np.stack([ f['/' + str(k) + '/aperture_data/real'][0:self.num_samples],
+        #                     f['/' + str(k) + '/aperture_data/imag'][0:self.num_samples] ], axis=2)
+        # targets = np.stack([ f['/' + str(k) + '/targets/real'][0:self.num_samples],
+        #                     f['/' + str(k) + '/targets/imag'][0:self.num_samples] ], axis=2)
+
+        # print("inputs.shape is now", inputs.shape)
+        # print("targets.shape =", inputs.shape)
+        # # normalize the training data
+        # C = np.max(np.abs(x), axis=2)[:, np.newaxis]
+        # C[np.where(C==0)[0]] = 1
+        # print("C.shape =", C.shape)
+        #
+        # print("inputs[:2, :, :]")
+        # print(x[:2])
+        # print("C[:2, :, :]")
+        # print(C[:2])
+        # x = x / C
+        # y = y / C
 
         # convert data to single precision pytorch tensors
-        self.data_tensor = torch.from_numpy(inputs).float()
-        self.target_tensor = torch.from_numpy(targets).float()
+        self.data_tensor = torch.from_numpy(x).float()
+        self.target_tensor = torch.from_numpy(y).float()
 
         # close file
         f.close()

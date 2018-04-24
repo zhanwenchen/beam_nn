@@ -114,6 +114,8 @@ def train(model, loader, optimizer, cuda, loss_fn):
 
         outputs = model(inputs)
 
+        # print("fit.train: outputs.shape =", outputs.shape)
+
         model.zero_grad()
 
         loss = loss_fn(outputs, targets)
