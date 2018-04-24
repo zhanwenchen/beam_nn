@@ -59,9 +59,30 @@ class ApertureDataset(Dataset):
 
         y_real = np.array(f['/' + str(k) + '/targets/real'][0:self.num_samples])
         y_imaginery = np.array(f['/' + str(k) + '/targets/imag'][0:self.num_samples])
+
+
+        # REVIEW: C is calculate only from inputs. WHy not both inputs and targets?
+        C_real = np.max(np.abs(x_real))
+        if C_real == 0: C_real = 1
+        C_imaginery = np.max(np.abs(x_imaginery))
+        if C_imaginery == 0: C_imaginery = 1
+
+        x_real = x_real / C_real
+        x_imaginery = x_imaginery / C_imaginery
+        y_real = y_real / C_real
+        y_imaginery = y_imaginery / C_imaginery
+
+
+
         x = np.stack((x_real, x_imaginery), axis=1)
         # y = np.stack((y_real, y_imaginery), axis=1)
         y = np.hstack((y_real, y_imaginery))
+
+        xy_real = np.vstack((x_real, y_real))
+        xy_imaginery = np.vstack((x_imaginery, y_imaginery))
+
+
+
 
         # inputs = np.stack([ f['/' + str(k) + '/aperture_data/real'][0:self.num_samples],
         #                     f['/' + str(k) + '/aperture_data/imag'][0:self.num_samples] ], axis=2)

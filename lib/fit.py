@@ -139,7 +139,6 @@ def loss_compute(model, dat_loader, loss_fn, cuda):
             inputs = inputs.cuda()
             targets = targets.cuda()
 
-        # outputs = model(inputs)
         outputs = model(inputs)
 
         loss = loss + loss_fn(outputs, targets).data[0]
