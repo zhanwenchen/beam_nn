@@ -1,3 +1,12 @@
+# NOTE: Imaginery data can be treated in two ways:
+#      1. as a separate channel, still using conv1d.
+#      2. as a separate dimension, using conv2d.
+# FIXME: How do we have an NN output 2D, or 1D with another channel? 130 by 1 like it used to be.
+# TODO 1. Equal conv, fc layers
+# TODO 2. num_kernels try 16+
+# TODO 3. try bigger strides
+# TODO 4. try adam
+
 # This is option 1 of CNN - use one channel (130 * 1)
 # TODO: Option 2: use two channels - real vs imaginery components each (65 * 2)
 
@@ -8,7 +17,12 @@ from lib.fully_connected_net import FullyConnectedNet
 
 # CNN Model (2 conv layer)
 class LeNet(nn.Module):
-    def __init__(self, input_size, output_size, hidden_size, num_hidden_layers, batch_size, kernel_size=2, num_kernels=1, stride=1):
+    def __init__(self, input_size, output_size, fcs_hidden_size, fcs_num_hidden_layers,
+                 batch_size,
+                 pool1_kernel_size,
+                 conv1_kernel_size, conv1_num_kernels, conv1_stride,
+                 pool2_kernel_size,
+                 conv2_kernel_size, conv2_num_kernels, conv2_stride):
         """
         kernel_size=2: The size of the sliding window.
         num_kernels=1: Essentially the number of neurons for a conv layer.
@@ -17,49 +31,104 @@ class LeNet(nn.Module):
         super(LeNet, self).__init__()
 
         self.input_size = input_size
-        self.hidden_size = hidden_size
+        self.hidden_size = fcs_hidden_size
         self.output_size = output_size
 
         input_channel = 2
-        self.conv1 = nn.Conv1d(input_channel, num_kernels, kernel_size) # NOTE: THIS IS CORRECT!!!! CONV doesn't depend on num_features!
-        # self.conv1 = nn.Conv2d(input_channel, num_kernels, kernel_size)
-        # self.pool1 = nn.AvgPool1d(2)
-        # self.conv2 = nn.Conv2d(input_channel, num_kernels, kernel_size)
+        print("input_size =", input_size)
 
-        # NOTE: Imaginery data can be treated in two ways:
-        #      1. as a separate channel, still using conv1d.
-        #      2. as a separate dimension, using conv2d.
-        # FIXME: How do we have an NN output 2D, or 1D with another channel? 130 by 1 like it used to be.
-        # TODO 1. Equal conv, fc layers
-        # TODO 2. num_kernels try 16+
-        # TODO 3. try bigger strides
-        # TODO 4. try adam
 
-        # self.conv2 = nn.Conv1d(1, 1, 2) # CHANGED: let's try one layer for now
-        # self.pool2 = nn.AvgPool1d(2)
+        # Conv1
+        print("conv1_kernel_size =", conv1_kernel_size)
+        print("conv1_stride =", conv1_stride)
 
-        # TODO get num_features for any stride
-        if stride == 1:
-            conv_output_features = input_size - kernel_size + 1
 
+        conv1_output_size = (conv1_num_kernels, (input_size - conv1_kernel_size) / conv1_stride)
+        print("conv1_output_size =", conv1_output_size)
+        if not conv1_output_size[1].is_integer(): raise ValueError('lenet: conv1_output_size is not an integer. It is', conv1_output_size)
+        conv1_output_size = (conv1_num_kernels, int((input_size - conv1_kernel_size) / conv1_stride))
+
+
+        self.conv1 = nn.Conv1d(input_channel, conv1_num_kernels, conv1_kernel_size) # NOTE: THIS IS CORRECT!!!! CONV doesn't depend on num_features!
         nn.init.kaiming_normal(self.conv1.weight.data)
         self.conv1.bias.data.fill_(0)
-        self.fcs = FullyConnectedNet(conv_output_features, output_size, hidden_size, num_hidden_layers)
+
+
+
+
+
+
+        # Pool1
+        pool1_stride = 2
+        print("pool1_kernel_size =", pool1_kernel_size)
+
+
+        pool1_output_size = (conv1_num_kernels, (conv1_output_size[1] - pool1_kernel_size) / pool1_stride + 1)
+        if not pool1_output_size[1].is_integer(): raise ValueError('lenet: pool1_kernel_size is not an integer. It is', pool1_output_size)
+        pool1_output_size = (conv1_num_kernels, int((conv1_output_size[1] - pool1_kernel_size) / pool1_stride + 1))
+
+
+
+        self.pool1 = nn.MaxPool1d(pool1_kernel_size) # stride=2 by default.
+
+
+
+        # Conv2
+        print("conv2_output_size =", conv2_output_size)
+
+
+        conv2_output_size = (conv2_num_kernels, (pool1_output_size[1] - conv2_kernel_size) / conv2_stride)
+        if not conv2_output_size[1].is_integer(): raise ValueError('lenet: conv2_output_size[1] is not an integer. conv2_output_size =', conv2_output_size)
+        conv2_output_size = (conv2_num_kernels, int((pool1_output_size[1] - conv2_kernel_size) / conv2_stride))
+
+
+        self.conv2 = nn.Conv1d(conv1_num_kernels, conv2_num_kernels, conv2_kernel_size) # NOTE: THIS IS CORRECT!!!! CONV doesn't depend on num_features!
+        nn.init.kaiming_normal(self.conv2.weight.data)
+        self.conv2.bias.data.fill_(0)
+
+
+        # Pool2
+        print("pool2_kernel_size =", pool2_output_size)
+
+        pool2_output_size = (conv2_num_kernels, (conv2_output_size[1] - pool2_kernel_size) / pool2_stride + 1)
+        if not pool2_output_size[1].is_integer(): raise ValueError('lenet: pool2_output_size[1] is not an integer. pool2_output_size =', pool2_output_size)
+        pool2_output_size = (conv2_num_kernels, int((conv2_output_size[1] - pool2_kernel_size) / pool2_stride + 1))
+
+
+        self.pool2 = nn.MaxPool1d(pool2_kernel_size) # stride=2 by default.
+
+
+        # FCs
+        # conv2_output_size = (conv1_output_size - conv1_kernel_size) / conv2_stride
+        # if not pool1_kernel_size.is_integer(): raise ValueError('lenet: pool1_kernel_size is not an integer. It is', pool1_kernel_size)
+        fcs_input_size = pool2_output_size[0] * pool2_output_size[1]
+        self.fcs = FullyConnectedNet(fcs_input_size, output_size, fcs_hidden_size, fcs_num_hidden_layers)
 
 
     def forward(self, x):
         # pytorch.conv1d accepts shape (Batch, Channel, Width)
         # pytorch.conv2d accepts shape (Batch, Channel, Height, Width)
-        # print("x.size() was", x.size())
-        # x = x.transpose(1,2)
         # print("x.size() is", x.size())
-
-        # x = x.unsqueeze(2) # right now it's (32, 130, 1). Should be (130, 32, 1) or (1, 32, 130). NOTE it's not (1, 32, 130) or (32, 1, 130).  It has to be (1, 130, 32)
-        # print("x.size() unsqueezed", x.size())
-        # print("lenet.forward: x.shape =", x.shape)
+        print("input x.size() =", x.size())
         x = self.conv1(x)
-        # print("lenet.forward: x.shape =", x.shape)
+        print("conv1 x.size() =", x.size())
         x = F.relu(x)
+        x = self.pool1(x)
+        print("pool1 x.size() =", x.size())
+
+        x = self.conv2(x)
+        print("conv2 x.size() =", x.size())
+        x = F.relu(x)
+        x = self.pool2(x)
+        print("pool2 x.size() =", x.size())
+
+        # x = x.view(x.size(0), -1)
+        x = x.view(-1, x.size(0) * x.size(1))
+        # x = x.view(x.size(0) * x.size(1), -1) # Or this?
+        print("view x.size() =", x.size())
+
+        # print("lenet.forward: x.shape =", x.shape)
+        # x = F.relu(x)
         # print("lenet.forward: x.shape =", x.shape)
         x = self.fcs.forward(x)
         # x = self.pool1(x)
