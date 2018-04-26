@@ -74,10 +74,10 @@ class LeNet(nn.Module):
 
 
         # Conv2
-        print("conv2_output_size =", conv2_output_size)
 
 
         conv2_output_size = (conv2_num_kernels, (pool1_output_size[1] - conv2_kernel_size) / conv2_stride)
+        print("conv2_output_size =", conv2_output_size)
         if not conv2_output_size[1].is_integer(): raise ValueError('lenet: conv2_output_size[1] is not an integer. conv2_output_size =', conv2_output_size)
         conv2_output_size = (conv2_num_kernels, int((pool1_output_size[1] - conv2_kernel_size) / conv2_stride))
 
@@ -88,9 +88,9 @@ class LeNet(nn.Module):
 
 
         # Pool2
-        print("pool2_kernel_size =", pool2_output_size)
-
+        pool2_stride = 2
         pool2_output_size = (conv2_num_kernels, (conv2_output_size[1] - pool2_kernel_size) / pool2_stride + 1)
+        print("pool2_kernel_size =", pool2_output_size)
         if not pool2_output_size[1].is_integer(): raise ValueError('lenet: pool2_output_size[1] is not an integer. pool2_output_size =', pool2_output_size)
         pool2_output_size = (conv2_num_kernels, int((conv2_output_size[1] - pool2_kernel_size) / pool2_stride + 1))
 
