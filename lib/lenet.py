@@ -35,19 +35,18 @@ class LeNet(nn.Module):
         self.output_size = output_size
 
         input_channel = 2
-        print("input_size =", input_size)
+        # print("input_size =", input_size)
 
 
         # Conv1
-        print("conv1_kernel_size =", conv1_kernel_size)
-        print("conv1_stride =", conv1_stride)
+        # print("lenet: conv1_kernel_size =", conv1_kernel_size)
+        # print("lenet: conv1_stride =", conv1_stride)
 
 
-        conv1_output_size = (conv1_num_kernels, (input_size - conv1_kernel_size) / conv1_stride)
-        print("conv1_output_size =", conv1_output_size)
+        conv1_output_size = (conv1_num_kernels, (input_size - conv1_kernel_size) / conv1_stride + 1)
+        print("lenet: conv1_output_size =", conv1_output_size)
         if not conv1_output_size[1].is_integer(): raise ValueError('lenet: conv1_output_size is not an integer. It is', conv1_output_size)
-        conv1_output_size = (conv1_num_kernels, int((input_size - conv1_kernel_size) / conv1_stride))
-
+        conv1_output_size = (conv1_num_kernels, int(conv1_output_size[1]))
 
         self.conv1 = nn.Conv1d(input_channel, conv1_num_kernels, conv1_kernel_size) # NOTE: THIS IS CORRECT!!!! CONV doesn't depend on num_features!
         nn.init.kaiming_normal(self.conv1.weight.data)
@@ -60,26 +59,27 @@ class LeNet(nn.Module):
 
         # Pool1
         pool1_stride = 2
-        print("pool1_kernel_size =", pool1_kernel_size)
+        # print("lenet: pool1_kernel_size =", pool1_kernel_size)
 
-
+        print("lenet: pool1_output_size = (%s - %s ) / 2 + 1 = %s" % (conv1_output_size[1], pool1_kernel_size, (conv1_output_size[1] - pool1_kernel_size) / pool1_stride + 1))
         pool1_output_size = (conv1_num_kernels, (conv1_output_size[1] - pool1_kernel_size) / pool1_stride + 1)
         if not pool1_output_size[1].is_integer(): raise ValueError('lenet: pool1_kernel_size is not an integer. It is', pool1_output_size)
         pool1_output_size = (conv1_num_kernels, int((conv1_output_size[1] - pool1_kernel_size) / pool1_stride + 1))
+        print("lenet: pool1_output_size =", pool1_output_size)
 
 
 
-        self.pool1 = nn.MaxPool1d(pool1_kernel_size) # stride=2 by default.
+        self.pool1 = nn.MaxPool1d(pool1_kernel_size, stride=pool1_stride) # stride=pool1_kernel_size by default
 
 
 
         # Conv2
 
 
-        conv2_output_size = (conv2_num_kernels, (pool1_output_size[1] - conv2_kernel_size) / conv2_stride)
-        print("conv2_output_size =", conv2_output_size)
+        conv2_output_size = (conv2_num_kernels, (pool1_output_size[1] - conv2_kernel_size) / conv2_stride + 1)
+        print("lenet: conv2_output_size =", conv2_output_size)
         if not conv2_output_size[1].is_integer(): raise ValueError('lenet: conv2_output_size[1] is not an integer. conv2_output_size =', conv2_output_size)
-        conv2_output_size = (conv2_num_kernels, int((pool1_output_size[1] - conv2_kernel_size) / conv2_stride))
+        conv2_output_size = (conv2_num_kernels, int(conv2_output_size[1]))
 
 
         self.conv2 = nn.Conv1d(conv1_num_kernels, conv2_num_kernels, conv2_kernel_size) # NOTE: THIS IS CORRECT!!!! CONV doesn't depend on num_features!
@@ -90,18 +90,19 @@ class LeNet(nn.Module):
         # Pool2
         pool2_stride = 2
         pool2_output_size = (conv2_num_kernels, (conv2_output_size[1] - pool2_kernel_size) / pool2_stride + 1)
-        print("pool2_kernel_size =", pool2_output_size)
+        print("lenet: pool2_kernel_size =", pool2_output_size)
         if not pool2_output_size[1].is_integer(): raise ValueError('lenet: pool2_output_size[1] is not an integer. pool2_output_size =', pool2_output_size)
         pool2_output_size = (conv2_num_kernels, int((conv2_output_size[1] - pool2_kernel_size) / pool2_stride + 1))
 
 
-        self.pool2 = nn.MaxPool1d(pool2_kernel_size) # stride=2 by default.
+        self.pool2 = nn.MaxPool1d(pool2_kernel_size, stride=pool2_stride) # stride=pool1_kernel_size by default
 
 
         # FCs
         # conv2_output_size = (conv1_output_size - conv1_kernel_size) / conv2_stride
         # if not pool1_kernel_size.is_integer(): raise ValueError('lenet: pool1_kernel_size is not an integer. It is', pool1_kernel_size)
         fcs_input_size = pool2_output_size[0] * pool2_output_size[1]
+        print("lenet: fcs_input_size =", fcs_input_size)
         self.fcs = FullyConnectedNet(fcs_input_size, output_size, fcs_hidden_size, fcs_num_hidden_layers)
 
 
@@ -109,23 +110,23 @@ class LeNet(nn.Module):
         # pytorch.conv1d accepts shape (Batch, Channel, Width)
         # pytorch.conv2d accepts shape (Batch, Channel, Height, Width)
         # print("x.size() is", x.size())
-        print("input x.size() =", x.size())
+        # print("input x.size() =", x.size())
         x = self.conv1(x)
-        print("conv1 x.size() =", x.size())
+        # print("conv1 x.size() =", x.size())
         x = F.relu(x)
         x = self.pool1(x)
-        print("pool1 x.size() =", x.size())
+        # print("pool1 x.size() =", x.size())
 
         x = self.conv2(x)
-        print("conv2 x.size() =", x.size())
+        # print("conv2 x.size() =", x.size())
         x = F.relu(x)
         x = self.pool2(x)
-        print("pool2 x.size() =", x.size())
+        # print("pool2 x.size() =", x.size())
 
         # x = x.view(x.size(0), -1)
-        x = x.view(-1, x.size(0) * x.size(1))
+        x = x.view(-1, x.size(1) * x.size(2))
         # x = x.view(x.size(0) * x.size(1), -1) # Or this?
-        print("view x.size() =", x.size())
+        # print("view x.size() =", x.size())
 
         # print("lenet.forward: x.shape =", x.shape)
         # x = F.relu(x)
