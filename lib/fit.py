@@ -108,9 +108,9 @@ def train(model, loader, optimizer, cuda, loss_fn):
 
         inputs = Variable(data[0], requires_grad=False)
         targets = Variable(data[1], requires_grad=False)
-        if cuda:
+        if cuda == True:
             inputs = inputs.cuda()
-            targets = targets.cuda()
+            targets = targets.cuda(async=True) # CHANGED
 
         outputs = model(inputs)
 

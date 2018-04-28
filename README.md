@@ -23,3 +23,9 @@ Remember these for the next step. Let's say the port is `8893` and the token is
 ### 2. On your local machine
 
 You want to
+
+
+# CHANGES
+1. (CUDA) Attempt to improve performance with `torch.backends.cudnn.benchmark = True`
+1. (CUDA) Attempt to improve performance by adding `pin_memory=True` to DataLoader
+1. (CUDA) Attempt to improve performance by adding `async=True` in fit.py
