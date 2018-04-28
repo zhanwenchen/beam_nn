@@ -35,7 +35,7 @@ class LeNet(nn.Module):
         self.output_size = output_size
 
         input_channel = 2
-        print("lenet: conv2: conv2_kernel_size = %s, conv2_num_kernels = %s, conv2_stride = %s" % (conv2_kernel_size, conv2_num_kernels, conv2_stride))
+        # print("lenet: conv2: conv2_kernel_size = %s, conv2_num_kernels = %s, conv2_stride = %s" % (conv2_kernel_size, conv2_num_kernels, conv2_stride))
         # print("input_size =", input_size)
 
 
@@ -45,7 +45,7 @@ class LeNet(nn.Module):
 
 
         conv1_output_size = (conv1_num_kernels, (input_size - conv1_kernel_size) / conv1_stride + 1)
-        print("lenet: conv1_output_size =", conv1_output_size)
+        # print("lenet: conv1_output_size =", conv1_output_size)
         if not conv1_output_size[1].is_integer(): raise ValueError('lenet: conv1_output_size is not an integer. It is', conv1_output_size)
         conv1_output_size = (conv1_num_kernels, int(conv1_output_size[1]))
 
@@ -66,7 +66,7 @@ class LeNet(nn.Module):
         pool1_output_size = (conv1_num_kernels, (conv1_output_size[1] - pool1_kernel_size) / pool1_stride + 1)
         if not pool1_output_size[1].is_integer(): raise ValueError('lenet: pool1_kernel_size is not an integer. It is', pool1_output_size)
         pool1_output_size = (conv1_num_kernels, int((conv1_output_size[1] - pool1_kernel_size) / pool1_stride + 1))
-        print("lenet: pool1_output_size =", pool1_output_size)
+        # print("lenet: pool1_output_size =", pool1_output_size)
 
 
 
@@ -78,7 +78,7 @@ class LeNet(nn.Module):
 
 
         conv2_output_size = (conv2_num_kernels, (pool1_output_size[1] - conv2_kernel_size) / conv2_stride + 1)
-        print("lenet: conv2_output_size = (%s - %s ) / %s + 1 = %s" % (pool1_output_size[1], conv2_kernel_size, conv2_stride, conv2_output_size[1]))
+        # print("lenet: conv2_output_size = (%s - %s ) / %s + 1 = %s" % (pool1_output_size[1], conv2_kernel_size, conv2_stride, conv2_output_size[1]))
         # print("lenet: conv2_output_size =", conv2_output_size)
         if not conv2_output_size[1].is_integer(): raise ValueError('lenet: conv2_output_size[1] is not an integer. conv2_output_size =', conv2_output_size)
         conv2_output_size = (conv2_num_kernels, int(conv2_output_size[1]))
@@ -92,7 +92,7 @@ class LeNet(nn.Module):
         # Pool2
         pool2_stride = 2
         pool2_output_size = (conv2_num_kernels, (conv2_output_size[1] - pool2_kernel_size) / pool2_stride + 1)
-        print("lenet: pool2_output_size =", pool2_output_size)
+        # print("lenet: pool2_output_size =", pool2_output_size)
         if not pool2_output_size[1].is_integer(): raise ValueError('lenet: pool2_output_size[1] is not an integer. pool2_output_size =', pool2_output_size)
         pool2_output_size = (conv2_num_kernels, int((conv2_output_size[1] - pool2_kernel_size) / pool2_stride + 1))
 
@@ -104,7 +104,7 @@ class LeNet(nn.Module):
         # conv2_output_size = (conv1_output_size - conv1_kernel_size) / conv2_stride
         # if not pool1_kernel_size.is_integer(): raise ValueError('lenet: pool1_kernel_size is not an integer. It is', pool1_kernel_size)
         fcs_input_size = pool2_output_size[0] * pool2_output_size[1]
-        print("lenet: fcs_input_size =", fcs_input_size)
+        # print("lenet: fcs_input_size =", fcs_input_size)
         self.fcs = FullyConnectedNet(fcs_input_size, output_size, fcs_hidden_size, fcs_num_hidden_layers)
 
 
