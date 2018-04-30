@@ -6,7 +6,7 @@ import os
 import time
 import numpy as np
 
-def fit(model, loader, train2_loader, validate_loader, optimizer, save_path, cuda=True, loss='MSE'):
+def fit(model, loader, train2_loader, validate_loader, optimizer, save_path, cuda=True, loss='MSE', patience=10): # CHANGED patience is parameterized and is now by default 10 instead of 1
     if loss == 'MSE':
         # loss
         loss_fn = nn.MSELoss()
@@ -23,7 +23,7 @@ def fit(model, loader, train2_loader, validate_loader, optimizer, save_path, cud
     # setup initial loss_valid
     epoch = 1
     loss_valid_best = 100
-    patience = 1
+    # patience = 1
     num_epochs_increased = 0
     best_epoch = 1
 
@@ -47,7 +47,7 @@ def fit(model, loader, train2_loader, validate_loader, optimizer, save_path, cud
         epoch_list.append(epoch)
 
         # display results
-        # print('E: {:02d} / Train: {:.3e} / Valid: {:.3e} / Diff Valid: {:.2f}% / Diff Valid-Train: {:.1f}% / Time: {:.2f}'.format(epoch, loss_train, loss_valid, diff_loss, (loss_valid - loss_train)/loss_train*100, time_epoch))
+        print('E: {:02d} / Train: {:.3e} / Valid: {:.3e} / Diff Valid: {:.2f}% / Diff Valid-Train: {:.1f}% / Time: {:.2f}'.format(epoch, loss_train, loss_valid, diff_loss, (loss_valid - loss_train)/loss_train*100, time_epoch))
 
         # if validation loss improves
         if diff_loss < 0:
