@@ -27,6 +27,16 @@ def fit(model, loader, train2_loader, validate_loader, optimizer, save_path, cud
     num_epochs_increased = 0
     best_epoch = 1
 
+    run_index = 0
+
+    model_save_path = os.path.join(save_path, 'model_%s.dat' % run_index)
+    loss_save_path = os.path.join(save_path, 'loss_results_%s' % run_index)
+
+    while os.path.exists(model_save_path):
+        run_index += 1
+        model_save_path = os.path.join(save_path, 'model_%s.dat' % run_index)
+        loss_save_path = os.path.join(save_path, 'loss_results_%s' % run_index)
+
     # Perform training
     while True:
         # Run one iteration of SGD
@@ -47,7 +57,7 @@ def fit(model, loader, train2_loader, validate_loader, optimizer, save_path, cud
         epoch_list.append(epoch)
 
         # display results
-        print('E: {:02d} / Train: {:.3e} / Valid: {:.3e} / Diff Valid: {:.2f}% / Diff Valid-Train: {:.1f}% / Time: {:.2f}'.format(epoch, loss_train, loss_valid, diff_loss, (loss_valid - loss_train)/loss_train*100, time_epoch))
+        # print('E: {:02d} / Train: {:.3e} / Valid: {:.3e} / Diff Valid: {:.2f}% / Diff Valid-Train: {:.1f}% / Time: {:.2f}'.format(epoch, loss_train, loss_valid, diff_loss, (loss_valid - loss_train)/loss_train*100, time_epoch))
 
         # if validation loss improves
         if diff_loss < 0:
@@ -58,17 +68,17 @@ def fit(model, loader, train2_loader, validate_loader, optimizer, save_path, cud
             loss_valid_best = loss_valid
 
             # save the model
-            torch.save(model.state_dict(), os.path.join(save_path, 'model.dat'))
+            torch.save(model.state_dict(), model_save_path)
 
             # save the other stuff
-            np.savez(os.path.join(save_path, 'loss_results'),
-                        loss_train_batch_history=loss_train_batch_history,
-                        lr_batch_history=lr_batch_history,
-                        loss_train_epoch_history=loss_train_epoch_history,
-                        loss_valid_epoch_history=loss_valid_epoch_history,
-                        time_epoch_history=time_epoch_history,
-                        epoch_list=epoch_list,
-                        best_epoch=epoch)
+            np.savez(loss_save_path,
+                    loss_train_batch_history=loss_train_batch_history,
+                    lr_batch_history=lr_batch_history,
+                    loss_train_epoch_history=loss_train_epoch_history,
+                    loss_valid_epoch_history=loss_valid_epoch_history,
+                    time_epoch_history=time_epoch_history,
+                    epoch_list=epoch_list,
+                    best_epoch=epoch)
         else:
             num_epochs_increased += 1
 
@@ -82,7 +92,7 @@ def fit(model, loader, train2_loader, validate_loader, optimizer, save_path, cud
 
 
     # save the other stuff
-    np.savez(os.path.join(save_path, 'loss_results'),
+    np.savez(os.path.join(save_path, 'loss_results', ),
                 loss_train_batch_history=loss_train_batch_history,
                 lr_batch_history=lr_batch_history,
                 loss_train_epoch_history=loss_train_epoch_history,
@@ -93,7 +103,8 @@ def fit(model, loader, train2_loader, validate_loader, optimizer, save_path, cud
 
     diff_percent = (loss_valid - loss_train)/loss_train*100
     # print('Train: {:.3e} / Valid: {:.3e} / Diff Valid: {:.2f}% / Diff Valid-Train: {:.1f}%'.format(loss_train, loss_valid, diff_loss, diff_percent))
-    return loss_train, diff_percent
+    # return loss_train, diff_percent
+    return loss_valid_best, diff_percent # CHANGED: return best validation loss instead of training loss
 
 def train(model, loader, optimizer, cuda, loss_fn):
     model.train()

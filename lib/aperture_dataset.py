@@ -67,10 +67,13 @@ class ApertureDataset(Dataset):
         C_imaginery = np.max(np.abs(x_imaginery))
         if C_imaginery == 0: C_imaginery = 1
 
+
         x_real = x_real / C_real
-        x_imaginery = x_imaginery / C_imaginery
+        # x_imaginery = x_imaginery / C_imaginery # TODO: Try x_imaginery = x_imaginery / C_real instead
+        x_imaginery = x_imaginery / C_real # TODO: Try x_imaginery = x_imaginery / C_real instead
         y_real = y_real / C_real
-        y_imaginery = y_imaginery / C_imaginery
+        # y_imaginery = y_imaginery / C_imaginery # TODO: Try x_imaginery = x_imaginery / C_real instead
+        y_imaginery = y_imaginery / C_real # TODO: Try x_imaginery = x_imaginery / C_real instead
 
 
 
@@ -104,7 +107,7 @@ class ApertureDataset(Dataset):
         # y = y / C
 
         # convert data to single precision pytorch tensors
-        self.data_tensor = torch.from_numpy(x).float()
+        self.data_tensor = torch.from_numpy(x).float() # REVIEW: cuda()?
         self.target_tensor = torch.from_numpy(y).float()
 
         # close file
