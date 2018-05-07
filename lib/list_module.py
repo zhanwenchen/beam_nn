@@ -1,8 +1,12 @@
-# A wrapper for a module list.
+# list_module.py
+# A helper for fully_connected_net. Enable an arbitrary number of fully
+# connected layers by using PyTorch ModuleList (module.add_module).
+
+
 from torch import nn
+
+
 class ListModule(object):
-    #Should work with all kind of module
-    # def __init__(self, module, prefix, *args):
     def __init__(self, module, prefix, *args): # CHANGED
         self.module = module
         self.prefix = prefix
@@ -32,6 +36,3 @@ class ListModule(object):
             return getattr(self.module, self.prefix + str(key)) #Get the data from elsewhere
         else:
             raise TypeError("Invalid argument type.")
-        # if i < 0 or i >= self.num_module:
-        #     raise IndexError('Out of bound')
-        # return getattr(self.module, self.prefix + str(i))

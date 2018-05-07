@@ -44,16 +44,6 @@ class ApertureDataset(Dataset):
             self.num_samples = num_samples
 
         # load the data
-        # inputs = np.hstack([ f['/' + str(k) + '/aperture_data/real'][0:self.num_samples],
-        #                     f['/' + str(k) + '/aperture_data/imag'][0:self.num_samples] ] )
-        # print("inputs.shape used to be", inputs.shape)
-        # C = np.max(np.abs(inputs), axis=1)[:, np.newaxis]
-        # C[np.where(C==0)[0]] = 1
-        # # print("C.shape used to be", C.shape)
-        # print("x used to be", inputs[:2])
-        # print("C used to be", C[:2])
-
-
         x_real = np.array(f['/' + str(k) + '/aperture_data/real'][0:self.num_samples])
         x_imaginery = np.array(f['/' + str(k) + '/aperture_data/imag'][0:self.num_samples])
 
@@ -61,56 +51,26 @@ class ApertureDataset(Dataset):
         y_imaginery = np.array(f['/' + str(k) + '/targets/imag'][0:self.num_samples])
 
 
+        # Normalization
         # REVIEW: C is calculate only from inputs. WHy not both inputs and targets?
         C_real = np.max(np.abs(x_real))
         if C_real == 0: C_real = 1
         C_imaginery = np.max(np.abs(x_imaginery))
         if C_imaginery == 0: C_imaginery = 1
 
-
-        x_real = x_real / C_real
-        # x_imaginery = x_imaginery / C_imaginery # TODO: Try x_imaginery = x_imaginery / C_real instead
-        x_imaginery = x_imaginery / C_real # TODO: Try x_imaginery = x_imaginery / C_real instead
-        y_real = y_real / C_real
-        # y_imaginery = y_imaginery / C_imaginery # TODO: Try x_imaginery = x_imaginery / C_real instead
-        y_imaginery = y_imaginery / C_real # TODO: Try x_imaginery = x_imaginery / C_real instead
+        x_real, y_real = x_real / C_real, y_real / C_real
+        x_imaginery, y_imaginery = x_imaginery / C_real, y_imaginery / C_real
 
 
-
+        # Stacking x as (2 x 65) and y as (1 x 130)
         x = np.stack((x_real, x_imaginery), axis=1)
-        # y = np.stack((y_real, y_imaginery), axis=1)
         y = np.hstack((y_real, y_imaginery))
 
-        xy_real = np.vstack((x_real, y_real))
-        xy_imaginery = np.vstack((x_imaginery, y_imaginery))
 
-
-
-
-        # inputs = np.stack([ f['/' + str(k) + '/aperture_data/real'][0:self.num_samples],
-        #                     f['/' + str(k) + '/aperture_data/imag'][0:self.num_samples] ], axis=2)
-        # targets = np.stack([ f['/' + str(k) + '/targets/real'][0:self.num_samples],
-        #                     f['/' + str(k) + '/targets/imag'][0:self.num_samples] ], axis=2)
-
-        # print("inputs.shape is now", inputs.shape)
-        # print("targets.shape =", inputs.shape)
-        # # normalize the training data
-        # C = np.max(np.abs(x), axis=2)[:, np.newaxis]
-        # C[np.where(C==0)[0]] = 1
-        # print("C.shape =", C.shape)
-        #
-        # print("inputs[:2, :, :]")
-        # print(x[:2])
-        # print("C[:2, :, :]")
-        # print(C[:2])
-        # x = x / C
-        # y = y / C
-
-        # convert data to single precision pytorch tensors
+        # Convert data to single precision pytorch tensors.
         self.data_tensor = torch.from_numpy(x).float() # REVIEW: cuda()?
         self.target_tensor = torch.from_numpy(y).float()
 
-        # close file
         f.close()
 
     def __len__(self):
