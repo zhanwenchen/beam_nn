@@ -82,20 +82,15 @@ class LeNet(nn.Module):
     def forward(self, x):
         # pytorch.conv1d accepts shape (Batch, Channel, Width)
         # pytorch.conv2d accepts shape (Batch, Channel, Height, Width)
-        print("lenet: before conv1: x.size() =", x.size())
         x = self.conv1(x)
         x = F.relu(x)
-        print("lenet: before pool1: x.size() =", x.size())
         x = self.pool1(x)
 
-        print("lenet: before conv2: x.size() =", x.size())
         x = self.conv2(x)
         x = F.relu(x)
-        print("lenet: before pool2: x.size() =", x.size())
         x = self.pool2(x)
 
         x = x.view(-1, x.size(1) * x.size(2))
 
-        print("lenet: before fcs: x.size() =", x.size())
         x = self.fcs.forward(x)
         return x
