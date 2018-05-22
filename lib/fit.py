@@ -131,8 +131,8 @@ def train(model, loader, optimizer, cuda, loss_fn):
 
         loss = loss_fn(outputs, targets)
 
-        # loss_per_batch.append(loss.data[0])
-        loss_per_batch.append(loss.item()) # CHANGED for PyTorch 0.4.0
+        loss_per_batch.append(loss.data[0])
+        # loss_per_batch.append(loss.item()) # CHANGED for PyTorch 0.4.0
 
         loss.backward()
 
@@ -153,7 +153,7 @@ def loss_compute(model, dat_loader, loss_fn, cuda):
 
         outputs = model(inputs)
 
-        # loss = loss + loss_fn(outputs, targets).data[0]
-        loss = loss + loss_fn(outputs, targets).item() # CHANGED for PyTorch 0.4.0
+        loss = loss + loss_fn(outputs, targets).data[0]
+        # loss = loss + loss_fn(outputs, targets).item() # CHANGED for PyTorch 0.4.0
 
     return loss / len(dat_loader)
