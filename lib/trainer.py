@@ -36,7 +36,7 @@ class Trainer():
         if self.cuda:
             self.model.cuda()
             self.loss.cuda()
-        
+
         total_loss = 0
         for batch_idx, data in enumerate(self.loader_train):
 
@@ -51,7 +51,7 @@ class Trainer():
                 C = X_power / SNR
                 X_noise = X + noise * np.sqrt(C)
                 data[0] = torch.from_numpy(np.float32( X_noise) )
-            
+
             inputs = Variable(data[0], requires_grad=False)
             targets = Variable(data[1], requires_grad=False)
             if self.cuda:
@@ -67,7 +67,7 @@ class Trainer():
 
             # accumulate loss
             total_loss += loss.data[0]
-            
+
         return total_loss / len(self.loader_train)
 
 
@@ -96,7 +96,7 @@ class Trainer():
                 C = X_power / SNR
                 X_noise = X + noise * np.sqrt(C)
                 data[0] = torch.from_numpy(np.float32( X_noise) )
-            
+
             inputs = Variable(data[0], requires_grad=False)
             targets = Variable(data[1], requires_grad=False)
             if self.cuda:
@@ -115,8 +115,8 @@ class Trainer():
 
     def train(self):
         """ Train the model
-        """  
-      
+        """
+
         # initial setup
         epoch = 1
         loss_val_best = 100
@@ -133,7 +133,7 @@ class Trainer():
             loss_train_eval = self.compute_loss(self.loader_train_eval)
             loss_val = self.compute_loss(self.loader_val)
             time_epoch = time.time() - t0
-            self.logger.add_entry( {'loss_train' : loss_train, 
+            self.logger.add_entry( {'loss_train' : loss_train,
                                 'loss_train_eval' : loss_train_eval,
                                 'loss_val' : loss_val} )
 

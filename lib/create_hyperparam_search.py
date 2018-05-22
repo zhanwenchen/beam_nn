@@ -14,6 +14,11 @@ def lenet_params(input_size):
     """
     """
 
+    # TODO: random search these
+    conv_dropout = 0.3 # dropout at the end of convolution layers
+    fcs_dropout = 0.5
+    learning_rate = 0.001
+
     # conv1
     try_conv1_kernel_sizess = list(range(6, 10)) # CHANGED
     try_conv1_num_kernels = list(range(16, 41)) # CHANGED
@@ -100,7 +105,6 @@ def lenet_params(input_size):
     fcs_num_hidden_layers = choose_int(try_fc_num_hidden_layers)
 
 
-
     model_params = {}
     model_params['conv1_kernel_size'] = conv1_kernel_size
     model_params['conv1_num_kernels'] = conv1_num_kernels
@@ -110,10 +114,13 @@ def lenet_params(input_size):
     model_params['conv2_kernel_size'] = conv2_kernel_size
     model_params['conv2_num_kernels'] = conv2_num_kernels
     model_params['conv2_stride'] = conv2_stride
+    model_params['conv_dropout'] = conv_dropout
     model_params['pool2_kernel_size'] = pool2_kernel_size
     model_params['pool2_stride'] = pool2_stride
     model_params['fcs_hidden_size'] = fcs_hidden_size
     model_params['fcs_num_hidden_layers'] = fcs_num_hidden_layers
+    model_params['fcs_dropout'] = fcs_dropout
+    model_params['learning_rate'] = learning_rate
 
     return model_params
 
@@ -154,8 +161,8 @@ if __name__ == '__main__':
 
        # set other params
         model_params['data_is_target'] = data_is_target
-        model_params['data_train'] = os.path.join('/home', 'luchieac', 'train_datasets', '20180402_L74_70mm', 'train_' + str(n_scat) + '.h5')
-        model_params['data_val'] = os.path.join('/home', 'luchieac', 'train_datasets', '20180402_L74_70mm', 'val_' + str(n_scat) + '.h5')
+        model_params['data_train'] = os.path.join('/home', 'chenz28', 'Downloads', '20180402_L74_70mm', 'train_' + str(n_scat) + '.h5')
+        model_params['data_val'] = os.path.join('/home', 'chenz28', 'Downloads', '20180402_L74_70mm', 'val_' + str(n_scat) + '.h5')
         model_params['batch_size'] = bs
         model_params['data_noise_gaussian'] = data_noise_gaussian
         #model_params['dropout_input'] = dropout_input

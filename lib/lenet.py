@@ -45,7 +45,7 @@ class LeNet(nn.Module):
         nn.init.kaiming_normal(self.conv1.weight.data)
         self.conv1.bias.data.fill_(0)
 
-        self.drop1 = nn.Dropout2d(p=conv_dropout)
+        # self.drop1 = nn.Dropout2d(p=conv_dropout)
 
 
         # Pool1
@@ -90,7 +90,7 @@ class LeNet(nn.Module):
         x = x.view(-1, 2, N_elements)
         x = self.conv1(x)
         x = F.relu(x)
-        x = self.drop1(x)
+        # x = self.drop1(x)
         x = self.pool1(x)
         x = self.conv2(x)
         x = F.relu(x)

@@ -6,6 +6,7 @@ import numpy as np
 import warnings
 import time
 import argparse
+from pprint import pprint
 
 from utils import read_model_params, save_model_params, ensure_dir, add_suffix_to_path
 from dataloader import ApertureDataset
@@ -25,7 +26,7 @@ if __name__ == '__main__':
     model_params = read_model_params(args.model_params_path)
 
     # display input arguments
-    print(model_params)
+    pprint(model_params)
 
     # cuda flag
     print('torch.cuda.is_available(): ' + str(torch.cuda.is_available()))
@@ -63,7 +64,9 @@ if __name__ == '__main__':
                     model_params['conv2_num_kernels'],
                     model_params['conv2_stride'],
                     model_params['pool1_stride'],
-                    model_params['pool2_stride'])
+                    model_params['pool2_stride'],
+                    model_params['conv_dropout'],
+                    model_params['fcs_dropout'])
 
 
     if model_params['cuda']:
@@ -82,7 +85,7 @@ if __name__ == '__main__':
     loss = torch.nn.MSELoss()
 
     # optimizer
-    optimizer = torch.optim.Adam(model.parameters(), weight_decay=model_params['weight_decay'])
+    optimizer = torch.optim.Adam(model.parameters(), lr=model_params['learning_rate'], weight_decay=model_params['weight_decay'])
 
     # logger
     logger = Logger()
