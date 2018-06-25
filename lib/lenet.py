@@ -15,7 +15,7 @@ import torch.nn.functional as F
 import torch.nn as nn
 
 
-from fully_connected_net import FullyConnectedNet
+from lib.fully_connected_net import FullyConnectedNet
 
 
 class LeNet(nn.Module):
@@ -24,7 +24,7 @@ class LeNet(nn.Module):
                  conv1_kernel_size, conv1_num_kernels, conv1_stride,
                  pool2_kernel_size,
                  conv2_kernel_size, conv2_num_kernels, conv2_stride,
-                 pool1_stride=2, pool2_stride=2, conv_dropout=0.3, fcs_dropout=0.5):
+                 pool1_stride=2, pool2_stride=2, conv1_dropout=0, conv2_dropout=0.3, fcs_dropout=0.5):
         """"""
         super(LeNet, self).__init__()
 
@@ -45,34 +45,35 @@ class LeNet(nn.Module):
         nn.init.kaiming_normal(self.conv1.weight.data)
         self.conv1.bias.data.fill_(0)
 
-        # self.drop1 = nn.Dropout2d(p=conv_dropout)
-
-
         # Pool1
         pool1_output_size = (conv1_num_kernels, (conv1_output_size[1] - pool1_kernel_size) / pool1_stride + 1)
         if not pool1_output_size[1].is_integer():
             raise ValueError('lenet: pool1_output_size[1] %s is not an integer.' % pool1_output_size[1])
-        pool1_output_size = (conv1_num_kernels, int((conv1_output_size[1] - pool1_kernel_size) / pool1_stride + 1))
+            pool1_output_size = (conv1_num_kernels, int((conv1_output_size[1] - pool1_kernel_size) / pool1_stride + 1))
 
         self.pool1 = nn.MaxPool1d(pool1_kernel_size, stride=pool1_stride) # stride=pool1_kernel_size by default
+
+
+        self.conv1_drop = nn.Dropout2d(p=conv1_dropout)
 
 
         # Conv2
         conv2_output_size = (conv2_num_kernels, (pool1_output_size[1] - conv2_kernel_size) / conv2_stride + 1)
         if not conv2_output_size[1].is_integer():
             raise ValueError('lenet: conv2_output_size[1] is not an integer. conv2_output_size =', conv2_output_size)
-        conv2_output_size = (conv2_num_kernels, int(conv2_output_size[1]))
+            conv2_output_size = (conv2_num_kernels, int(conv2_output_size[1]))
 
         self.conv2 = nn.Conv1d(conv1_num_kernels, conv2_num_kernels, conv2_kernel_size, stride=conv2_stride) # NOTE: THIS IS CORRECT!!!! CONV doesn't depend on num_features!
         nn.init.kaiming_normal(self.conv2.weight.data)
         self.conv2.bias.data.fill_(0)
 
-        self.drop2 = nn.Dropout2d(p=conv_dropout)
+        self.conv2_drop = nn.Dropout2d(p=conv2_dropout)
 
         # Pool2
         pool2_output_size = (conv2_num_kernels, (conv2_output_size[1] - pool2_kernel_size) / pool2_stride + 1)
-        if not pool2_output_size[1].is_integer(): raise ValueError('lenet: pool2_output_size[1] is not an integer. pool2_output_size =', pool2_output_size)
-        pool2_output_size = (conv2_num_kernels, int((conv2_output_size[1] - pool2_kernel_size) / pool2_stride + 1))
+        if not pool2_output_size[1].is_integer():
+            raise ValueError('lenet: pool2_output_size[1] is not an integer. pool2_output_size =', pool2_output_size)
+            pool2_output_size = (conv2_num_kernels, int((conv2_output_size[1] - pool2_kernel_size) / pool2_stride + 1))
 
         self.pool2 = nn.MaxPool1d(pool2_kernel_size, stride=pool2_stride) # stride=pool1_kernel_size by default
 
@@ -82,21 +83,29 @@ class LeNet(nn.Module):
         self.fcs = FullyConnectedNet(fcs_input_size, output_size, fcs_hidden_size, fcs_num_hidden_layers, dropout=fcs_dropout)
 
 
+    # CHANGED: moved relu after pool
+    # CHANGED: moved dropout after relu
     def forward(self, x):
         # pytorch.conv1d accepts shape (Batch, Channel, Width)
         # pytorch.conv2d accepts shape (Batch, Channel, Height, Width)
         # import code; code.interact(local=dict(globals(), **locals()))
-        N_elements = int( x.shape[1] / 2)
+        N_elements = int(x.shape[1] / 2)
         x = x.view(-1, 2, N_elements)
+
         x = self.conv1(x)
-        x = F.relu(x)
-        # x = self.drop1(x)
         x = self.pool1(x)
-        x = self.conv2(x)
         x = F.relu(x)
-        x = self.drop2(x)
+        x = self.conv1_drop(x)
+        # x = self.batch_norm1(x)
+
+        x = self.conv2(x)
         x = self.pool2(x)
+        x = F.relu(x)
+        x = self.conv2_drop(x)
+        # x = self.batch_norm2(x)
+
         x = x.view(-1, x.size(1) * x.size(2))
 
         x = self.fcs.forward(x)
+
         return x
