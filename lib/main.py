@@ -34,6 +34,7 @@ if __name__ == '__main__':
         print('Using ' + str(torch.cuda.get_device_name(0)))
     else:
         print('Not using CUDA')
+        warnings.warn('Not using CUDA')
 
     # Load primary training data
     num_samples = 10 ** 5

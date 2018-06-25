@@ -122,9 +122,6 @@ def lenet_params(input_size):
     return model_params
 
 
-
-
-
 if __name__ == '__main__':
     # parse input arguments
     parser = argparse.ArgumentParser()
