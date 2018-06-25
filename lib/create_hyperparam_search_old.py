@@ -1,31 +1,23 @@
-#!/usr/bin/python
-
-from itertools import product
 import os
 import time
 import random
-import numpy as np
+import argparse
 
 
-from lib.utils import save_model_params, ensure_dir
-from hyperparam_ranges import model_hyperparameters, training_hyperparameters
+from utils import save_model_params, ensure_dir
 
-def lenet_params():
-    """
-    """
-    # First Convolutional Layer
-    conv1_kernel_size = random.choice(model_hyperparameters['conv1_kernel_size'])
-    conv1_num_kernels = random.choice(model_hyperparameters['conv1_num_kernels'])
-    conv1_stride = random.choice(model_hyperparameters['conv1_stride'])
-    conv1_dropout = random.choice(model_hyperparameters['conv1_dropout'])
 
-    # 
+def lenet_params(input_size):
+    """Generate hyperparameters for LeNet"""
+    # TODO: random search these
+    conv_dropout = 0.3 # dropout at the end of convolution layers
     fcs_dropout = 0.5
     learning_rate = 0.001
 
     # conv1
-    try_conv1_num_kernels = list(range(16, 41)) # CHANGED
-    # try_conv1_strides = [1, 2] # CHANGED
+    try_conv1_kernel_sizess = list(range(6, 10))
+    try_conv1_num_kernels = list(range(16, 41))
+    # try_conv1_strides = [1, 2]
     conv1_stride = 1
 
     # pool1
@@ -56,16 +48,18 @@ def lenet_params():
     #         # conv1_output_size must be an integer
     #         # random search is not the most efficient approach but I'm too lazy to filter right now.
     #         conv1_stride = choose_int(try_conv1_strides)
-    #         conv1_output_size = yperparameter Search
-    def choose_int(array): return int(np.random.choice(array)) # int() because PyTorch doesn't convert np.int64 to int.
+    #         conv1_output_size = hyperparameter Search
+    # def choose_int(array): return int(np.random.choice(array)) # int() because PyTorch doesn't convert np.int64 to int.
 
     # choose random hyperparameters: optimization
 #     batch_size = choose_int(try_batch_sizes)
 #     learning_rate = np.random.choice(try_learning_rates)
 
     # choose random hyperparameters: model
-    conv1_kernel_size = choose_int(try_conv1_kernel_sizess)
-    conv1_num_kernels = choose_int(try_conv1_num_kernels)
+    # conv1_kernel_size = choose_int(try_conv1_kernel_sizess)
+    conv1_kernel_size = random.choice(try_conv1_kernel_sizess)
+    # conv1_num_kernels = choose_int(try_conv1_num_kernels)
+    conv1_num_kernels = random.choice(try_conv1_num_kernels)
 #     conv1_stride = choose_int(try_conv1_strides)
 
     # enforce relative shape and divisibility
@@ -77,16 +71,16 @@ def lenet_params():
 #         conv1_output_size = (conv1_num_kernels, (input_size - conv1_kernel_size) / conv1_stride + 1)
 
     # pool1_kernel_size = 3 # by default
-    pool1_kernel_size = choose_int(try_pool1_sizes)
+    pool1_kernel_size = random.choice(try_pool1_sizes)
     if conv1_output_size[1] % 2 == 0: pool1_kernel_size = 2
     pool1_output_size = (conv1_num_kernels, (conv1_output_size[1] - pool1_kernel_size) / pool1_stride + 1)
     while isinstance(pool1_output_size[1], float) and not pool1_output_size[1].is_integer():
         # conv1_output_size must be an integer
-        pool1_kernel_size = choose_int(try_pool1_sizes)
+        pool1_kernel_size = random.choice(try_pool1_sizes)
         pool1_output_size = (conv1_num_kernels, (conv1_output_size[1] - pool1_kernel_size) / pool1_stride + 1)
 
-    conv2_kernel_size = choose_int(try_conv2_kernel_sizess)
-    conv2_num_kernels = choose_int(try_conv2_num_kernels)
+    conv2_kernel_size = random.choice(try_conv2_kernel_sizess)
+    conv2_num_kernels = random.choice(try_conv2_num_kernels)
 #     conv2_stride = choose_int(try_conv2_strides)
 
     conv2_output_size = (conv2_num_kernels, (pool1_output_size[1] - conv2_kernel_size) / conv2_stride + 1)
@@ -104,8 +98,8 @@ def lenet_params():
 #         pool2_kernel_size = choose_int(try_pool2_sizes)
 #         pool2_output_size = (conv2_num_kernels, (conv2_output_size[1] - pool2_kernel_size) / pool2_stride + 1)
 
-    fcs_hidden_size = choose_int(try_fc_hidden_sizes)
-    fcs_num_hidden_layers = choose_int(try_fc_num_hidden_layers)
+    fcs_hidden_size = random.choice(try_fc_hidden_sizes)
+    fcs_num_hidden_layers = random.choice(try_fc_num_hidden_layers)
 
 
     model_params = {}
@@ -132,6 +126,10 @@ def lenet_params():
 
 
 if __name__ == '__main__':
+    # parse input arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('num_networks', type=int, help='The number of networks to train.')
+    args = parser.parse_args()
 
     identifier = str( round(time.time()) )
     k_list = [3, 4, 5]
@@ -148,8 +146,7 @@ if __name__ == '__main__':
     output_dim = 130
 
     count = 1
-    total_networks = 1
-    while count <= total_networks:
+    while count <= args.num_networks:
 
         data_is_target = random.choice(data_is_target_list)
         n_scat = random.choice(num_scat_list)
