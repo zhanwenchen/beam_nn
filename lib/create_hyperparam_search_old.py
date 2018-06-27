@@ -45,7 +45,7 @@ def lenet_params(input_size):
 
 
     # Random Hnv1_output_size[1], float) and not conv1_output_size[1].is_integer():
-    #         # conv1_output_size must be an integer
+    #         # conv1_output_size must be an intege r
     #         # random search is not the most efficient approach but I'm too lazy to filter right now.
     #         conv1_stride = choose_int(try_conv1_strides)
     #         conv1_output_size = hyperparameter Search
@@ -158,8 +158,9 @@ if __name__ == '__main__':
 
        # set other params
         model_params['data_is_target'] = data_is_target
-        model_params['data_train'] = os.path.join('/home', 'chenz28', 'Downloads', '20180402_L74_70mm', 'train_' + str(n_scat) + '.h5')
-        model_params['data_val'] = os.path.join('/home', 'chenz28', 'Downloads', '20180402_L74_70mm', 'val_' + str(n_scat) + '.h5')
+        home = os.path.expanduser('~')
+        model_params['data_train'] = os.path.join(home,'Downloads', '20180402_L74_70mm', 'train_' + str(n_scat) + '.h5')
+        model_params['data_val'] = os.path.join(home, 'Downloads', '20180402_L74_70mm', 'val_' + str(n_scat) + '.h5')
         model_params['batch_size'] = bs
         model_params['data_noise_gaussian'] = data_noise_gaussian
         #model_params['dropout_input'] = dropout_input

@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     # parse input arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_params_path', help='Option to load model params from a file. Values in this file take precedence.')
+    parser.add_argument('model_params_path', help='Option to load model params from a file. Values in this file take precedence.')
     args = parser.parse_args()
 
     # load model params if it is specified
@@ -30,7 +30,8 @@ if __name__ == '__main__':
 
     # cuda flag
     print('torch.cuda.is_available(): ' + str(torch.cuda.is_available()))
-    if model_params['cuda'] and torch.cuda.is_available():
+    using_cuda = model_params['cuda'] and torch.cuda.is_available()
+    if using_cuda:
         print('Using ' + str(torch.cuda.get_device_name(0)))
     else:
         print('Not using CUDA')
@@ -70,7 +71,7 @@ if __name__ == '__main__':
                     model_params['fcs_dropout'])
 
 
-    if model_params['cuda']:
+    if using_cuda:
         model.cuda()
 
     # save initial weights
@@ -99,7 +100,7 @@ if __name__ == '__main__':
                         loader_train=loader_train,
                         loader_train_eval=loader_train_eval,
                         loader_val=loader_val,
-                        cuda=model_params['cuda'],
+                        cuda=using_cuda,
                         logger=logger,
                         data_noise_gaussian=model_params['data_noise_gaussian'],
                         save_dir=model_params['save_dir'])

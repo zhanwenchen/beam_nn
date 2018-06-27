@@ -19,6 +19,7 @@ class FullyConnectedNet(nn.Module):
     """
     def __init__(self, input_dim, output_dim, layer_width, num_hidden=1, dropout=0, dropout_input=0, batch_norm=False):
 
+        print('fully_connected_net: got input_dim = %s, output_dim = %s, layer_width = %s, num_hidden = %s, dropout = %s, dropout_input = %s, batch_norm = %s' % (input_dim, output_dim, layer_width, num_hidden, dropout, dropout_input, batch_norm))
         super().__init__()
 
         self.batch_norm = batch_norm
@@ -34,7 +35,7 @@ class FullyConnectedNet(nn.Module):
         # build as many batch_norm layers minus the last one
         # TODO: assume there's no output batch norm
         if self.batch_norm == True:
-            self.batch_norm_layers = nn.ModuleList([nn.BatchNorm1d(input_dim)])
+            self.batch_norm_layers = nn.ModuleList([nn.BatchNorm1d(layer_width)]) # TODO: not input_dim?
             for i in range(num_hidden - 1):
                 self.batch_norm_layers.append(nn.BatchNorm1d(layer_width))
         else:

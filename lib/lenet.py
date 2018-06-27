@@ -15,7 +15,7 @@ import torch.nn.functional as F
 import torch.nn as nn
 
 
-from lib.fully_connected_net import FullyConnectedNet
+from fully_connected_net import FullyConnectedNet
 
 
 class LeNet(nn.Module):
@@ -80,7 +80,10 @@ class LeNet(nn.Module):
 
         # FCs
         fcs_input_size = pool2_output_size[0] * pool2_output_size[1]
-        self.fcs = FullyConnectedNet(fcs_input_size, output_size, fcs_hidden_size, fcs_num_hidden_layers, dropout=fcs_dropout)
+        if not fcs_input_size.is_integer():
+            raise ValueError('lenet: fcs_input_size = ' + fcs_input_size + ' is not an integer')
+        fcs_input_size = int(fcs_input_size)
+        self.fcs = FullyConnectedNet(fcs_input_size, output_size, fcs_hidden_size, num_hidden=fcs_num_hidden_layers, dropout=fcs_dropout, batch_norm=True)
 
 
     # CHANGED: moved relu after pool
