@@ -2,17 +2,22 @@
 
 ## Run instructions
 
-The preferred way to run the experiment is through `lib/main.py`. The following
-are instructions for using a remote machine with CUDA, assuming you have
-ssh access to the said machine.
-
-### 2. On your local machine
-
-For example, you can specify a single DNN for a specific k value like
+Before training, under the project directory, create e.g. 50 models
 
 ```sh
-python lib/main.py DNNs/1530127690_1/k_3/model_params.txt
+pwd # should print ../beam_nn
+python lib/create_hyperparam_search_old.py 50
 ```
+
+This creates 50 models under the beam_nn/DNNs folder.
+
+Then train these models by running lib/main.py:
+
+```sh
+python lib/main.py DNNs/
+```
+
+This should start the training process!
 
 
 # CHANGES

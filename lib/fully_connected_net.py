@@ -7,7 +7,6 @@ import warnings
 class FullyConnectedNet(nn.Module):
     """Fully connected network. ReLU is the activation function.
         Network parameters are intialized with a normal distribution.
-
     Args:
         input_dim
         output_dim
@@ -15,7 +14,6 @@ class FullyConnectedNet(nn.Module):
         num_hidden
         dropout
         dropout_input
-
     """
     def __init__(self, input_dim, output_dim, layer_width, num_hidden=1, dropout=0, dropout_input=0, batch_norm=False):
 
