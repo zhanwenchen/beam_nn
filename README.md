@@ -2,6 +2,14 @@
 
 ## Run instructions
 
+
+# Approach 1: Use create_50_models_and_train.sh
+```sh
+chmod +x create_50_models_and_train.sh
+./create_50_models_and_train.sh
+```
+
+# Approach 2: Create Any Number of Models and Train
 Before training, under the project directory, create e.g. 50 models
 
 ```sh
