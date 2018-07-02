@@ -66,7 +66,8 @@ class Trainer():
             self.optimizer.step()
 
             # accumulate loss
-            total_loss += loss.data[0]
+            # total_loss += loss.data[0] # before PyTorch 0.4.0
+            total_loss += loss.item() # PyTorch 0.4.0 and after
 
         return total_loss / len(self.loader_train)
 
@@ -108,14 +109,14 @@ class Trainer():
             loss = self.loss(outputs, targets)
 
             # accumulate loss
-            total_loss += loss.data[0]
+            # total_loss += loss.data[0] # before PyTorch 0.4.0
+            total_loss += loss.item() # PyTorch 0.4.0 and after
 
         return total_loss / len(dat_loader)
 
 
     def train(self):
-        """ Train the model
-        """
+        """Train the model"""
 
         # initial setup
         epoch = 1
@@ -167,4 +168,4 @@ class Trainer():
                 break
 
             # advance epoch counter
-            epoch = epoch + 1
+            epoch += 1

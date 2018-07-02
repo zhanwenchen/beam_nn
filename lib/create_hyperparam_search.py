@@ -1,5 +1,5 @@
 # create_hyperparam_search.py
-#
+# Example: python lib/create_hyperparam_search.py 50 hyperparam_ranges.json
 
 import os
 import time
