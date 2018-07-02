@@ -9,12 +9,12 @@ chmod +x create_50_models_and_train.sh
 ./create_50_models_and_train.sh
 ```
 
-# Approach 2: Create Any Number of Models and Train
+# Approach 2: Create Any Number of Models (Using a Range Spec) and Train
 Before training, under the project directory, create e.g. 50 models
 
 ```sh
 pwd # should print ../beam_nn
-python lib/create_hyperparam_search_old.py 50
+Example: python lib/create_hyperparam_search.py 50 hyperparam_ranges.json
 ```
 
 This creates 50 models under the beam_nn/DNNs folder.
