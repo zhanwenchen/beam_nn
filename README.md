@@ -1,5 +1,10 @@
 # Approximating Low-Pass Filters with Neural Networks
 
+## Project TODOs:
+
+-[] Try Dropout1d instead of current Dropout2d
+-[] Try Adam and SGD
+
 ## Run instructions
 
 

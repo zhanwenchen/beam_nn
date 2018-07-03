@@ -1,13 +1,13 @@
 #!/usr/bin/env python
-
 import torch
 import os
 import numpy as np
-import warnings
 import time
 import argparse
-from pprint import pprint
 import glob
+
+import warnings
+from pprint import pprint
 
 
 from utils import read_model_params, save_model_params, ensure_dir, add_suffix_to_path
@@ -70,22 +70,33 @@ if __name__ == '__main__':
             loader_val = torch.utils.data.DataLoader(dat_val, batch_size=model_params['batch_size'], shuffle=False, num_workers=1)
 
             # create model
-            model = LeNet(model_params['input_dim'],
-                            model_params['output_dim'],
-                            model_params['fcs_hidden_size'],
-                            model_params['fcs_num_hidden_layers'],
-                            model_params['pool1_kernel_size'],
-                            model_params['conv1_kernel_size'],
-                            model_params['conv1_num_kernels'],
-                            model_params['conv1_stride'],
-                            model_params['pool2_kernel_size'],
-                            model_params['conv2_kernel_size'],
-                            model_params['conv2_num_kernels'],
-                            model_params['conv2_stride'],
-                            model_params['pool1_stride'],
-                            model_params['pool2_stride'],
-                            model_params['conv_dropout'],
-                            model_params['fcs_dropout'])
+            model = LeNet(model_params['input_size'],
+                          model_params['output_size'],
+
+                          model_params['batch_norm'],
+
+                          model_params['use_pooling'],
+                          model_params['pooling_method'],
+
+                          model_params['conv1_kernel_size'],
+                          model_params['conv1_num_kernels'],
+                          model_params['conv1_stride'],
+                          model_params['conv1_dropout'],
+
+                          model_params['pool1_kernel_size'],
+                          model_params['pool1_stride'],
+
+                          model_params['conv2_kernel_size'],
+                          model_params['conv2_num_kernels'],
+                          model_params['conv2_stride'],
+                          model_params['conv2_dropout'],
+
+                          model_params['pool2_kernel_size'],
+                          model_params['pool2_stride'],
+
+                          model_params['fcs_hidden_size'],
+                          model_params['fcs_num_hidden_layers'],
+                          model_params['fcs_dropout'])
 
 
             if using_cuda:
@@ -104,7 +115,13 @@ if __name__ == '__main__':
             loss = torch.nn.MSELoss()
 
             # optimizer
-            optimizer = torch.optim.Adam(model.parameters(), lr=model_params['learning_rate'], weight_decay=model_params['weight_decay'])
+            if model_params['optimizer'] == 'Adam':
+                optimizer = torch.optim.Adam(model.parameters(), lr=model_params['learning_rate'], weight_decay=model_params['weight_decay'])
+            elif model_params['optimizer'] == 'SGD':
+                optimizer = torch.optim.SGD(model.parameters(), lr=model_params['learning_rate'], momentum=model_params['momentum'], weight_decay=model_params['weight_decay'])
+            else:
+                raise ValueError('model_params[\'optimizer\'] must be either Adam or SGD. Got ' + model_params['optimizer'])
+
 
             # logger
             logger = Logger()

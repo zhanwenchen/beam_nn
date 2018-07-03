@@ -7,10 +7,6 @@ import random
 import argparse
 import json
 
-
-from pprint import pprint # TODO: delete this. Debug only
-
-
 from utils import save_model_params, ensure_dir
 
 
@@ -88,8 +84,10 @@ def choose_hyperparameters_from_file(file_name):
 
     # Randomly choose training hyperparameters from ranges.
     cost_function = random.choice(ranges['cost_function'])
-    momentum = random.uniform(*ranges['momentum'])
     optimizer = random.choice(ranges['optimizer'])
+    if optimizer == 'SGD':
+        momentum = random.uniform(*ranges['momentum'])
+
     if optimizer == 'Adam':
         learning_rate = random.uniform(*ranges['learning_rate_adam'])
     elif optimizer == 'SGD':
@@ -99,6 +97,8 @@ def choose_hyperparameters_from_file(file_name):
     hyperparameters = {
         'input_size': input_size,
         'output_size': ranges['output_size'],
+
+        'batch_norm': ranges['batch_norm'],
 
         'use_pooling': ranges['use_pooling'],
         'pooling_method': ranges['pooling_method'],
@@ -125,10 +125,11 @@ def choose_hyperparameters_from_file(file_name):
 
         'cost_function': cost_function,
         'optimizer': optimizer,
-        'momentum': momentum,
         'learning_rate': learning_rate,
     }
-    pprint(hyperparameters)
+
+    if optimizer == 'SGD':
+        hyperparameters['momentum'] = momentum
 
     return hyperparameters
 
@@ -185,8 +186,8 @@ if __name__ == '__main__':
         model_params['patience'] = 20
         model_params['cuda'] = 1
         model_params['save_initial'] = 0
-        model_params['input_dim'] = input_dim
-        model_params['output_dim'] = output_dim
+        # model_params['input_dim'] = input_dim
+        # model_params['output_dim'] = output_dim
 
 
         for k in k_list:
