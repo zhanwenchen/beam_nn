@@ -4,7 +4,7 @@
 
     "batch_norm": 1,
 
-    "use_pooling": 0,
+    "use_pooling": [0],
     "pooling_method": "max",
 
     "conv1_kernel_size": [6, 10],

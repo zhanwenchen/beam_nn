@@ -2,10 +2,11 @@
 # Example: python lib/create_hyperparam_search.py 50 hyperparam_ranges.json
 
 import os
-import time
+import datetime
 import random
 import argparse
 import json
+import warnings
 
 from utils import save_model_params, ensure_dir
 
@@ -19,6 +20,7 @@ def choose_hyperparameters_from_file(file_name):
 
     # Load constants.
     input_size = ranges['input_size']
+    use_pooling = random.choice(ranges['use_pooling'])
 
     conv1_num_kernels = random.choice(list(range(*ranges['conv1_num_kernels'])))
     conv1_dropout = random.uniform(*ranges['conv1_dropout'])
@@ -30,13 +32,13 @@ def choose_hyperparameters_from_file(file_name):
     conv1_kernel_size_range = list(range(*ranges['conv1_kernel_size']))
     conv1_stride_range = ranges['conv1_stride']
 
-    pool1_kernel_size_range = list(range(*ranges['pool1_kernel_size']))
+    pool1_kernel_size_range = ranges['pool1_kernel_size']
     pool1_stride_range = ranges['pool1_stride']
 
     conv2_kernel_size_range = list(range(*ranges['conv2_kernel_size']))
     conv2_stride_range = ranges['conv2_stride']
 
-    pool2_kernel_size_range = list(range(*ranges['pool2_kernel_size']))
+    pool2_kernel_size_range = ranges['pool2_kernel_size']
     pool2_stride_range = ranges['pool2_stride']
 
     # Size-constrained random hyperparameter search
@@ -100,7 +102,7 @@ def choose_hyperparameters_from_file(file_name):
 
         'batch_norm': ranges['batch_norm'],
 
-        'use_pooling': ranges['use_pooling'],
+        'use_pooling': use_pooling,
         'pooling_method': ranges['pooling_method'],
 
         'conv1_kernel_size': conv1_kernel_size,
@@ -145,7 +147,15 @@ if __name__ == '__main__':
     hyperparameter_ranges_file = args.hyperparameter_ranges_file
 
 
-    identifier = str( round(time.time()) )
+    identifier = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    last_identifier = {'last_identifier': identifier}
+    if os.path.isfile(os.path.join('DNNs', 'last_identifier.txt')):
+        try:
+            os.remove(os.path.join('DNNs', 'last_identifier.txt'))
+        except:
+            warnings.warn('create_hyperparam_search: problem removing DNNs/last_identifier.txt')
+    save_model_params(os.path.join('DNNs', 'last_identifier.txt'), last_identifier)
+
     k_list = [3, 4, 5]
 
     data_is_target_list = [0]

@@ -27,10 +27,10 @@ if __name__ == '__main__':
 
     models_folder = args.models_folder
 
-    if not os.path.exists(models_folder):
-        raise OSError(models_folder + ' doesn\'t exist. Have you run create_hyperparam_search_old.py?')
-
-    models = glob.glob(args.models_folder + '/*')
+    # if not os.path.exists(models_folder):
+    #     raise OSError(models_folder + ' doesn\'t exist. Have you run create_hyperparam_search_old.py?')
+    last_identifier = read_model_params(os.path.join('DNNs', 'last_identifier.txt'))['last_identifier']
+    models = glob.glob(os.path.join(args.models_folder, str(last_identifier) + '*'))
 
     for model in models:
         ks = glob.glob(model + '/k_*')
