@@ -10,7 +10,7 @@
     "conv1_kernel_size": [6, 10],
     "conv1_num_kernels": [16, 41],
     "conv1_stride": [1],
-    "conv1_dropout": [0, 1],
+    "conv1_dropout": [0, 0],
 
     "pool1_kernel_size": [2, 3],
     "pool1_stride": [2],
@@ -30,7 +30,7 @@
     "cost_function": ["MSE"],
 
     "optimizer": ["Adam", "SGD"],
-    "momentum": [0, 1],
+    "momentum": [0.8, 1],
     "learning_rate_adam": [0, 0.0002],
     "learning_rate_sgd": [0, 0.02]
 }
