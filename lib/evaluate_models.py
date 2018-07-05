@@ -7,14 +7,22 @@
 import glob
 import os
 from subprocess import Popen
+import argparse
 
 
 from utils import read_model_params
 
 
 if __name__ == '__main__':
-    last_identifier = read_model_params(os.path.join('DNNs', 'last_identifier.txt'))['last_identifier']
-    models = glob.glob(os.path.join('DNNs', str(last_identifier) + '*'))
+    parser = argparse.ArgumentParser()
+    # parser.add_argument('model_params_path', help='Option to load model params from a file. Values in this file take precedence.')
+    parser.add_argument('identifier', help='Option to load model params from a file. Values in this file take precedence.')
+    args = parser.parse_args()
+
+    identifier = args.identifier
+
+    # last_identifier = read_model_params(os.path.join('DNNs', 'last_identifier.txt'))['last_identifier']
+    models = glob.glob(os.path.join('DNNs', str(identifier) + '*'))
 
     for model_folder in models:
         commands = [
