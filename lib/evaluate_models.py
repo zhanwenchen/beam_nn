@@ -18,9 +18,9 @@ if __name__ == '__main__':
 
     for model_folder in models:
         commands = [
-            './process_single_scan_battery_anechoic_cyst.sh ' + model_folder,
-            './process_single_scan_battery_phantom_2p5mm.sh ' + model_folder,
-            './process_single_scan_battery_in_vivo.sh ' + model_folder,
+            './lib/process_single_scan_battery_anechoic_cyst.sh ' + model_folder,
+            './lib/process_single_scan_battery_phantom_2p5mm.sh ' + model_folder,
+            './lib/process_single_scan_battery_in_vivo.sh ' + model_folder,
         ]
         processes = [Popen(cmd, shell=True) for cmd in commands]
         # wait for completion
