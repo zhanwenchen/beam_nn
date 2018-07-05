@@ -34,9 +34,9 @@ do
         echo "Processing " $dir
         cd $dir
 
-        # process with networks 
+        # process with networks
         echo "r3_dnn_apply.py"
-        ../process_scripts/r3_dnn_apply.py
+        python ../process_scripts/r3_dnn_apply.py
 
         # take istft of chandat, create dnn image data, display dnn image
         echo "r4_dnn_istft"
