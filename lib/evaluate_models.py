@@ -17,7 +17,7 @@ if __name__ == '__main__':
     models = glob.glob(os.path.join('DNNs', str(last_identifier) + '*'))
 
     for model_folder in models:
-        cmds = [
+        commands = [
             './process_single_scan_battery_anechoic_cyst.sh ' + model_folder,
             './process_single_scan_battery_phantom_2p5mm.sh ' + model_folder,
             './process_single_scan_battery_in_vivo.sh ' + model_folder,
