@@ -43,7 +43,7 @@ do
         echo "r4_dnn_istft"
         echo "r5_dnn_image"
         echo "r6_dnn_image_display"
-        matlab -nodesktop -nosplash -r "addpath('../process_scripts'); r4_dnn_istft; r5_dnn_image; r6_dnn_image_display; quit;"
+        matlab -nosoftwareopengl -nodesktop -nosplash -r "addpath('../process_scripts'); r4_dnn_istft; r5_dnn_image; r6_dnn_image_display; quit;"
 
         # delete extra files
         echo "Deleting old_stft.mat"
