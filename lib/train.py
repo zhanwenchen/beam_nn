@@ -17,27 +17,14 @@ from logger import Logger
 from trainer import Trainer
 
 
-if __name__ == '__main__':
-
-    # parse input arguments
-    parser = argparse.ArgumentParser()
-    # parser.add_argument('model_params_path', help='Option to load model params from a file. Values in this file take precedence.')
-    parser.add_argument('models_folder', help='Option to load model params from a file. Values in this file take precedence.')
-    args = parser.parse_args()
-
-    models_folder = args.models_folder
-
-    # if not os.path.exists(models_folder):
-    #     raise OSError(models_folder + ' doesn\'t exist. Have you run create_hyperparam_search_old.py?')
-    last_identifier = read_model_params(os.path.join('DNNs', 'last_identifier.txt'))['last_identifier']
-    models = glob.glob(os.path.join(args.models_folder, str(last_identifier) + '*'))
+def train(identifier):
+    models = glob.glob(os.path.join('DNNs', str(identifier) + '*'))
 
     for model in models:
-        ks = glob.glob(model + '/k_*')
+        ks = glob.glob(os.path.join(model, 'k_*'))
         for k in ks:
             model_params_path = k + '/model_params.txt'
-
-            print('main: training model specified in', model_params_path)
+            print('train.py: training model', model_params_path, 'with hyperparams')
 
             # load model params if it is specified
             model_params = read_model_params(model_params_path)
@@ -46,7 +33,7 @@ if __name__ == '__main__':
             pprint(model_params)
 
             # cuda flag
-            print('torch.cuda.is_available(): ' + str(torch.cuda.is_available()))
+            # print('torch.cuda.is_available(): ' + str(torch.cuda.is_available()))
             using_cuda = model_params['cuda'] and torch.cuda.is_available()
             if using_cuda:
                 print('Using ' + str(torch.cuda.get_device_name(0)))
@@ -141,3 +128,16 @@ if __name__ == '__main__':
 
             # run training
             trainer.train()
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('identifier', help='Option to load model params from a file. Values in this file take precedence.')
+    args = parser.parse_args()
+
+    identifier = args.identifier
+    train(identifier)
+
+
+if __name__ == '__main__':
+    main()

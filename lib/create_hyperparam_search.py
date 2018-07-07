@@ -1,20 +1,17 @@
 # create_hyperparam_search.py
 # Example: python lib/create_hyperparam_search.py 50 hyperparam_ranges.json
-
 import os
 import datetime
 import random
 import argparse
 import json
 import warnings
+import sys
 
 from utils import save_model_params, ensure_dir
 
 
-def choose_hyperparameters_from_file(file_name):
-
-    loop_patience = 100
-
+def choose_hyperparameters_from_file(hyperparameter_ranges_file):
     with open(hyperparameter_ranges_file) as f:
         ranges = json.load(f)
 
@@ -87,14 +84,13 @@ def choose_hyperparameters_from_file(file_name):
     # Randomly choose training hyperparameters from ranges.
     cost_function = random.choice(ranges['cost_function'])
     optimizer = random.choice(ranges['optimizer'])
+
     if optimizer == 'SGD':
         momentum = random.uniform(*ranges['momentum'])
-
-    if optimizer == 'Adam':
-        learning_rate = random.uniform(*ranges['learning_rate_adam'])
-    elif optimizer == 'SGD':
         learning_rate = random.uniform(*ranges['learning_rate_sgd'])
-
+    elif optimizer == 'Adam':
+        momentum = None
+        learning_rate = random.uniform(*ranges['learning_rate_adam'])
 
     hyperparameters = {
         'input_size': input_size,
@@ -128,35 +124,14 @@ def choose_hyperparameters_from_file(file_name):
         'cost_function': cost_function,
         'optimizer': optimizer,
         'learning_rate': learning_rate,
+        'momentum': momentum,
     }
-
-    if optimizer == 'SGD':
-        hyperparameters['momentum'] = momentum
 
     return hyperparameters
 
 
-if __name__ == '__main__':
-    # parse input arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument('num_networks', type=int, help='The number of networks to train.')
-    parser.add_argument('hyperparameter_ranges_file', type=str, help='The number of networks to train.')
-    args = parser.parse_args()
-
-    num_networks = args.num_networks
-    hyperparameter_ranges_file = args.hyperparameter_ranges_file
-
-
+def create_hyperparam_search(num_networks, hyperparameter_ranges_file):
     identifier = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-    last_identifier = {'last_identifier': identifier}
-    if os.path.isfile(os.path.join('DNNs', 'last_identifier.txt')):
-        try:
-            os.remove(os.path.join('DNNs', 'last_identifier.txt'))
-        except:
-            warnings.warn('create_hyperparam_search: problem removing DNNs/last_identifier.txt')
-    save_model_params(os.path.join('DNNs', 'last_identifier.txt'), last_identifier)
-
-    k_list = [3, 4, 5]
 
     data_is_target_list = [0]
     num_scat_list = [1, 2, 3]
@@ -166,18 +141,12 @@ if __name__ == '__main__':
     #dropout_list = [0, 0.1, 0.2, 0.3, 0.4, 0.5]
     weight_decay_list = [0]
 
-    input_dim = 65
-    output_dim = 130
-
-    count = 1
-    while count <= num_networks:
-
+    for count in range(num_networks):
         data_is_target = random.choice(data_is_target_list)
         n_scat = random.choice(num_scat_list)
         bs = random.choice(batch_size_list)
         data_noise_gaussian = random.choice(data_noise_gaussian_list)
         #dropout_input = random.choice(dropout_input_list)
-        #dropout = random.choice(dropout_list)
         weight_decay = random.choice(weight_decay_list)
 
         # get params
@@ -191,22 +160,34 @@ if __name__ == '__main__':
         model_params['batch_size'] = bs
         model_params['data_noise_gaussian'] = data_noise_gaussian
         #model_params['dropout_input'] = dropout_input
-        #model_params['dropout'] = dropout
         model_params['weight_decay'] = weight_decay
         model_params['patience'] = 20
         model_params['cuda'] = 1
         model_params['save_initial'] = 0
-        # model_params['input_dim'] = input_dim
-        # model_params['output_dim'] = output_dim
 
+        k_list = [3, 4, 5]
 
         for k in k_list:
             model_params['k'] = k
-            model_params['save_dir'] = os.path.join('DNNs', identifier + '_' + str(count), 'k_' + str(k))
+            model_params['save_dir'] = os.path.join('DNNs', identifier + '_' + str(count+1), 'k_' + str(k))
 
-            print(model_params['save_dir'])
+            # print(model_params['save_dir'])
             ensure_dir(model_params['save_dir'])
             save_model_params(os.path.join(model_params['save_dir'], 'model_params.txt'), model_params)
 
-        # Advance counter for everything except k
-        count += 1
+    return identifier
+
+def main():
+    # parse input arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('num_networks', type=int, help='The number of networks to train.')
+    parser.add_argument('hyperparameter_ranges_file', type=str, help='The number of networks to train.')
+    args = parser.parse_args()
+
+    num_networks = args.num_networks
+    hyperparameter_ranges_file = args.hyperparameter_ranges_file
+    return create_hyperparam_search(num_networks, hyperparameter_ranges_file)
+
+
+if __name__ == '__main__':
+    main()
