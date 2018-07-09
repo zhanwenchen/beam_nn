@@ -25,11 +25,16 @@ if __name__ == '__main__':
     models = glob.glob(os.path.join('DNNs', str(identifier) + '*'))
 
     for model_folder in models:
+        os.system()
         commands = [
             './lib/process_single_scan_battery_anechoic_cyst.sh ' + model_folder,
             './lib/process_single_scan_battery_phantom_2p5mm.sh ' + model_folder,
             './lib/process_single_scan_battery_in_vivo.sh ' + model_folder,
         ]
-        processes = [Popen(cmd, shell=True) for cmd in commands]
+        Popen(commands[0], shell=True).wait()
+        Popen(commands[1], shell=True).wait()
+        Popen(commands[2], shell=True).wait()
+
+        # processes = [Popen(cmd, shell=True) for cmd in commands]
         # wait for completion
-        for p in processes: p.wait()
+        # for p in processes: p.wait()
