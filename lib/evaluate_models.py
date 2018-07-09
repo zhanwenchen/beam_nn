@@ -25,7 +25,6 @@ if __name__ == '__main__':
     models = glob.glob(os.path.join('DNNs', str(identifier) + '*'))
 
     for model_folder in models:
-        os.system()
         commands = [
             './lib/process_single_scan_battery_anechoic_cyst.sh ' + model_folder,
             './lib/process_single_scan_battery_phantom_2p5mm.sh ' + model_folder,
