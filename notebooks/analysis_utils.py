@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 @author: Adam Luiches
 @author: Zhanwen Chen
@@ -35,8 +34,11 @@ def get_df(identifier):
     # dirs_dnn_list = get_dirs_dnn_list(identifier)
     # index = range(len(dirs_dnn_list))
 
-    model_folders = glob.glob(os.path.join('..', 'DNNs', str(identifier)))
+    model_folders = glob.glob(os.path.join('..', 'DNNs', str(identifier) + '_evaluated'))
     num_models = len(model_folders)
+    if num_models == 0:
+        raise ValueError('analysis_utils: given identifier ' + str(identifier) + ' , expanded to ' + str(model_search_path) + ' matched no model.')
+
 
 
     # loop through dnns and store model params
@@ -45,9 +47,9 @@ def get_df(identifier):
         model_params = read_model_params(m_name)
         model_params['index'] = i
         model_params['name'] = os.path.basename(dir_dnn)
-        
+
         df_single = pd.DataFrame([model_params])
-        
+
         if i == 0:
             df = df_single
         else:
@@ -96,7 +98,7 @@ def get_speckle_stats_dnn(scan_battery_name, target_num_list, target_suffix, ide
             try:
                 speckle_stats_dnn[i, :, m] = np.loadtxt(filename_dnn, delimiter=',')
             except:
-                warnings.warn('get_speckle_stats_dnn: Unable to find ' + filename_dnn + ' for ' + scan_battery_name)
+                warnings.warn('analysis_utils: Unable to find ' + filename_dnn + ' for ' + scan_battery_name)
 
     return speckle_stats_dnn
 
@@ -123,8 +125,3 @@ def get_speckle_stats_dnn_and_das(scan_battery_name, target_num_list, target_suf
     speckle_stats_das = get_speckle_stats_das(scan_battery_name, target_num_list, target_suffix, identifier)
 
     return speckle_stats_dnn, speckle_stats_das
-
-
-
-
-
