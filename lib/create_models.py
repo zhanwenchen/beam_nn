@@ -169,7 +169,7 @@ def create_models(num_networks, hyperparameter_ranges_file):
 
         for k in k_list:
             model_params['k'] = k
-            model_params['save_dir'] = os.path.join('DNNs', identifier + '_' + str(count+1), 'k_' + str(k))
+            model_params['save_dir'] = os.path.join('DNNs', identifier + '_' + str(count+1) + '_created', 'k_' + str(k))
 
             # print(model_params['save_dir'])
             ensure_dir(model_params['save_dir'])

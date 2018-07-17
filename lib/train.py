@@ -1,14 +1,11 @@
-#!/usr/bin/env python
 import torch
 import os
 import numpy as np
 import time
 import argparse
 import glob
-
 import warnings
 from pprint import pprint
-
 
 from utils import read_model_params, save_model_params, ensure_dir, add_suffix_to_path
 from dataloader import ApertureDataset
@@ -18,7 +15,7 @@ from trainer import Trainer
 
 
 def train(identifier):
-    models = glob.glob(os.path.join('DNNs', str(identifier) + '*'))
+    models = glob.glob(os.path.join('DNNs', str(identifier) + '_created'))
 
     for model in models:
         ks = glob.glob(os.path.join(model, 'k_*'))
@@ -26,20 +23,18 @@ def train(identifier):
             model_params_path = k + '/model_params.txt'
             print('train.py: training model', model_params_path, 'with hyperparams')
 
-            # load model params if it is specified
+            # load model params.
             model_params = read_model_params(model_params_path)
 
-            # display input arguments
-            pprint(model_params)
+            # print model and training parameters.
+            # pprint(model_params)
 
             # cuda flag
-            # print('torch.cuda.is_available(): ' + str(torch.cuda.is_available()))
             using_cuda = model_params['cuda'] and torch.cuda.is_available()
-            if using_cuda:
-                print('Using ' + str(torch.cuda.get_device_name(0)))
+            if using_cuda == True:
+                print('train.py: Using ' + str(torch.cuda.get_device_name(0)))
             else:
-                print('Not using CUDA')
-                warnings.warn('Not using CUDA')
+                warnings.warn('train.py: Not using CUDA')
 
             # Load primary training data
             num_samples = 10 ** 5
@@ -85,8 +80,7 @@ def train(identifier):
                           model_params['fcs_num_hidden_layers'],
                           model_params['fcs_dropout'])
 
-
-            if using_cuda:
+            if using_cuda == Trues:
                 model.cuda()
 
             # save initial weights
@@ -109,25 +103,24 @@ def train(identifier):
             else:
                 raise ValueError('model_params[\'optimizer\'] must be either Adam or SGD. Got ' + model_params['optimizer'])
 
-
-            # logger
             logger = Logger()
 
-            # trainer
             trainer = Trainer(model=model,
-                                loss=loss,
-                                optimizer=optimizer,
-                                patience=model_params['patience'],
-                                loader_train=loader_train,
-                                loader_train_eval=loader_train_eval,
-                                loader_val=loader_val,
-                                cuda=using_cuda,
-                                logger=logger,
-                                data_noise_gaussian=model_params['data_noise_gaussian'],
-                                save_dir=model_params['save_dir'])
+                              loss=loss,
+                              optimizer=optimizer,
+                              patience=model_params['patience'],
+                              loader_train=loader_train,
+                              loader_train_eval=loader_train_eval,
+                              loader_val=loader_val,
+                              cuda=using_cuda,
+                              logger=logger,
+                              data_noise_gaussian=model_params['data_noise_gaussian'],
+                              save_dir=model_params['save_dir'])
 
             # run training
             trainer.train()
+
+        os.rename(model, model.replace('_created', '_trained'))
 
 
 def main():

@@ -18,13 +18,17 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     identifier = args.identifier
-
-    models = glob.glob(os.path.join('DNNs', str(identifier)))
+    model_search_path = os.path.join('DNNs', str(identifier) + '_trained')
+    models = glob.glob(model_search_path)
     num_models = len(models)
+
+    if num_models == 0:
+        raise ValueError('evaluate_models: given identifier ' + str(identifier) + ' , expanded to ' + str(model_search_path) + ' matched no model.')
 
     for model_index, model_folder in enumerate(models):
         if os.path.isfile(os.path.join(model_folder, 'scan_batteries', 'target_in_vivo', 'target_17', 'dnn.png'))
             and os.path.isfile(os.path.join(model_folder, 'scan_batteries', 'target_in_vivo', 'target_19', 'dnn.png')):
+            print('evaluate_models: skipping already proccessed model', os.path.basename(model_folder))
             continue
         commands = [
             './lib/process_single_scan_battery_anechoic_cyst.sh ' + model_folder,
@@ -37,3 +41,4 @@ if __name__ == '__main__':
         Popen(commands[1], shell=True).wait()
         print('\n\nevaluate_models.py: processing in vivo for model', model_index + 1, 'of', num_models, ':', os.path.basename(model_folder), '\n\n')
         Popen(commands[2], shell=True).wait()
+        os.rename(model_folder, model_folder.replace('_trained', '_evaluated'))
