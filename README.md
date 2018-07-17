@@ -19,7 +19,7 @@ Before training, under the project directory, create e.g. 50 models
 
 ```sh
 pwd # should print ../beam_nn
-Example: python lib/create_hyperparam_search.py 50 hyperparam_ranges.json
+Example: python lib/create_models.py 50 hyperparam_ranges.json
 ```
 
 This creates 50 models under the beam_nn/DNNs folder.
