@@ -1,5 +1,5 @@
-# create_hyperparam_search.py
-# Example: python lib/create_hyperparam_search.py 50 hyperparam_ranges.json
+# create_models.py
+# Example: python lib/create_models.py 50 hyperparam_ranges.json
 import os
 import datetime
 import random
@@ -69,12 +69,12 @@ def choose_hyperparameters_from_file(hyperparameter_ranges_file):
 
 
     if len(possible_size_combinations) == 0:
-        raise ValueError('create_hyperparam_search: no possible combination for pool1 given conv1_output_size[1] = ' + str(conv1_output_size[1]) + '; pool1_kernel_size_ranges = ' + str(pool1_kernel_size_ranges) + '; pool1_stride_ranges = ' + str(pool1_stride_ranges))
+        raise ValueError('create_models: no possible combination for pool1 given conv1_output_size[1] = ' + str(conv1_output_size[1]) + '; pool1_kernel_size_ranges = ' + str(pool1_kernel_size_ranges) + '; pool1_stride_ranges = ' + str(pool1_stride_ranges))
 
     conv1_kernel_size, conv1_stride, pool1_kernel_size, pool1_stride, conv2_kernel_size, conv2_stride, pool2_kernel_size, pool2_stride = random.choice(possible_size_combinations)
 
-    # print('create_hyperparam_search: ranges[\'fcs_hidden_size\'] =', ranges['fcs_hidden_size'])
-    # print('create_hyperparam_search: list(range(*ranges[\'fcs_hidden_size\'])) =', list(range(*ranges['fcs_hidden_size'])))
+    # print('create_models: ranges[\'fcs_hidden_size\'] =', ranges['fcs_hidden_size'])
+    # print('create_models: list(range(*ranges[\'fcs_hidden_size\'])) =', list(range(*ranges['fcs_hidden_size'])))
 
     fcs_hidden_size = random.choice(list(range(*ranges['fcs_hidden_size'])))
     fcs_num_hidden_layers = random.choice(list(range(*ranges['fcs_num_hidden_layers'])))
@@ -130,7 +130,7 @@ def choose_hyperparameters_from_file(hyperparameter_ranges_file):
     return hyperparameters
 
 
-def create_hyperparam_search(num_networks, hyperparameter_ranges_file):
+def create_models(num_networks, hyperparameter_ranges_file):
     identifier = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
     data_is_target_list = [0]
@@ -186,7 +186,7 @@ def main():
 
     num_networks = args.num_networks
     hyperparameter_ranges_file = args.hyperparameter_ranges_file
-    return create_hyperparam_search(num_networks, hyperparameter_ranges_file)
+    return create_models(num_networks, hyperparameter_ranges_file)
 
 
 if __name__ == '__main__':
