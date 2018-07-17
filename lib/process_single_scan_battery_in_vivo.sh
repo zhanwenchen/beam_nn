@@ -10,12 +10,11 @@ fi
 
 cd scan_batteries
 
-echo "Copying scan battery"
+echo "process_single_scan_battery_in_vivo.sh Copying scan battery"
 cp -r ../../../scan_batteries/target_in_vivo ./
 
 cd target_in_vivo
-echo "Current directory:"
-echo $(pwd)
+echo "process_single_scan_battery_in_vivo.sh Current directory is " $(pwd)
 
 # process stft data with neural networks
 #echo "r3_dnn_apply_battery.py"
@@ -31,31 +30,29 @@ do
         dir='target_'
         dir+=$i
 
-        echo "Processing " $dir
+        echo "process_single_scan_battery_in_vivo.sh: Processing " $dir
         cd $dir
 
         # process with networks
-        echo "r3_dnn_apply.py"
+        echo "process_single_scan_battery_in_vivo.sh: r3_dnn_apply.py"
         python ../process_scripts/r3_dnn_apply.py
 
         # take istft of chandat, create dnn image data, display dnn image
-        echo "r4_dnn_istft"
-        echo "r5_dnn_image"
-        echo "r6_dnn_image_display"
+        echo "process_single_scan_battery_in_vivo.sh: Matlab running r4_dnn_istft.m, r5_dnn_image.m, and r6_dnn_image_display.m"
         matlab -nosoftwareopengl -nodesktop -nosplash -r "addpath('../process_scripts'); r4_dnn_istft; r5_dnn_image; r6_dnn_image_display; quit;"
 
         # delete extra files
-        echo "Deleting old_stft.mat"
+        echo "process_single_scan_battery_in_vivo.sh: Deleting old_stft.mat"
         rm old_stft.mat
-        echo "Deleting new_stft.mat"
+        echo "process_single_scan_battery_in_vivo.sh: Deleting new_stft.mat"
         rm new_stft.mat
-        echo "Deleting chandat.mat"
+        echo "process_single_scan_battery_in_vivo.sh: Deleting chandat.mat"
         rm chandat.mat
-        echo "Deleteing chandat_dnn.mat"
+        echo "process_single_scan_battery_in_vivo.sh: Deleteing chandat_dnn.mat"
         rm chandat_dnn.mat
-        echo "Deleteing dnn_image.mat"
+        echo "process_single_scan_battery_in_vivo.sh: Deleteing dnn_image.mat"
         rm dnn_image.mat
-        echo "Removing ROI files"
+        echo "process_single_scan_battery_in_vivo.sh: Removing ROI files"
         rm box_*
         rm circle_*
         rm region_*
@@ -65,5 +62,5 @@ do
     done
 done
 
-#echo "Deleting process_scripts"
+echo "process_single_scan_battery_in_vivo.sh: Deleting process_scripts"
 rm -r process_scripts

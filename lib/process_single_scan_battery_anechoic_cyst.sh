@@ -10,12 +10,11 @@ fi
 
 cd scan_batteries
 
-echo "Copying scan battery"
+echo "process_single_scan_battery_anechoic_cyst.sh: Copying scan battery"
 cp -r ../../../scan_batteries/target_anechoic_cyst_5mm ./
 
 cd target_anechoic_cyst_5mm
-echo "Current directory:"
-echo $(pwd)
+echo "process_single_scan_battery_anechoic_cyst.sh: Current directory is " $(pwd)
 
 # process stft data with neural networks
 #echo "r3_dnn_apply_battery.py"
@@ -32,29 +31,27 @@ do
         dir+=$i
         dir+='_SNR_10dB'
 
-        echo "Processing " $dir
+        echo "process_single_scan_battery_anechoic_cyst.sh: Processing " $dir
         cd $dir
 
         # dnn processing
-        echo 'DNN processing'
+        echo "process_single_scan_battery_anechoic_cyst.sh: DNN processing"
         python ../process_scripts/r3_dnn_apply.py
 
         # take istft of chandat, create dnn image data, display dnn image
-        echo "r4_dnn_istft"
-        echo "r5_dnn_image"
-        echo "r6_dnn_image_display"
+        echo "process_single_scan_battery_anechoic_cyst.sh: Matlab run r4_dnn_istft.m, r5_dnn_image.m, and r6_dnn_image_display.m"
         matlab -nosoftwareopengl -nodesktop -nosplash -r "addpath('../process_scripts'); r4_dnn_istft; r5_dnn_image; r6_dnn_image_display; quit;"
 
         # delete extra files
-        echo "Deleting old_stft.mat"
+        echo "process_single_scan_battery_anechoic_cyst.sh: Deleting old_stft.mat"
         rm old_stft.mat
-        echo "Deleting new_stft.mat"
+        echo "process_single_scan_battery_anechoic_cyst.sh: Deleting new_stft.mat"
         rm new_stft.mat
-        echo "Deleting chandat.mat"
+        echo "process_single_scan_battery_anechoic_cyst.sh: Deleting chandat.mat"
         rm chandat.mat
-        echo "Deleteing chandat_dnn.mat"
+        echo "process_single_scan_battery_anechoic_cyst.sh: Deleteing chandat_dnn.mat"
         rm chandat_dnn.mat
-        echo "Deleteing dnn_image.mat"
+        echo "process_single_scan_battery_anechoic_cyst.sh: Deleteing dnn_image.mat"
         rm dnn_image.mat
 
         cd ..
@@ -62,11 +59,11 @@ do
     done
 done
 
-echo "Deleting process_scripts"
+echo "process_single_scan_battery_anechoic_cyst.sh: Deleting process_scripts"
 rm -r process_scripts
 
-echo "Deleting creation_scripts"
+echo "process_single_scan_battery_anechoic_cyst.sh: Deleting creation_scripts"
 rm -r creation_scripts
 
-echo "Deleting phantoms folder"
+echo "process_single_scan_battery_anechoic_cyst.sh: Deleting phantoms folder"
 rm -r phantoms
