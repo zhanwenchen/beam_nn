@@ -20,26 +20,9 @@ from utils import read_model_params
 dirs_dnn_parent = '../DNNs/'
 
 
-# def get_dirs_dnn_list(identifier):
-#     dirs_dnn_list = [identifier + str(i) for i in range(1, 51)] # TODO: magic number
-
-#     return dirs_dnn_list
-
-
 def get_df(identifier):
     # setup dnn directory list
-    # dirs_dnn_parent = '../DNNs/'
-    # identifier = '1527103627_' # TODO: magic number
-    # dirs_dnn_list = [identifier + str(i) for i in range(1, 51)] # TODO: magic number
-    # dirs_dnn_list = get_dirs_dnn_list(identifier)
-    # index = range(len(dirs_dnn_list))
-
-    model_folders = glob.glob(os.path.join('..', 'DNNs', str(identifier) + '_evaluated'))
-    num_models = len(model_folders)
-    if num_models == 0:
-        raise ValueError('analysis_utils: given identifier ' + str(identifier) + ' , expanded to ' + str(model_search_path) + ' matched no model.')
-
-
+    model_folders, num_models = get_models(identifier)
 
     # loop through dnns and store model params
     for i, dir_dnn in enumerate(model_folders):
@@ -76,8 +59,7 @@ def get_df(identifier):
 ## Load DNN results.
 def get_speckle_stats_dnn(scan_battery_name, target_num_list, target_suffix, identifier):
 
-    model_folders = glob.glob(os.path.join('..', 'DNNs', str(identifier)))
-    num_models = len(model_folders)
+    model_folders, num_models = get_models(identifier)
 
     # setup data storage
     speckle_stats_dnn = np.zeros((num_models, 7, len(target_num_list)))
@@ -107,8 +89,8 @@ def get_speckle_stats_dnn(scan_battery_name, target_num_list, target_suffix, ide
 def get_speckle_stats_das(scan_battery_name, target_num_list, target_suffix, identifier):
     """target_num_list can be a simulated cyst, a phantom cyst, or an in vivo target."""
     speckle_stats_das = np.zeros((7, len(target_num_list))) # TODO: remove magic number "7".
-    model_folders = glob.glob(os.path.join('..', 'DNNs', str(identifier)))
-    num_models = len(model_folders)
+
+    model_folders, num_models = get_models(identifier)
 
     for m, (target_num, model_folder) in enumerate(zip(target_num_list, model_folders)):
         dir_scan = 'target_' + str(target_num) + target_suffix
@@ -125,3 +107,12 @@ def get_speckle_stats_dnn_and_das(scan_battery_name, target_num_list, target_suf
     speckle_stats_das = get_speckle_stats_das(scan_battery_name, target_num_list, target_suffix, identifier)
 
     return speckle_stats_dnn, speckle_stats_das
+
+def get_models(identifier):
+    model_search_path = os.path.join('..', 'DNNs', str(identifier) + '_evaluated')
+    model_folders = glob.glob(model_search_path)
+    num_models = len(model_folders)
+    if num_models == 0:
+        raise ValueError('analysis_utils: given identifier ' + str(identifier) + ' , expanded to ' + str(model_search_path) + ' matched no model.')
+
+    return model_folders, num_models
