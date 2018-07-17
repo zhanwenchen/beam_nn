@@ -34,9 +34,11 @@ if __name__ == '__main__':
             './lib/process_single_scan_battery_phantom_2p5mm.sh ' + model_folder,
             './lib/process_single_scan_battery_in_vivo.sh ' + model_folder,
         ]
-        print('\n\nevaluate_models.py: processing model', model_index, 'of', num_models, ':', model_folder)
+        print('\n\nevaluate_models.py: processing simulation for model', model_index + 1, 'of', num_models, ':', os.path.basename(model_folder), '\n\n')
         Popen(commands[0], shell=True).wait()
+        print('\n\nevaluate_models.py: processing phantom for model', model_index + 1, 'of', num_models, ':', os.path.basename(model_folder), '\n\n')
         Popen(commands[1], shell=True).wait()
+        print('\n\nevaluate_models.py: processing in vivo for model', model_index + 1, 'of', num_models, ':', os.path.basename(model_folder), '\n\n')
         Popen(commands[2], shell=True).wait()
 
         # processes = [Popen(cmd, shell=True) for cmd in commands]
