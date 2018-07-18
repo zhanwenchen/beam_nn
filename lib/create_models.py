@@ -17,6 +17,8 @@ def choose_hyperparameters_from_file(hyperparameter_ranges_file):
 
     # Load constants.
     input_size = ranges['input_size']
+
+    batch_norm = random.choice(ranges['batch_norm'])
     use_pooling = random.choice(ranges['use_pooling'])
 
     conv1_num_kernels = random.choice(list(range(*ranges['conv1_num_kernels'])))
@@ -96,7 +98,7 @@ def choose_hyperparameters_from_file(hyperparameter_ranges_file):
         'input_size': input_size,
         'output_size': ranges['output_size'],
 
-        'batch_norm': ranges['batch_norm'],
+        'batch_norm': batch_norm,
 
         'use_pooling': use_pooling,
         'pooling_method': ranges['pooling_method'],

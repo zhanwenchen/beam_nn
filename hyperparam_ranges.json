@@ -2,9 +2,9 @@
     "input_size": 65,
     "output_size": 130,
 
-    "batch_norm": 1,
+    "batch_norm": [0, 1],
 
-    "use_pooling": [0],
+    "use_pooling": [0, 1],
     "pooling_method": "max",
 
     "conv1_kernel_size": [6, 10],
@@ -23,7 +23,7 @@
     "pool2_kernel_size": [2],
     "pool2_stride": [2],
 
-    "fcs_hidden_size": [65, 520, 65],
+    "fcs_hidden_size": [65, 520],
     "fcs_num_hidden_layers": [1, 2, 3],
     "fcs_dropout": [0, 1],
 
