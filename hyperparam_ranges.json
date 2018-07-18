@@ -7,24 +7,24 @@
     "use_pooling": [0, 1],
     "pooling_method": "max",
 
-    "conv1_kernel_size": [6, 10],
-    "conv1_num_kernels": [16, 41],
+    "conv1_kernel_size": [6, 32],
+    "conv1_num_kernels": [8, 51],
     "conv1_stride": [1],
     "conv1_dropout": [0, 0],
 
     "pool1_kernel_size": [2, 3],
     "pool1_stride": [2],
 
-    "conv2_kernel_size": [2, 10],
-    "conv2_num_kernels": [2, 33],
+    "conv2_kernel_size": [2, 20],
+    "conv2_num_kernels": [2, 40],
     "conv2_stride": [1],
     "conv2_dropout": [0, 1],
 
     "pool2_kernel_size": [2],
     "pool2_stride": [2],
 
-    "fcs_hidden_size": [65, 520],
-    "fcs_num_hidden_layers": [1, 2, 3],
+    "fcs_hidden_size": [25, 520],
+    "fcs_num_hidden_layers": [1, 4],
     "fcs_dropout": [0, 1],
 
     "cost_function": ["MSE"],
