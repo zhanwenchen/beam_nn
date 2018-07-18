@@ -29,8 +29,7 @@ class Trainer():
 
 
     def train_epoch(self):
-        """ Train model for one epoch
-        """
+        """ Train model for one epoch"""
         self.model.train()
 
         if self.cuda:
