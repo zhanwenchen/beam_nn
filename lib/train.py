@@ -80,7 +80,7 @@ def train(identifier):
                           model_params['fcs_num_hidden_layers'],
                           model_params['fcs_dropout'])
 
-            if using_cuda == Trues:
+            if using_cuda == True:
                 model.cuda()
 
             # save initial weights
