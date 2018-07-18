@@ -35,7 +35,7 @@ if __name__ == '__main__':
             continue
 
         # Skip evaluation if already evaluated.
-        if os.path.isfile(os.path.join(model_folder, 'scan_batteries', 'target_in_vivo', 'target_17', 'dnn.png'))
+        if os.path.isfile(os.path.join(model_folder, 'scan_batteries', 'target_in_vivo', 'target_17', 'dnn.png')) \
             and os.path.isfile(os.path.join(model_folder, 'scan_batteries', 'target_in_vivo', 'target_19', 'dnn.png')):
 
             print('evaluate_models: skipping already proccessed model', os.path.basename(model_folder))
@@ -46,7 +46,7 @@ if __name__ == '__main__':
             './lib/process_single_scan_battery_phantom_2p5mm.sh ' + model_folder,
             './lib/process_single_scan_battery_in_vivo.sh ' + model_folder,
         ]
-        
+
         print('\n\nevaluate_models.py: processing simulation for model', model_index + 1, 'of', num_models, ':', os.path.basename(model_folder), '\n\n')
         Popen(commands[0], shell=True).wait()
         print('\n\nevaluate_models.py: processing phantom for model', model_index + 1, 'of', num_models, ':', os.path.basename(model_folder), '\n\n')
