@@ -149,7 +149,7 @@ class Trainer():
 
             print('d_loss_val =', d_loss_val)
             # if validation loss improves
-            if d_loss_val < 0.00005:
+            if d_loss_val < 0:
                 num_epochs_increased = 0
 
                 # record epoch and loss
