@@ -27,7 +27,7 @@ def train(identifier):
             model_params = read_model_params(model_params_path)
 
             # print model and training parameters.
-            # pprint(model_params)
+            pprint(model_params)
 
             # cuda flag
             using_cuda = model_params['cuda'] and torch.cuda.is_available()
