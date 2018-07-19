@@ -147,6 +147,7 @@ class Trainer():
             # display results
             print('E: {:} / Train: {:.3e} / Valid: {:.3e} / Diff Valid: {:.2f}% / Diff Valid-Train: {:.1f}% / Time: {:.2f}'.format(epoch, loss_train_eval, loss_val, d_loss_val, (loss_val - loss_train_eval)/loss_train_eval*100, time_epoch))
 
+            print('d_loss_val =', d_loss_val)
             # if validation loss improves
             if d_loss_val < 0.00005:
                 num_epochs_increased = 0
@@ -160,7 +161,7 @@ class Trainer():
                     torch.save(self.model.state_dict(), os.path.join(self.save_dir, 'model.dat'))
 
             else:
-                num_epochs_increased = num_epochs_increased + 1
+                num_epochs_increased += 1
 
             # stop training if we lose patience:
             if num_epochs_increased > self.patience:
