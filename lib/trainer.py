@@ -1,10 +1,8 @@
 from torch.autograd import Variable
 import torch
-
 import numpy as np
 import time
 import os
-
 
 
 class Trainer():
@@ -12,8 +10,7 @@ class Trainer():
     def __init__(self, model, loss, optimizer, loader_train, patience=None,
                     loader_train_eval=None, loader_val=None, cuda=None,
                     logger=None, data_noise_gaussian=None, save_dir=None):
-        """
-        """
+        """"""
         super().__init__()
         self.model = model
         self.loss = loss
@@ -71,11 +68,8 @@ class Trainer():
         return total_loss / len(self.loader_train)
 
 
-
     def compute_loss(self, dat_loader):
-        """ Compute model loss for provided data loader
-        """
-
+        """ Compute model loss for provided data loader"""
         self.model.eval()
 
         if self.cuda:
@@ -116,17 +110,14 @@ class Trainer():
 
     def train(self):
         """Train the model"""
-
         # initial setup
         epoch = 1
         loss_val_best = 100
         num_epochs_increased = 0
         epoch_best = 1
 
-
         # Perform training
         while True:
-
             # Run one iteration of SGD
             t0 = time.time()
             loss_train = self.train_epoch()
