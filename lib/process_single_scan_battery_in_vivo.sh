@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # change into directory
 echo $1
