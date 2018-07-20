@@ -41,7 +41,8 @@ do
 
         # take istft of chandat, create dnn image data, display dnn image
         echo "process_single_scan_battery_anechoic_cyst.sh: Matlab run r4_dnn_istft.m, r5_dnn_image.m, and r6_dnn_image_display.m"
-        matlab -nosoftwareopengl -nodesktop -nosplash -r "addpath('../process_scripts'); r4_dnn_istft; r5_dnn_image; r6_dnn_image_display; quit;"
+        # matlab -nosoftwareopengl -nodesktop -nosplash -r "addpath('../process_scripts'); r4_dnn_istft; r5_dnn_image; r6_dnn_image_display; quit;"
+        matlab -nosoftwareopengl -nodesktop -nosplash -r "try, addpath('../process_scripts'), r4_dnn_istft, r5_dnn_image, r6_dnn_image_display, catch, exit(1), end, exit(0);"
 
         # delete extra files
         echo "process_single_scan_battery_anechoic_cyst.sh: Deleting old_stft.mat"
