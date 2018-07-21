@@ -3,7 +3,8 @@
 #    Runs all models prefixed by an identifier on simulated cyst, phantom cyst,
 #    and in vivo data.
 # Usage:
-#    python evaluate_models.py 123984
+#    python evaluate_models.py 123984*
+#    python evaluate_models.py "*"
 import glob
 import os
 from subprocess import Popen
@@ -16,9 +17,12 @@ from utils import read_model_params
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('identifier', help='Option to load model params from a file. Values in this file take precedence.')
+    parser.add_argument('max_to_evaluate', type=int, nargs='?', default=-1, help='The maximum number of models to evaluate, regardless of how many matched folders.')
     args = parser.parse_args()
 
     identifier = args.identifier
+    max_to_evaluate = args.max_to_evaluate
+
     model_search_path = os.path.join('DNNs', str(identifier) + '_trained')
     models = glob.glob(model_search_path)
     num_models = len(models)
@@ -26,7 +30,13 @@ if __name__ == '__main__':
     if num_models == 0:
         raise ValueError('evaluate_models: given identifier ' + str(identifier) + ' , expanded to ' + str(model_search_path) + ' matched no model.')
 
+    if max_to_evaluate > -1:
+        count = 0
+
     for model_index, model_folder in enumerate(models):
+        if max_to_evaluate > -1 and count >= max_to_evaluate:
+            break
+
         # Skip evaluation unless 3x model.dat are present.
         if not (os.path.isfile(os.path.join(model_folder, 'k_3', 'model.dat'))
             and os.path.isfile(os.path.join(model_folder, 'k_4', 'model.dat'))
@@ -61,5 +71,6 @@ if __name__ == '__main__':
             and os.path.isfile(os.path.join(model_folder, 'scan_batteries', 'target_in_vivo', 'target_19', 'dnn.png')):
 
             shutil.move(model_folder, model_folder.replace('_trained', '_evaluated'))
+            if max_to_evaluate > -1: count += 1
         else:
             raise "evaluate_models.py: dnn.png check failed."
