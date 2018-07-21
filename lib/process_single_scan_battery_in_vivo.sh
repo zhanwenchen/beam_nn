@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 
+lib_dir=$(pwd)
 # change into directory
 echo $1
 cd $1
@@ -36,7 +37,8 @@ do
 
         # process with networks
         echo "process_single_scan_battery_in_vivo.sh: r3_dnn_apply.py"
-        python ../process_scripts/r3_dnn_apply.py
+        # python ../process_scripts/r3_dnn_apply.py
+        python "$lib_dir/lib/r3_dnn_apply.py"
 
         # take istft of chandat, create dnn image data, display dnn image
         echo "process_single_scan_battery_in_vivo.sh: Matlab running r4_dnn_istft.m, r5_dnn_image.m, and r6_dnn_image_display.m"
