@@ -8,6 +8,7 @@ import glob
 import os
 from subprocess import Popen
 import argparse
+import shutil
 
 from utils import read_model_params
 
@@ -53,4 +54,4 @@ if __name__ == '__main__':
         Popen(commands[1], shell=True).wait()
         print('\n\nevaluate_models.py: processing in vivo for model', model_index + 1, 'of', num_models, ':', os.path.basename(model_folder), '\n\n')
         Popen(commands[2], shell=True).wait()
-        os.rename(model_folder, model_folder.replace('_trained', '_evaluated'))
+        shutil.move(model_folder, model_folder.replace('_trained', '_evaluated'))
