@@ -61,11 +61,5 @@ do
     done
 done
 
-echo "process_single_scan_battery_anechoic_cyst.sh: Deleting process_scripts"
-rm -r process_scripts
-
-echo "process_single_scan_battery_anechoic_cyst.sh: Deleting creation_scripts"
-rm -r creation_scripts
-
-echo "process_single_scan_battery_anechoic_cyst.sh: Deleting phantoms folder"
-rm -r phantoms
+echo "process_single_scan_battery_anechoic_cyst.sh: Deleting process_scripts, creation_scripts, and phantom folders"
+rm -r process_scripts creation_scripts phantoms

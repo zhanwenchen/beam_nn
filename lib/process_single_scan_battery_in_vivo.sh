@@ -55,9 +55,7 @@ do
         echo "process_single_scan_battery_in_vivo.sh: Deleteing dnn_image.mat"
         rm dnn_image.mat
         echo "process_single_scan_battery_in_vivo.sh: Removing ROI files"
-        rm box_*
-        rm circle_*
-        rm region_*
+        rm box_* circle_* region_*
 
         cd ..
 
