@@ -3,7 +3,7 @@ set -e
 
 lib_dir=$(pwd)
 # change into directory
-echo $1
+echo process_single_scan_battery_anechoic_cyst.sh: $1
 cd $1
 
 if [ ! -d 'scan_batteries' ]; then

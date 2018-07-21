@@ -25,10 +25,10 @@ if __name__ == "__main__":
     # cuda flag
     if args.cuda and torch.cuda.is_available():
         cuda = True
-        print('Using ' + str(torch.cuda.get_device_name(0)))
+        print('r3_dnn_apply.py: Using ' + str(torch.cuda.get_device_name(0)))
     else:
         cuda = False
-        print('Not using CUDA. CUDA is ' + str(torch.cuda.is_available()) + ' available')
+        print('r3_dnn_apply.py: Not using CUDA. CUDA is ' + str(torch.cuda.is_available()) + ' available')
 
     # load stft data
     f = h5py.File("old_stft.mat", "r")
