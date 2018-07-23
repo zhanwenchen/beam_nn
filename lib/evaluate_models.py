@@ -66,8 +66,8 @@ if __name__ == '__main__':
         Popen(commands[2], shell=True).wait()
 
         # Check for dnn.png in all 3 experiments.
-        if os.path.isfile(os.path.join(model_folder, 'scan_batteries', 'target_anechoic_cyst_5mm', 'target_5*', 'dnn.png')) \
-            and os.path.isfile(os.path.join(model_folder, 'scan_batteries', 'target_phantom_anechoic_cyst_2p5mm', 'target_5*', 'dnn.png')) \
+        if os.path.isfile(os.path.join(model_folder, 'scan_batteries', 'target_anechoic_cyst_5mm', 'target_5_SNR_10dB', 'dnn.png')) \
+            and os.path.isfile(os.path.join(model_folder, 'scan_batteries', 'target_phantom_anechoic_cyst_2p5mm', 'target_5', 'dnn.png')) \
             and os.path.isfile(os.path.join(model_folder, 'scan_batteries', 'target_in_vivo', 'target_19', 'dnn.png')):
 
             shutil.move(model_folder, model_folder.replace('_trained', '_evaluated'))
