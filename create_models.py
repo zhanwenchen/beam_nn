@@ -8,7 +8,7 @@ import json
 import warnings
 import sys
 
-from utils import save_model_params, ensure_dir
+from lib.utils import save_model_params, ensure_dir
 
 
 def choose_hyperparameters_from_file(hyperparameter_ranges_file):

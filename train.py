@@ -7,17 +7,18 @@ import glob
 import warnings
 from pprint import pprint
 
-from utils import read_model_params, save_model_params, ensure_dir, add_suffix_to_path
-from dataloader import ApertureDataset
-from lenet import LeNet
-from logger import Logger
-from trainer import Trainer
+from lib.utils import read_model_params, save_model_params, ensure_dir, add_suffix_to_path
+from lib.dataloader import ApertureDataset
+from lib.lenet import LeNet
+from lib.logger import Logger
+from lib.trainer import Trainer
 
 
 def train(identifier):
     models = glob.glob(os.path.join('DNNs', str(identifier) + '_created'))
 
     for model_folder in models:
+        shutil.move(model_folder, model_folder.replace('_created', '_training'))
         ks = glob.glob(os.path.join(model_folder, 'k_*'))
         for k in ks:
             model_params_path = k + '/model_params.txt'

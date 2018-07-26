@@ -37,6 +37,9 @@ if __name__ == '__main__':
         if max_to_evaluate > -1 and count >= max_to_evaluate:
             break
 
+        # rename _trained as _evaluating
+        shutil.move(model_folder, model_folder.replace('_trained', '_evaluating'))
+
         # Skip evaluation unless 3x model.dat are present.
         if not (os.path.isfile(os.path.join(model_folder, 'k_3', 'model.dat'))
             and os.path.isfile(os.path.join(model_folder, 'k_4', 'model.dat'))
