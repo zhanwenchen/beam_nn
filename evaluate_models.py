@@ -11,7 +11,7 @@ from subprocess import Popen
 import argparse
 import shutil
 
-from utils import read_model_params
+from lib.utils import read_model_params
 
 
 if __name__ == '__main__':
