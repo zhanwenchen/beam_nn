@@ -37,7 +37,7 @@ do
         # process with networks
         echo "process_single_scan_battery_phantom_2p5mm.sh: running r3_dnn_apply.py"
         # python ../process_scripts/r3_dnn_apply.py
-        python "$lib_dir/lib/r3_dnn_apply.py" -c
+        python "$lib_dir/r3_dnn_apply.py" -c
 
         # take istft of chandat, create dnn image data, display dnn image
         echo "process_single_scan_battery_phantom_2p5mm.sh: Matlab running r4_dnn_istft.m, r5_dnn_image.m, and r6_dnn_image_display.m"
