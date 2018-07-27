@@ -19,8 +19,9 @@ def train(identifier):
     models = glob.glob(os.path.join('DNNs', str(identifier) + '_created'))
 
     for model_folder in models:
-        shutil.move(model_folder, model_folder.replace('_created', '_training'))
-        ks = glob.glob(os.path.join(model_folder, 'k_*'))
+        new_model_folder_name = model_folder.replace('_created', '_training')
+        shutil.move(model_folder, new_model_folder_name)
+        ks = glob.glob(os.path.join(new_model_folder_name, 'k_*'))
         for k in ks:
             model_params_path = k + '/model_params.txt'
             print('train.py: training model', model_params_path, 'with hyperparams')
@@ -122,7 +123,7 @@ def train(identifier):
             # run training
             trainer.train()
 
-        os.rename(model_folder, model_folder.replace('_created', '_trained'))
+        os.rename(new_model_folder_name, model_folder.replace('_created', '_trained'))
 
 
 def main():
