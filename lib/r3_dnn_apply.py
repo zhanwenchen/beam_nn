@@ -9,10 +9,10 @@ from scipy.io import savemat
 import time
 
 # modify path
-import sys
-sys.path.insert(0, '../../../../../lib')
-from lenet import LeNet
-from utils import read_model_params
+# import sys
+# sys.path.insert(0, '../../../../../lib')
+from lib.lenet import LeNet
+from lib.utils import read_model_params
 
 
 if __name__ == "__main__":
