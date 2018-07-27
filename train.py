@@ -126,7 +126,7 @@ def train(identifier):
             # run training
             trainer.train()
 
-        os.rename(new_model_folder_name, model_folder.replace('_created', '_trained'))
+        os.rename(new_model_folder_name, new_model_folder_name.replace('_training', '_trained'))
 
 
 def main():
