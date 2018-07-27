@@ -121,7 +121,7 @@ def train(identifier):
                               cuda=using_cuda,
                               logger=logger,
                               data_noise_gaussian=model_params['data_noise_gaussian'],
-                              save_dir=new_model_folder_name)
+                              save_dir=model_params['save_dir'])
 
             # run training
             trainer.train()
