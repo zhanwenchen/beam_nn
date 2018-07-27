@@ -26,12 +26,12 @@ class Trainer():
 
 
     def train_epoch(self):
-        """ Train model for one epoch"""
-        self.model.train()
-
+        """Train model for one epoch"""
         if self.cuda:
             self.model.cuda()
             self.loss.cuda()
+            
+        self.model.train()
 
         total_loss = 0
         for batch_idx, data in enumerate(self.loader_train):
