@@ -30,7 +30,7 @@ class Trainer():
         if self.cuda:
             self.model.cuda()
             self.loss.cuda()
-            
+
         self.model.train()
 
         total_loss = 0
@@ -70,11 +70,11 @@ class Trainer():
 
     def compute_loss(self, dat_loader):
         """ Compute model loss for provided data loader"""
-        self.model.eval()
-
         if self.cuda:
             self.model.cuda()
             self.loss.cuda()
+
+        self.model.eval()
 
         total_loss = 0
         for batch_idx, data in enumerate(dat_loader):
