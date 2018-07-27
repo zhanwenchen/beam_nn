@@ -58,9 +58,6 @@ class LeNet(nn.Module):
 
         # Conv1
         conv1_output_size = (conv1_num_kernels, (input_size - conv1_kernel_size) / conv1_stride + 1)
-        # if not conv1_output_size[1].is_integer():
-        #     raise ValueError('lenet: conv1_output_size[1] %s is not an integer.' % conv1_output_size[1])
-        # conv1_output_size = (conv1_num_kernels, int(conv1_output_size[1]))
 
         self.conv1 = nn.Conv1d(input_channel, conv1_num_kernels, conv1_kernel_size, stride=conv1_stride) # NOTE: THIS IS CORRECT!!!! CONV doesn't depend on num_features!
         nn.init.kaiming_normal_(self.conv1.weight.data)
@@ -95,9 +92,6 @@ class LeNet(nn.Module):
 
         # FCs
         fcs_input_size = pool2_output_size[0] * pool2_output_size[1]
-        # if not fcs_input_size.is_integer():
-        #     raise ValueError('lenet: fcs_input_size = ' + fcs_input_size + ' is not an integer')
-        # fcs_input_size = int(fcs_input_size)
         self.fcs = FullyConnectedNet(fcs_input_size,
                                      output_size,
 
