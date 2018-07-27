@@ -5,7 +5,7 @@ import torch.nn as nn
 import warnings
 
 
-from fully_connected_net import FullyConnectedNet
+from lib.fully_connected_net import FullyConnectedNet
 
 
 class LeNet(nn.Module):
