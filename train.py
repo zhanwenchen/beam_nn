@@ -98,6 +98,9 @@ def train(identifier):
             # loss
             loss = torch.nn.MSELoss()
 
+            if using_cuda == True:
+                loss.cuda()
+
             # optimizer
             if model_params['optimizer'] == 'Adam':
                 optimizer = torch.optim.Adam(model.parameters(), lr=model_params['learning_rate'], weight_decay=model_params['weight_decay'])
@@ -118,7 +121,7 @@ def train(identifier):
                               cuda=using_cuda,
                               logger=logger,
                               data_noise_gaussian=model_params['data_noise_gaussian'],
-                              save_dir=model_params['save_dir'])
+                              save_dir=new_model_folder_name)
 
             # run training
             trainer.train()
