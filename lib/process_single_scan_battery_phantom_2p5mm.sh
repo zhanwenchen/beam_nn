@@ -45,10 +45,10 @@ do
         # matlab -nodesktop -nosplash -r "try, addpath('../process_scripts'), r4_dnn_istft, r5_dnn_image, r6_dnn_image_display, catch, exit(1), end, exit(0);"
 
         # delete extra files
-        echo "process_single_scan_battery_phantom_2p5mm.sh: Deleting old_stft.mat"
-        rm old_stft.mat
-        echo "process_single_scan_battery_phantom_2p5mm.sh: Deleting new_stft.mat"
-        rm new_stft.mat
+        # echo "process_single_scan_battery_phantom_2p5mm.sh: Deleting old_stft.mat"
+        # rm old_stft.mat
+        # echo "process_single_scan_battery_phantom_2p5mm.sh: Deleting new_stft.mat"
+        # rm new_stft.mat
         echo "process_single_scan_battery_phantom_2p5mm.sh: Deleting chandat.mat"
         rm chandat.mat
         echo "process_single_scan_battery_phantom_2p5mm.sh: Deleteing chandat_dnn.mat"
