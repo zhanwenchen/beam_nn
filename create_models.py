@@ -45,25 +45,29 @@ def choose_hyperparameters_from_file(hyperparameter_ranges_file):
     for conv1_kernel_size in conv1_kernel_size_range:
         for conv1_stride in conv1_stride_range:
             # Satisfy conv1 condition
-            if (input_size - conv1_kernel_size) % conv1_stride != 0:
+            if input_size - conv1_kernel_size < 0 or
+                (input_size - conv1_kernel_size) % conv1_stride != 0:
                 continue
             conv1_output_size = (conv1_num_kernels, (input_size - conv1_kernel_size) / conv1_stride + 1)
 
             for pool1_kernel_size in pool1_kernel_size_range:
                 for pool1_stride in pool1_stride_range:
-                    if (conv1_output_size[1] - pool1_kernel_size) % pool1_stride != 0:
+                    if (conv1_output_size[1] - pool1_kernel_size) < 0 or
+                        (conv1_output_size[1] - pool1_kernel_size) % pool1_stride != 0:
                         continue
                     pool1_output_size = (conv1_num_kernels, (conv1_output_size[1] - pool1_kernel_size) / pool1_stride + 1)
 
                     for conv2_kernel_size in conv2_kernel_size_range:
                         for conv2_stride in conv2_stride_range:
-                            if (pool1_output_size[1] - conv2_kernel_size) % conv2_stride != 0:
+                            if (pool1_output_size[1] - conv2_kernel_size) < 0 or
+                                (pool1_output_size[1] - conv2_kernel_size) % conv2_stride != 0:
                                 continue
                             conv2_output_size = (conv2_num_kernels, (pool1_output_size[1] - conv2_kernel_size) / conv2_stride + 1)
 
                             for pool2_kernel_size in pool2_kernel_size_range:
                                 for pool2_stride in pool2_stride_range:
-                                    if (conv2_output_size[1] - pool2_kernel_size) % pool2_stride != 0:
+                                    if (conv2_output_size[1] - pool2_kernel_size) < 0 or
+                                        (conv2_output_size[1] - pool2_kernel_size) % pool2_stride != 0:
                                         continue
                                     pool2_output_size = (conv2_num_kernels, (conv2_output_size[1] - pool2_kernel_size) / pool2_stride + 1)
 
