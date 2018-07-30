@@ -90,10 +90,14 @@ if __name__ == "__main__":
                           model_params['fcs_hidden_size'],
                           model_params['fcs_num_hidden_layers'],
                           model_params['fcs_dropout'])
-        model.load_state_dict(torch.load(os.path.join(model_dirs[k], 'model.dat'), map_location='cpu'))
-        model.eval()
-        if cuda == True:
+        # model.load_state_dict(torch.load(os.path.join(model_dirs[k], 'model.dat'), map_location='cpu'))
+        if cuda == False:
+            model.load_state_dict(torch.load(os.path.join(model_dirs[k], 'model.dat'), map_location='cpu'))
+        else:
+            model.load_state_dict(torch.load(os.path.join(model_dirs[k], 'model.dat')))
             model.cuda()
+
+        model.eval()
 
         for i in range(num_segments):
             for m in range(N_beams):
@@ -114,8 +118,10 @@ if __name__ == "__main__":
 
                     # predict new aperture data
                     aperture_data_new = model(x)
-                    aperture_data_new = aperture_data_new.cpu().data.numpy()
-
+                    if cuda == False:
+                        aperture_data_new = aperture_data_new.cpu().data.numpy() # TODO: This is by default cpu
+                    else:
+                        aperture_data_new = aperture_data_new.cuda().data.numpy() # TODO: This is by default cpu
                     # renormalize aperture data
                     aperture_data_new = aperture_data_new * aperture_data_norm
 
