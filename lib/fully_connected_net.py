@@ -16,7 +16,7 @@ class FullyConnectedNet(nn.Module):
         dropout
         dropout_input
     """
-    def __init__(self, input_size,
+    def __init__(self, fcs_input_size,
                        output_size,
 
                        fcs_dropout,
@@ -27,11 +27,15 @@ class FullyConnectedNet(nn.Module):
 
         # print('fully_connected_net: got input_size = %s, output_size = %s, fcs_hidden_size = %s, num_hidden_layers = %s, fcs_dropout = %s, fcs_dropout_input = %s, batch_norm = %s' % (input_size, output_size, fcs_hidden_size, num_hidden_layers, fcs_dropout, fcs_dropout_input, batch_norm))
         super().__init__()
+        if fcs_input_size.is_integer():
+            fcs_input_size = int(fcs_input_size)
+        else:
+            raise ValueError('fully_connected_net: fcs_input_size', fcs_input_size, 'is not an integer')
 
         self.batch_norm = batch_norm
 
         # input connects to first hidden layer
-        self.layers = nn.ModuleList([nn.Linear(input_size, fcs_hidden_size)])
+        self.layers = nn.ModuleList([nn.Linear(fcs_input_size, fcs_hidden_size)])
         for i in range(fcs_num_hidden_layers - 1):
             self.layers.append(nn.Linear(fcs_hidden_size, fcs_hidden_size))
         # last hidden connects to output layer
