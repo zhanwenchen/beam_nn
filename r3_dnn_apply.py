@@ -8,15 +8,11 @@ import argparse
 from scipy.io import savemat
 import time
 
-# modify path
-# import sys
-# sys.path.insert(0, '../../../../../lib')
 from lib.lenet import LeNet
 from lib.utils import read_model_params
 
 
 if __name__ == "__main__":
-
     # parse input arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--cuda', help='Option to use GPU.', action="store_true")
@@ -90,7 +86,6 @@ if __name__ == "__main__":
                           model_params['fcs_hidden_size'],
                           model_params['fcs_num_hidden_layers'],
                           model_params['fcs_dropout'])
-        # model.load_state_dict(torch.load(os.path.join(model_dirs[k], 'model.dat'), map_location='cpu'))
         if cuda == False:
             model.load_state_dict(torch.load(os.path.join(model_dirs[k], 'model.dat'), map_location='cpu'))
         else:
