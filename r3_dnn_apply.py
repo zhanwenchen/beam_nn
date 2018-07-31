@@ -114,9 +114,9 @@ if __name__ == "__main__":
                     # predict new aperture data
                     aperture_data_new = model(x)
                     if cuda == False:
-                        aperture_data_new = aperture_data_new.cpu().data.numpy() # TODO: This is by default cpu
+                        aperture_data_new = aperture_data_new.cpu().data.numpy()
                     else:
-                        aperture_data_new = aperture_data_new.cuda().data.numpy() # TODO: This is by default cpu
+                        aperture_data_new = aperture_data_new.cuda().data.numpy() # TODO: Is this correct?
                     # renormalize aperture data
                     aperture_data_new = aperture_data_new * aperture_data_norm
 
