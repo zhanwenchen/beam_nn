@@ -17,8 +17,9 @@ class ApertureDataset(Dataset):
             target_is_data: return data as the target (autoencoder)
         """
 
+        print('dataloader.py: fname =', fname, 'num_samples =', num_samples, 'k =', k, 'target_is_data =', target_is_data)
+
         self.fname = fname
-        self.num_samples = num_samples
 
         # check if files exist
         if not os.path.isfile(fname):
@@ -35,6 +36,7 @@ class ApertureDataset(Dataset):
         # set num_samples
         if not num_samples:
             num_samples = samples_available
+        self.num_samples = num_samples
 
         # make sure num_samples is less than samples_available
         if num_samples > samples_available:
@@ -44,14 +46,14 @@ class ApertureDataset(Dataset):
             self.num_samples = num_samples
 
         # load the data
-        inputs = np.hstack([ f['/' + str(k) + '/X/real'][0:self.num_samples],
-                            f['/' + str(k) + '/X/imag'][0:self.num_samples] ] )
+        inputs = np.hstack([f['/' + str(k) + '/X/real'][0:self.num_samples],
+                            f['/' + str(k) + '/X/imag'][0:self.num_samples]])
         if target_is_data:
-            targets = np.hstack([ f['/' + str(k) + '/X/real'][0:self.num_samples],
-                                f['/' + str(k) + '/X/imag'][0:self.num_samples] ] )
+            targets = np.hstack([f['/' + str(k) + '/X/real'][0:self.num_samples],
+                                 f['/' + str(k) + '/X/imag'][0:self.num_samples]])
         else:
-            targets = np.hstack([ f['/' + str(k) + '/Y/real'][0:self.num_samples],
-                                f['/' + str(k) + '/Y/imag'][0:self.num_samples] ] )
+            targets = np.hstack([f['/' + str(k) + '/Y/real'][0:self.num_samples],
+                                 f['/' + str(k) + '/Y/imag'][0:self.num_samples]])
 
         # convert data to single precision pytorch tensors
         self.data_tensor = torch.from_numpy(inputs).float()
