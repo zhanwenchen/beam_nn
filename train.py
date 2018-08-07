@@ -39,17 +39,17 @@ def train(identifier):
 
             # Load primary training data
             num_samples = 10 ** 5
-            dat_train = ApertureDataset(model_params['data_train'], num_samples, model_params['k'], model_params['data_is_target'])
+            dat_train = ApertureDataset(model_params['data_train'], num_samples, k=model_params['k'], target_is_data=model_params['data_is_target'])
             loader_train = torch.utils.data.DataLoader(dat_train, batch_size=model_params['batch_size'], shuffle=True, num_workers=1)
 
             # Load secondary training data - used to evaluate training loss after every epoch
             num_samples = 10 ** 4
-            dat_train2 = ApertureDataset(model_params['data_train'], num_samples, model_params['k'], model_params['data_is_target'])
+            dat_train2 = ApertureDataset(model_params['data_train'], num_samples, k=model_params['k'], target_is_data=model_params['data_is_target'])
             loader_train_eval = torch.utils.data.DataLoader(dat_train2, batch_size=model_params['batch_size'], shuffle=False, num_workers=1)
 
             # Load validation data - used to evaluate validation loss after every epoch
             num_samples = 10 ** 4
-            dat_val = ApertureDataset(model_params['data_val'], num_samples, model_params['k'], model_params['data_is_target'])
+            dat_val = ApertureDataset(model_params['data_val'], num_samples, k=model_params['k'], target_is_data=model_params['data_is_target'])
             loader_val = torch.utils.data.DataLoader(dat_val, batch_size=model_params['batch_size'], shuffle=False, num_workers=1)
 
             # create model
