@@ -108,8 +108,8 @@ class LeNet(nn.Module):
         # pytorch.conv1d accepts shape (Batch, Channel, Width)
         # pytorch.conv2d accepts shape (Batch, Channel, Height, Width)
         # import code; code.interact(local=dict(globals(), **locals()))
-        N_elements = int(x.shape[1] / 2)
-        x = x.view(-1, 2, N_elements)
+        num_elements = int(x.shape[1] / 2)
+        x = x.view(-1, 2, num_elements)
 
         x = self.conv1(x)
         x = self.pool1(x)
