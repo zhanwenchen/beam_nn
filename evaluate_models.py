@@ -11,8 +11,6 @@ from subprocess import Popen
 import argparse
 import shutil
 
-from lib.utils import read_model_params
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
