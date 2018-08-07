@@ -1,8 +1,7 @@
-import torch
+import warnings
+
 import torch.nn.functional as F
 import torch.nn as nn
-
-import warnings
 
 
 from lib.fully_connected_net import FullyConnectedNet
