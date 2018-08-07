@@ -26,39 +26,39 @@ class ApertureDataset(Dataset):
             raise IOError(fname + ' does not exist.')
 
         # Open file
-        f = h5py.File(fname, 'r')
+        with h5py.File(fname, 'r') as f:
 
-        # Get number of samples available for each type
-        real_available = f['/' + str(k) + '/X/real'].shape[0]
-        imag_available = f['/' + str(k) + '/X/imag'].shape[0]
-        samples_available = min(real_available, imag_available)
+            # Get number of samples available for each type
+            inputs_real = f['/' + str(k) + '/X/real']
+            inputs_imag = f['/' + str(k) + '/X/imag']
 
-        # set num_samples
-        if not num_samples:
-            num_samples = samples_available
+            real_available = inputs_real.shape[0]
+            imag_available = inputs_imag.shape[0]
+            samples_available = min(real_available, imag_available)
 
-        # make sure num_samples is less than samples_available
-        if num_samples > samples_available:
-            self.num_samples = samples_available
-        else:
-            self.num_samples = num_samples
+            # set num_samples
+            if not num_samples:
+                num_samples = samples_available
 
-        # load the data
-        inputs = np.hstack([f['/' + str(k) + '/X/real'][0:self.num_samples],
-                            f['/' + str(k) + '/X/imag'][0:self.num_samples]])
-        if target_is_data:
-            targets = np.hstack([f['/' + str(k) + '/X/real'][0:self.num_samples],
-                                 f['/' + str(k) + '/X/imag'][0:self.num_samples]])
-        else:
-            targets = np.hstack([f['/' + str(k) + '/Y/real'][0:self.num_samples],
-                                 f['/' + str(k) + '/Y/imag'][0:self.num_samples]])
+            # make sure num_samples is less than samples_available
+            if num_samples > samples_available:
+                self.num_samples = samples_available
+            else:
+                self.num_samples = num_samples
+
+            # load the data
+            inputs = np.hstack([inputs_real[0:self.num_samples],
+                                inputs_imag[0:self.num_samples]])
+            if target_is_data:
+                targets = np.hstack([inputs_real[0:self.num_samples],
+                                     inputs_imag[0:self.num_samples]])
+            else:
+                targets = np.hstack([f['/' + str(k) + '/Y/real'][0:self.num_samples],
+                                     f['/' + str(k) + '/Y/imag'][0:self.num_samples]])
 
         # convert data to single precision pytorch tensors
         self.data_tensor = torch.from_numpy(inputs).float()
         self.target_tensor = torch.from_numpy(targets).float()
-
-        # close file
-        f.close()
 
     def __len__(self):
         return self.data_tensor.size(0)
