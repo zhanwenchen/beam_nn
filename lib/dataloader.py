@@ -36,12 +36,10 @@ class ApertureDataset(Dataset):
         # set num_samples
         if not num_samples:
             num_samples = samples_available
-        self.num_samples = num_samples
 
         # make sure num_samples is less than samples_available
         if num_samples > samples_available:
-            warnings.warn('data_size > self.samples_available. Setting data_size to samples_available')
-            self.num_samples = self.samples_available
+            self.num_samples = samples_available
         else:
             self.num_samples = num_samples
 

@@ -1,6 +1,6 @@
 import os
 import torch
-import torch.cuda.is_available as get_cuda_available
+from torch.cuda import is_available as get_cuda_available
 import json
 
 
