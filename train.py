@@ -1,12 +1,10 @@
-import torch
 import os
-import numpy as np
-import time
 import argparse
 import glob
 import warnings
 from pprint import pprint
 import shutil
+import torch
 
 from lib.utils import read_model_params, save_model_params, ensure_dir, add_suffix_to_path
 from lib.dataloader import ApertureDataset
