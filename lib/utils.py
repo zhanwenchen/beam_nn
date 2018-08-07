@@ -4,7 +4,7 @@ import torch.cuda.is_available as get_cuda_available
 import json
 
 
-__all__ = ['load_model', 'ensure_dir', 'add_suffix_to_path']
+__all__ = ['load_model', 'read_model_params', 'ensure_dir', 'add_suffix_to_path']
 
 def read_model_params(model_params_fname):
     """Read and return model params from json (text) file."""
