@@ -18,6 +18,7 @@ speckle_stats_cnr_idx = 1
 
 def get_df(identifier):
     # TODO: 1. Use scan_batteries to load das stats instead of walk through models.
+    # TODO: 2. Walk model_folders only once.
     # setup dnn directory list
     model_folders, num_models = get_models(identifier)
 
@@ -61,6 +62,9 @@ def get_df(identifier):
             target_folders = glob.glob(os.path.join(scan_battery_folder, 'target_*'))
 
             scan_battery_name = os.path.basename(scan_battery_folder)
+            columns_das = []
+            columns_dnn = []
+
 
             for target_idx, target_folder in enumerate(target_folders):
                 speckle_stats_das_fname = os.path.join(target_folder, 'speckle_stats_das.txt')
@@ -72,10 +76,16 @@ def get_df(identifier):
                 cnr_dnn = pd.read_csv(speckle_stats_dnn_fname, delimiter=",").values[1]
 
                 column_name = '_'.join([scan_battery_name, os.path.basename(target_folder)])
+                column_name_cnr_das = column_name + '_cnr_das'
+                column_name_cnr_dnn = column_name + '_cnr_dnn'
+                columns_das.append(column_name_cnr_das)
+                columns_dnn.append(column_name_cnr_dnn)
 
-                df.loc[model_idx, column_name + '_das_cnr'] = cnr_das
-                df.loc[model_idx, column_name + '_dnn_cnr'] = cnr_dnn
+                df.loc[model_idx, column_name_cnr_das] = cnr_das
+                df.loc[model_idx, column_name_cnr_dnn] = cnr_dnn
 
+            df.loc[:, scan_battery_name + '_avg_cnr_das'] = df.loc[:, columns_das].mean(axis=1)
+            df.loc[:, scan_battery_name + '_avg_cnr_dnn'] = df.loc[:, columns_dnn].mean(axis=1)
 
     return df
 
