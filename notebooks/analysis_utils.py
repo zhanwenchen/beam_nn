@@ -1,45 +1,41 @@
-"""
-@author: Adam Luiches
-@author: Zhanwen Chen
-"""
+__all__ = ['get_df']
 
-__all__ = ['get_speckle_stats_dnn_and_das', 'get_speckle_stats_dnn', 'get_speckle_stats_das']
-
+import os
+import warnings
+import sys
 import numpy as np
 import pandas as pd
 import scipy.stats
-import os
-import warnings
 import glob
-import sys
+import random
 
-sys.path.insert(0, '../lib')
-from utils import read_model_params
+sys.path.insert(0, '..')
+from lib.utils import read_model_params
 
 
-dirs_dnn_parent = '../DNNs/'
+speckle_stats_cnr_idx = 1
 
 
 def get_df(identifier):
+    # TODO: 1. Use scan_batteries to load das stats instead of walk through models.
     # setup dnn directory list
     model_folders, num_models = get_models(identifier)
 
+    random_model_folder = random.choice(model_folders)
+    random_model_params_txt = os.path.join(random_model_folder, 'k_4', 'model_params.txt')
+    random_model_params = read_model_params(random_model_params_txt)
+    # random_model_params['index'] = -1
+    random_model_params['name'] = 'lol'
+    df = pd.DataFrame(columns=random_model_params.keys())
+
     # loop through dnns and store model params
-    for i, dir_dnn in enumerate(model_folders):
-        m_name = os.path.join(dir_dnn, 'k_4', 'model_params.txt')
-        model_params = read_model_params(m_name)
-        model_params['index'] = i
-        model_params['name'] = os.path.basename(dir_dnn)
+    for i, model_folder in enumerate(model_folders):
+        model_params_txt = os.path.join(model_folder, 'k_4', 'model_params.txt')
+        model_params = read_model_params(model_params_txt)
+        # model_params['index'] = i
+        model_params['name'] = os.path.basename(model_folder)
 
-        df_single = pd.DataFrame([model_params])
-
-        if i == 0:
-            df = df_single
-        else:
-            df = pd.concat([df, df_single])
-
-    df = df.set_index('index')
-
+        df.loc[len(df), :] = model_params
 
     # loop through dnns and load losses
     loss_val = np.zeros((num_models, 3))
@@ -54,59 +50,35 @@ def get_df(identifier):
     df['loss_val_k_4'] = pd.Series(loss_val[:, 1], index=df.index)
     df['loss_val_k_5'] = pd.Series(loss_val[:, 2], index=df.index)
 
+
+    for model_idx, model_folder in enumerate(model_folders):
+        model_name = os.path.basename(model_folder)
+        scan_batteries = glob.glob(os.path.join(model_folder, 'scan_batteries', '*'))
+
+        # print('analysis_utils: processing model', model_idx, 'of', len(model_folders), model_name)
+
+        for scan_battery_folder in scan_batteries:
+            target_folders = glob.glob(os.path.join(scan_battery_folder, 'target_*'))
+
+            scan_battery_name = os.path.basename(scan_battery_folder)
+
+            for target_idx, target_folder in enumerate(target_folders):
+                speckle_stats_das_fname = os.path.join(target_folder, 'speckle_stats_das.txt')
+                speckle_stats_dnn_fname = os.path.join(target_folder, 'speckle_stats_dnn.txt')
+
+                # cnr_das = np.loadtxt(speckle_stats_das_fname, delimiter=',')[1]
+                cnr_das = pd.read_csv(speckle_stats_das_fname, delimiter=",").values[1]
+                # cnr_dnn = np.loadtxt(speckle_stats_dnn_fname, delimiter=',')[1]
+                cnr_dnn = pd.read_csv(speckle_stats_dnn_fname, delimiter=",").values[1]
+
+                column_name = '_'.join([scan_battery_name, os.path.basename(target_folder)])
+
+                df.loc[model_idx, column_name + '_das_cnr'] = cnr_das
+                df.loc[model_idx, column_name + '_dnn_cnr'] = cnr_dnn
+
+
     return df
 
-## Load DNN results.
-def get_speckle_stats_dnn(scan_battery_name, target_num_list, target_suffix, identifier):
-
-    model_folders, num_models = get_models(identifier)
-
-    # setup data storage
-    speckle_stats_dnn = np.zeros((num_models, 7, len(target_num_list)))
-
-    for i, dir_dnn in enumerate(model_folders):
-        # select the scan battery
-        scan_battery = os.path.join(dirs_dnn_parent, dir_dnn, 'scan_batteries', scan_battery_name)
-
-        for m, target_num in enumerate(target_num_list):
-
-            # data directory
-            dir_scan = 'target_' + str(target_num) + target_suffix
-
-            # filenames
-            filename_dnn = os.path.join(scan_battery, dir_scan, 'speckle_stats_dnn.txt')
-
-            # load DNN results
-            try:
-                speckle_stats_dnn[i, :, m] = np.loadtxt(filename_dnn, delimiter=',')
-            except:
-                warnings.warn('analysis_utils: Unable to find ' + filename_dnn + ' for ' + scan_battery_name)
-
-    return speckle_stats_dnn
-
-
-# Load DAS results.
-def get_speckle_stats_das(scan_battery_name, target_num_list, target_suffix, identifier):
-    """target_num_list can be a simulated cyst, a phantom cyst, or an in vivo target."""
-    speckle_stats_das = np.zeros((7, len(target_num_list))) # TODO: remove magic number "7".
-
-    model_folders, num_models = get_models(identifier)
-
-    for m, (target_num, model_folder) in enumerate(zip(target_num_list, model_folders)):
-        dir_scan = 'target_' + str(target_num) + target_suffix
-        # filename_das = os.path.join('..', 'DNNs', identifier + '1', 'scan_batteries', scan_battery_name, dir_scan, 'speckle_stats_das.txt')
-        filename_das = os.path.join(model_folder, 'scan_batteries', scan_battery_name, dir_scan, 'speckle_stats_das.txt')
-        speckle_stats_das[:, m] = np.loadtxt(filename_das, delimiter=',')
-
-    return speckle_stats_das
-
-
-# Convenience function to load both DNN and DAS results.
-def get_speckle_stats_dnn_and_das(scan_battery_name, target_num_list, target_suffix, identifier):
-    speckle_stats_dnn = get_speckle_stats_dnn(scan_battery_name, target_num_list, target_suffix, identifier)
-    speckle_stats_das = get_speckle_stats_das(scan_battery_name, target_num_list, target_suffix, identifier)
-
-    return speckle_stats_dnn, speckle_stats_das
 
 def get_models(identifier):
     model_search_path = os.path.join('..', 'DNNs', str(identifier) + '_evaluated')
