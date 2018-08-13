@@ -62,30 +62,54 @@ def get_df(identifier):
             target_folders = glob.glob(os.path.join(scan_battery_folder, 'target_*'))
 
             scan_battery_name = os.path.basename(scan_battery_folder)
-            columns_das = []
-            columns_dnn = []
+
+            columns_cnr_das = []
+            columns_cnr_dnn = []
+
+            columns_snr_das = []
+            columns_snr_dnn = []
 
 
             for target_idx, target_folder in enumerate(target_folders):
                 speckle_stats_das_fname = os.path.join(target_folder, 'speckle_stats_das.txt')
                 speckle_stats_dnn_fname = os.path.join(target_folder, 'speckle_stats_dnn.txt')
 
-                # cnr_das = np.loadtxt(speckle_stats_das_fname, delimiter=',')[1]
-                cnr_das = pd.read_csv(speckle_stats_das_fname, delimiter=",").values[1]
-                # cnr_dnn = np.loadtxt(speckle_stats_dnn_fname, delimiter=',')[1]
-                cnr_dnn = pd.read_csv(speckle_stats_dnn_fname, delimiter=",").values[1]
+                speckle_stats_das = pd.read_csv(speckle_stats_das_fname, delimiter=",", header=None).values
+                speckle_stats_dnn = pd.read_csv(speckle_stats_dnn_fname, delimiter=",", header=None).values
+
+                cnr_das = speckle_stats_das[1]
+                cnr_dnn = speckle_stats_dnn[1]
+
+                snr_das = speckle_stats_das[2]
+                snr_dnn = speckle_stats_dnn[2]
 
                 column_name = '_'.join([scan_battery_name, os.path.basename(target_folder)])
+
+                # CNR
                 column_name_cnr_das = column_name + '_cnr_das'
                 column_name_cnr_dnn = column_name + '_cnr_dnn'
-                columns_das.append(column_name_cnr_das)
-                columns_dnn.append(column_name_cnr_dnn)
+
+                columns_cnr_das.append(column_name_cnr_das)
+                columns_cnr_dnn.append(column_name_cnr_dnn)
 
                 df.loc[model_idx, column_name_cnr_das] = cnr_das
                 df.loc[model_idx, column_name_cnr_dnn] = cnr_dnn
 
-            df.loc[:, scan_battery_name + '_avg_cnr_das'] = df.loc[:, columns_das].mean(axis=1)
-            df.loc[:, scan_battery_name + '_avg_cnr_dnn'] = df.loc[:, columns_dnn].mean(axis=1)
+                # SNR
+                column_name_snr_das = column_name + '_snr_das'
+                column_name_snr_dnn = column_name + '_snr_dnn'
+
+                columns_snr_das.append(column_name_snr_das)
+                columns_snr_dnn.append(column_name_snr_dnn)
+
+                df.loc[model_idx, column_name_snr_das] = snr_das
+                df.loc[model_idx, column_name_snr_dnn] = snr_dnn
+
+            df.loc[:, scan_battery_name + '_avg_cnr_das'] = df.loc[:, columns_cnr_das].mean(axis=1)
+            df.loc[:, scan_battery_name + '_avg_cnr_dnn'] = df.loc[:, columns_cnr_dnn].mean(axis=1)
+
+            df.loc[:, scan_battery_name + '_avg_snr_das'] = df.loc[:, columns_snr_das].mean(axis=1)
+            df.loc[:, scan_battery_name + '_avg_snr_dnn'] = df.loc[:, columns_snr_dnn].mean(axis=1)
 
     return df
 
