@@ -3,13 +3,33 @@ import torch
 from torch.cuda import is_available as get_cuda_available
 import json
 
+from .lenet import LeNet
+
 
 __all__ = ['load_model', 'read_model_params', 'ensure_dir', 'add_suffix_to_path']
 
 def read_model_params(model_params_fname):
     """Read and return model params from json (text) file."""
     with open(model_params_fname, 'r') as f:
-        model_params = json.load(f)
+        if model_params_fname.endswith('.json'):
+            try:
+                model_params = json.load(f)
+            except:
+                raise
+        elif model_params_fname.endswith('.txt'):
+            model_params = {}
+            for line in f:
+                [key, value] = line.split(',')
+                value = value.rstrip()
+                if value.isdigit():
+                    value = int(value)
+                else:
+                    try:
+                        value = float(value)
+                    except:
+                        pass
+                model_params[key] = value
+
     return model_params
 
 
@@ -67,10 +87,10 @@ def load_model(model_params_fname, using_cuda=True):
                   model_params['fcs_dropout'])
 
     if using_cuda and get_cuda_available():
-        model.load_state_dict(torch.load(os.path.join(model_dirs[k], 'model.dat')))
+        model.load_state_dict(torch.load(os.path.join(os.path.dirname(model_params_fname), 'model.dat')))
         model.cuda()
     else:
-        model.load_state_dict(torch.load(os.path.join(model_dirs[k], 'model.dat'), map_location='cpu'))
+        model.load_state_dict(torch.load(os.path.join(os.path.dirname(model_params_fname), 'model.dat'), map_location='cpu'))
 
     model.eval()
 
