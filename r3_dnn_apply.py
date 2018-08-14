@@ -1,15 +1,177 @@
-import numpy as np
+# -*- coding: utf-8 -*-
+"""Example Google style docstrings.
+
+This module demonstrates documentation as specified by the `Google Python
+Style Guide`_. Docstrings may extend over multiple lines. Sections are created
+with a section header and a colon followed by a block of indented text.
+
+Example:
+    Examples can be given using either the ``Example`` or ``Examples``
+    sections. Sections support any reStructuredText formatting, including
+    literal blocks::
+
+        $ python example_google.py
+
+Section breaks are created by resuming unindented text. Section breaks
+are also implicitly created anytime a new section starts.
+
+Attributes:
+    module_level_variable1 (int): Module level variables may be documented in
+        either the ``Attributes`` section of the module docstring, or in an
+        inline docstring immediately following the variable.
+
+        Either form is acceptable, but the two should not be mixed. Choose
+        one convention to document module level variables and be consistent
+        with it.
+
+Todo:
+    * For module TODOs
+    * You have to also use ``sphinx.ext.todo`` extension
+
+.. _Google Python Style Guide:
+   http://google.github.io/styleguide/pyguide.html
+
+"""
+
 import os
+import argparse
+import time
 import h5py
 import torch
-from torch import nn
+from torch.cuda import is_available as get_cuda_available
 from torch.autograd import Variable
-import argparse
+import numpy as np
 from scipy.io import savemat
-import time
 
-from lib.lenet import LeNet
-from lib.utils import read_model_params
+from lib.utils import load_model
+
+
+def process_with_model_by_beam_segment_and_k(model, beam, segment, k, stft_real, stft_imag, using_cuda=True):
+    # make aperture data
+    aperture_data = np.hstack([stft_real[beam, :, segment, k], stft_imag[beam, :, segment, k]])
+    aperture_data = aperture_data[np.newaxis, :] # TODO: optimize this
+
+    # normalize by L0 norm
+    aperture_data_norm = np.linalg.norm(aperture_data, ord=np.inf, axis=1)
+
+    if aperture_data_norm == 0:
+        return np.zeros_like(aperture_data)
+    else:
+        # Get data for network to process
+        x = Variable(torch.from_numpy(aperture_data / aperture_data_norm).float())
+
+        del aperture_data
+
+        if using_cuda == True:
+            # x = x.cuda() # TODO: or just x.cuda()
+            x.cuda()
+
+        # predict new aperture data
+        x = model(x)
+
+        if using_cuda == False:
+            x = x.cpu().data.numpy()
+        else:
+            x = x.data # TODO: Is this correct?
+
+        # renormalize aperture data
+        return x * aperture_data_norm
+
+
+def process_all(using_cuda=True):
+    # load stft data
+    with h5py.File("old_stft.mat", "r") as old_stft:
+        stft_real = np.asarray(old_stft['old_stft_real'])
+        stft_imag = np.asarray(old_stft['old_stft_imag'])
+
+    num_beams, num_elements, num_segments, num_frequencies = stft_real.shape
+
+    # create copy of stft data
+    stft = np.concatenate([stft_real, stft_imag], axis=1)
+    del stft_real, stft_imag
+    stft_start = stft.copy()
+
+    # move element position axis
+    stft = np.moveaxis(stft, 1, 2)
+
+    # reshape the to flatten first two axes
+    stft = np.reshape(stft, [num_beams * num_segments, 2 * num_elements, num_frequencies])
+
+    # setup model dirs dictionary
+    with open('../model_dirs.txt', 'r') as f:
+        model_dirs = {}
+        for line in f:
+            [key, value] = line.split(',')
+            value = value.rstrip()
+            if key.isdigit():
+                key = int(key)
+            model_dirs[key] = value
+
+
+    # process stft with networks
+    ks = list(range(3, 6))
+    for k in ks:
+        print('r3_dnn_apply.py: processing k =', k)
+
+        # start timer
+        t0 = time.time()
+
+        model = load_model(os.path.join(model_dirs[k], 'model_params.txt'))
+
+        # select data by frequency
+        aperture_data = stft[:, :, k]
+
+        # normalize by L1 norm
+        aperture_data_norm = np.linalg.norm(aperture_data, ord=np.inf, axis=1)
+        aperture_data = aperture_data / aperture_data_norm[:, np.newaxis]
+
+        # load into torch and onto gpu
+        aperture_data = torch.from_numpy(aperture_data).float()
+        if using_cuda:
+            aperture_data.cuda()
+
+        # process with the network
+        with torch.set_grad_enabled(False):
+            aperture_data_new = model(aperture_data).to('cpu').data.numpy()
+
+        # rescale the data
+        aperture_data_new = aperture_data_new * aperture_data_norm[:, np.newaxis]
+
+        # store new data in stft
+        stft[:, :, k] = aperture_data_new
+
+        # delete the model
+        del model
+
+        # stop timer
+        print('r3_dnn_apply.py: it took: {:.2f} to process k ='.format(time.time() - t0), k)
+
+
+    # reshape the stft data
+    stft = np.reshape(stft, [num_beams, num_segments, 2 * num_elements, num_frequencies])
+
+    # set zero outside analysis frequency range
+    mask = np.zeros_like(stft, dtype=np.float32)
+    mask[:, :, :, ks] = 1
+    stft = mask * stft
+    del mask
+
+    # mirror data to negative frequencies using conjugate symmetry
+    stft[:, :, :, np.int32(num_frequencies/2)+1:] = np.flip(stft[:, :, :, 1:np.int32(num_frequencies/2)], axis=3)
+    stft[:, :, num_elements:2*num_elements, np.int32(num_frequencies/2)+1:] = -1 * stft[:, :, num_elements:2*num_elements, np.int32(num_frequencies/2)+1:]
+
+    # move element position axis
+    stft = np.moveaxis(stft, 1, 2)
+
+    # change variable names
+    new_stft_real = stft[:, :num_elements, :, :]
+    new_stft_imag = stft[:, num_elements:, :, :]
+
+    # change dimensions
+    new_stft_real = new_stft_real.transpose()
+    new_stft_imag = new_stft_imag.transpose()
+
+    return new_stft_real, new_stft_imag
 
 
 if __name__ == "__main__":
@@ -18,135 +180,17 @@ if __name__ == "__main__":
     parser.add_argument('-c', '--cuda', help='Option to use GPU.', action="store_true")
     args = parser.parse_args()
 
+    is_cuda_available = get_cuda_available()
     # cuda flag
-    if args.cuda and torch.cuda.is_available():
-        cuda = True
+    if args.cuda == True and is_cuda_available:
+        using_cuda = True
         print('r3_dnn_apply.py: Using ' + str(torch.cuda.get_device_name(0)))
     else:
-        cuda = False
-        print('r3_dnn_apply.py: Not using CUDA. CUDA is ' + str(torch.cuda.is_available()) + ' available')
-
-    # load stft data
-    f = h5py.File("old_stft.mat", "r")
-    stft_real = np.asarray(f['old_stft_real'])
-    stft_imag = np.asarray(f['old_stft_imag'])
-    N_beams, N_elements, num_segments, N = stft_real.shape
-    freqs = np.arange(N)/N
-
-    # create copy of stft data
-    stft_real_new = stft_real.copy()
-    stft_imag_new = stft_imag.copy()
-
-    # setup model dirs dictionary
-    f = open('../model_dirs.txt', 'r')
-    model_dirs = {}
-    for line in f:
-        [key, value] = line.split(',')
-        value = value.rstrip()
-        if key.isdigit():
-            key = int(key)
-        model_dirs[key] = value
-    f.close()
+        using_cuda = False
+        print('r3_dnn_apply.py: Not using CUDA. CUDA is ' +
+              'not' if is_cuda_available else '' + ' available')
 
 
-    # process stft with networks
-    k_mask = list(range(3, 6))
-    for k in k_mask:
-        print('r3_dnn_apply.py: processing k =', k)
-
-        # start timer
-        t0 = time.time()
-
-        # load the model
-        model_params = read_model_params(os.path.join(model_dirs[k], 'model_params.txt'))
-        model = LeNet(model_params['input_size'],
-                          model_params['output_size'],
-
-                          model_params['batch_norm'],
-
-                          model_params['use_pooling'],
-                          model_params['pooling_method'],
-
-                          model_params['conv1_kernel_size'],
-                          model_params['conv1_num_kernels'],
-                          model_params['conv1_stride'],
-                          model_params['conv1_dropout'],
-
-                          model_params['pool1_kernel_size'],
-                          model_params['pool1_stride'],
-
-                          model_params['conv2_kernel_size'],
-                          model_params['conv2_num_kernels'],
-                          model_params['conv2_stride'],
-                          model_params['conv2_dropout'],
-
-                          model_params['pool2_kernel_size'],
-                          model_params['pool2_stride'],
-
-                          model_params['fcs_hidden_size'],
-                          model_params['fcs_num_hidden_layers'],
-                          model_params['fcs_dropout'])
-        if cuda == False:
-            model.load_state_dict(torch.load(os.path.join(model_dirs[k], 'model.dat'), map_location='cpu'))
-        else:
-            model.load_state_dict(torch.load(os.path.join(model_dirs[k], 'model.dat')))
-            model.cuda()
-
-        model.eval()
-
-        for i in range(num_segments):
-            for m in range(N_beams):
-
-                # make aperture data
-                aperture_data = np.hstack([stft_real[m, :, i, k], stft_imag[m, :, i, k]])
-                aperture_data = aperture_data[np.newaxis, :]
-
-                # normalize by L0 norm
-                aperture_data_norm = np.linalg.norm(aperture_data, ord=np.inf, axis=1)
-                if aperture_data_norm == 0:
-                    aperture_data_new = np.zeros(aperture_data.size)
-                else:
-                    # Get data for network to process
-                    x = Variable(torch.from_numpy(aperture_data / aperture_data_norm).float())
-                    if cuda == True:
-                        x = x.cuda()
-
-                    # predict new aperture data
-                    aperture_data_new = model(x)
-                    if cuda == False:
-                        aperture_data_new = aperture_data_new.cpu().data.numpy()
-                    else:
-                        aperture_data_new = aperture_data_new.cuda().data.numpy() # TODO: Is this correct?
-                    # renormalize aperture data
-                    aperture_data_new = aperture_data_new * aperture_data_norm
-
-                # store results
-                stft_real_new[m, :, i, k] = aperture_data_new[0, :N_elements]
-                stft_imag_new[m, :, i, k] = aperture_data_new[0, N_elements:]
-
-        # delete the model
-        del model
-
-        # stop timer
-        print('r3_dnn_apply.py: it took: {:.2f} to process k ='.format(time.time() - t0), k)
-
-    # set zero outside analysis frequency range
-    mask = np.zeros(stft_real.shape)
-    mask[:, :, :, k_mask] = 1
-    stft_real_new = mask * stft_real_new
-    stft_imag_new = mask * stft_imag_new
-
-    # mirror data to negative frequencies
-    stft_real_new[:, :, :, np.int32(N/2)+1:] = np.flip(stft_real_new[:, :, :, 1:np.int32(N/2)], axis=3)
-    stft_imag_new[:, :, :, np.int32(N/2)+1:] = -np.flip(stft_imag_new[:, :, :, 1:np.int32(N/2)], axis=3)
-
-    # change variable names
-    new_stft_real = stft_real_new
-    new_stft_imag = stft_imag_new
-
-    # change dimensions
-    new_stft_real = new_stft_real.transpose()
-    new_stft_imag = new_stft_imag.transpose()
-
+    new_stft_real, new_stft_imag = process_all(using_cuda=using_cuda)
     # save new stft data
     savemat('new_stft.mat', {'new_stft_real': new_stft_real, 'new_stft_imag': new_stft_imag})
