@@ -117,7 +117,8 @@ def process_all(using_cuda=True):
         t0 = time.time()
 
         model = load_model(os.path.join(model_dirs[k], 'model_params.txt'))
-
+        if using_cuda:
+            model.cuda()
         # select data by frequency
         aperture_data = stft[:, :, k]
 
