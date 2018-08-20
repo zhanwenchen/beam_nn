@@ -11,6 +11,9 @@ import sys
 from lib.utils import save_model_params, ensure_dir
 
 
+model_params_fname = 'model_params.json'
+
+
 def choose_hyperparameters_from_file(hyperparameter_ranges_file):
     with open(hyperparameter_ranges_file) as f:
         ranges = json.load(f)
@@ -179,7 +182,7 @@ def create_models(num_networks, hyperparameter_ranges_file):
 
             # print(model_params['save_dir'])
             ensure_dir(model_params['save_dir'])
-            save_model_params(os.path.join(model_params['save_dir'], 'model_params.txt'), model_params)
+            save_model_params(os.path.join(model_params['save_dir'], model_params_fname), model_params)
 
     return identifier
 
