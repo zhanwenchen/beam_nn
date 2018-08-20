@@ -13,6 +13,9 @@ from lib.logger import Logger
 from lib.trainer import Trainer
 
 
+model_params_fname = 'model_params.json'
+
+
 def train(identifier):
     models = glob.glob(os.path.join('DNNs', str(identifier) + '_created'))
 
@@ -21,7 +24,7 @@ def train(identifier):
         shutil.move(model_folder, new_model_folder_name)
         ks = glob.glob(os.path.join(new_model_folder_name, 'k_*'))
         for k in ks:
-            model_params_path = k + '/model_params.txt'
+            model_params_path = os.path.join(k, model_params_fname)
             print('train.py: training model', model_params_path, 'with hyperparams')
 
             # load model params.
@@ -91,7 +94,7 @@ def train(identifier):
                 print('Saving model weights in : ' + path)
                 ensure_dir(path)
                 torch.save(model.state_dict(), os.path.join(path, 'model.dat'))
-                save_model_params(os.path.join(path, 'model_params.txt'), model_params)
+                save_model_params(os.path.join(path, model_params_fname), model_params)
 
             # loss
             loss = torch.nn.MSELoss()
