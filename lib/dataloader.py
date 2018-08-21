@@ -17,9 +17,6 @@ class ApertureDataset(Dataset):
             target_is_data: return data as the target (autoencoder)
         """
 
-        print('dataloader.py: fname =', fname, 'num_samples =',
-              num_samples, 'k =', k, 'target_is_data =', target_is_data)
-
         self.fname = fname
 
         # check if files exist
