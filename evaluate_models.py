@@ -17,7 +17,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('identifier', help='Option to load model params from a file. Values in this file take precedence.')
     parser.add_argument('max_to_evaluate', type=int, nargs='?', default=-1, help='The maximum number of models to evaluate, regardless of how many matched folders.')
-    parser.add_argument('disable_cudnn', action='store_true', help='To avoid mystery CuDNN error')
+    parser.add_argument('--disable_cudnn', action='store_true', help='To avoid mystery CuDNN error')
     args = parser.parse_args()
 
     identifier = args.identifier
