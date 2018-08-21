@@ -111,6 +111,32 @@ def get_df(identifier):
             df.loc[:, scan_battery_name + '_avg_snr_das'] = df.loc[:, columns_snr_das].mean(axis=1)
             df.loc[:, scan_battery_name + '_avg_snr_dnn'] = df.loc[:, columns_snr_dnn].mean(axis=1)
 
+    # Convert model params columns to numeric
+    numeric_columns = [ \
+        'conv1_kernel_size',
+        'conv1_num_kernels',
+        'conv1_stride',
+        'conv1_dropout',
+
+        'pool1_kernel_size',
+        'pool1_stride',
+
+        'conv2_kernel_size',
+        'conv2_num_kernels',
+        'conv2_stride',
+        'conv2_dropout',
+
+        'pool2_kernel_size',
+        'pool2_stride',
+
+        'fcs_hidden_size',
+        'fcs_num_hidden_layers',
+        'fcs_dropout',
+
+        'learning_rate',
+    ]
+    df[numeric_columns] = df[numeric_columns].apply(pd.to_numeric, errors='raise')
+
     return df
 
 
