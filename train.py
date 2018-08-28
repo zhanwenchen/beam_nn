@@ -97,6 +97,7 @@ def train(identifier):
                 save_model_params(os.path.join(path, model_params_fname), model_params)
 
             # loss
+            loss = model_params['cost_function']
             if loss not in ['MSE', 'L1', 'SmoothL1']:
                 raise TypeError('Error must be MSE, L1, or SmoothL1. You gave ' + str(loss))
             if loss == 'MSE':

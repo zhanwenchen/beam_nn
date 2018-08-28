@@ -5,11 +5,10 @@ __pycache__/
 scan_batteries/
 save_here/
 *.csv
-*.ods
-*.odt
 *.csv~
-results_20180428.ods results_20180502.ods results_20180503.ods
+*.ods
 *.ods#
+*.odt
 DNNs/
 best_dnns/
 *.mat
