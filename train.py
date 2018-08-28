@@ -90,14 +90,21 @@ def train(identifier):
             # save initial weights
             if model_params['save_initial'] and model_params['save_dir']:
                 suffix = '_initial'
-                path = add_suffix_to_path(model_parmas['save_dir'], suffix)
+                path = add_suffix_to_path(model_params_fname['save_dir'], suffix)
                 print('Saving model weights in : ' + path)
                 ensure_dir(path)
                 torch.save(model.state_dict(), os.path.join(path, 'model.dat'))
                 save_model_params(os.path.join(path, model_params_fname), model_params)
 
             # loss
-            loss = torch.nn.MSELoss()
+            if loss not in ['MSE', 'L1', 'SmoothL1']:
+                raise TypeError('Error must be MSE, L1, or SmoothL1. You gave ' + str(loss))
+            if loss == 'MSE':
+                loss = torch.nn.MSELoss()
+            elif loss == 'L1':
+                loss = torch.nn.L1Loss
+            elif loss == 'SmoothL1':
+                loss = torch.nn.SmoothL1Loss
 
             if using_cuda == True:
                 loss.cuda()

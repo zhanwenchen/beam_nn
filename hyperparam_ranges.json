@@ -27,7 +27,7 @@
     "fcs_num_hidden_layers": [1, 4],
     "fcs_dropout": [0, 1],
 
-    "cost_function": ["MSE"],
+    "cost_function": ["MSE", "L1", "SmoothL1"],
 
     "optimizer": ["Adam", "SGD"],
     "momentum": [0.8, 1],
