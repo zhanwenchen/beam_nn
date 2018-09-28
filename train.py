@@ -35,7 +35,7 @@ def train(identifier):
 
             # cuda flag
             using_cuda = model_params['cuda'] and torch.cuda.is_available()
-            if using_cuda == True:
+            if using_cuda is True:
                 print('train.py: Using ' + str(torch.cuda.get_device_name(0)))
             else:
                 warnings.warn('train.py: Not using CUDA')
@@ -107,8 +107,8 @@ def train(identifier):
             elif loss == 'SmoothL1':
                 loss = torch.nn.SmoothL1Loss
 
-            if using_cuda == True:
-                loss.cuda()
+            # if using_cuda is True:
+            #     loss.cuda()
 
             # optimizer
             if model_params['optimizer'] == 'Adam':
