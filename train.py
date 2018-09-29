@@ -103,12 +103,12 @@ def train(identifier):
             if loss == 'MSE':
                 loss = torch.nn.MSELoss()
             elif loss == 'L1':
-                loss = torch.nn.L1Loss
+                loss = torch.nn.L1Loss()
             elif loss == 'SmoothL1':
-                loss = torch.nn.SmoothL1Loss
+                loss = torch.nn.SmoothL1Loss()
 
-            # if using_cuda is True:
-            #     loss.cuda()
+            # if using_cuda is True:`
+            #     loss.cuda()`
 
             # optimizer
             if model_params['optimizer'] == 'Adam':
