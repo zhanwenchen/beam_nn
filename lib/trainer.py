@@ -29,7 +29,7 @@ class Trainer():
         """Train model for one epoch"""
         if self.cuda:
             self.model.cuda()
-            self.loss.cuda()
+            # self.loss.cuda()
 
         self.model.train()
 
@@ -53,7 +53,7 @@ class Trainer():
             if self.cuda:
                 inputs = inputs.cuda()
                 targets = targets.cuda()
-                self.loss = self.loss.cuda()
+                # self.loss = self.loss.cuda()
 
             self.optimizer.zero_grad()
             outputs = self.model(inputs)
