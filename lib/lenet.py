@@ -1,4 +1,4 @@
-import warnings
+# import warnings
 
 import torch.nn.functional as F
 import torch.nn as nn
@@ -48,7 +48,7 @@ class LeNet(nn.Module):
 
         # If not using pooling, set all pooling operations to 1 by 1.
         if use_pooling == False:
-            warnings.warn('lenet: not using pooling')
+            # warnings.warn('lenet: not using pooling')
             pool1_kernel_size = 1
             pool1_stride = 1
             pool2_kernel_size = 1
@@ -114,17 +114,15 @@ class LeNet(nn.Module):
         x = self.pool1(x)
         x = F.relu(x)
         x = self.conv1_drop(x)
-        if self.batch_norm == True:
+        if self.batch_norm is True:
             x = self.batch_norm1(x)
 
         x = self.conv2(x)
         x = self.pool2(x)
         x = F.relu(x)
         x = self.conv2_drop(x)
-        if self.batch_norm == True:
+        if self.batch_norm is True:
             x = self.batch_norm2(x)
-        else:
-            warnings.warn('lenet.forward: not using batch_norm')
 
         x = x.view(-1, x.size(1) * x.size(2))
 

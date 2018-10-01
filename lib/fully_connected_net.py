@@ -2,7 +2,7 @@ from torch import nn
 import torch
 import os
 
-import warnings
+# import warnings
 
 
 class FullyConnectedNet(nn.Module):
@@ -48,8 +48,6 @@ class FullyConnectedNet(nn.Module):
             self.batch_norm_layers = nn.ModuleList([nn.BatchNorm1d(fcs_hidden_size)]) # TODO: not input_size?
             for i in range(fcs_num_hidden_layers - 1):
                 self.batch_norm_layers.append(nn.BatchNorm1d(fcs_hidden_size))
-        else:
-            warnings.warn('fully_connected_net: not using batch_norm.')
 
 
         # activation and fcs_dropout
