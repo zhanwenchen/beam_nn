@@ -64,7 +64,10 @@ if __name__ == "__main__":
     stft = np.reshape(stft, [N_beams*N_segments, 2*N_elements, N_fft])
 
     # setup model dirs dictionary
-    f = open('../model_dirs.txt', 'r')
+    model_dirs_fname = '../model_dirs.txt'
+    if not os.path.isfile(model_dirs_fname):
+        model_dirs_fname = '../model_dirs.json'
+    f = open(model_dirs_fname, 'r')
     model_dirs = {}
     for line in f:
         [key, value] = line.split(',')
@@ -85,6 +88,8 @@ if __name__ == "__main__":
 
         # load the model
         model_params_fname = os.path.join(model_dirs[k], 'model_params.txt')
+        if not os.path.isfile(model_params_fname):
+            model_params_fname = os.path.join(model_dirs[k], 'model_params.json')
         model_params = read_model_params(model_params_fname)
         model = LeNet(model_params['input_size'],
                       model_params['output_size'],
