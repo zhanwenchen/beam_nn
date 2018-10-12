@@ -108,9 +108,6 @@ def train(identifier):
             elif loss == 'SmoothL1':
                 loss = torch.nn.SmoothL1Loss()
 
-            # if using_cuda is True:`
-            #     loss.cuda()`
-
             # optimizer
             if model_params['optimizer'] == 'Adam':
                 optimizer = torch.optim.Adam(model.parameters(), lr=model_params['learning_rate'], weight_decay=model_params['weight_decay'])
