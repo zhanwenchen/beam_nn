@@ -104,11 +104,8 @@ if __name__ == "__main__":
         # delete the model
         del model
 
-        # rescale the data
-        aperture_data_new = aperture_data_new * aperture_data_norm[:, np.newaxis]
-
-        # store new data in stft
-        stft[:, :, k] = aperture_data_new
+        # rescale the data and store new data in stft
+        stft[:, :, k] = aperture_data_new * aperture_data_norm[:, np.newaxis]
 
         # stop timer
         print('time: {:.2f}'.format(time.time() - t0))
