@@ -46,7 +46,6 @@ if __name__ == "__main__":
     # combine stft_real and stft_imag
     stft = np.concatenate([stft_real, stft_imag], axis=1)
     del stft_real, stft_imag
-    stft_start = stft.copy()
 
     # move element position axis
     stft = np.moveaxis(stft, 1, 2)
