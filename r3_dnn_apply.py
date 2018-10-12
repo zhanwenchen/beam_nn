@@ -110,7 +110,7 @@ if __name__ == "__main__":
         print('time: {:.2f}'.format(time.time() - t0))
 
     # reshape the stft data
-    stft = np.reshape(stft, [N_beams, N_segments, 2*N_elements, N_fft])
+    stft = np.reshape(stft, [N_beams, N_segments, 2*N_elements, N_fft]) # TODO: Duplicate?
 
     # set zero outside analysis frequency range
     mask = np.zeros(stft.shape, dtype=np.float32)
