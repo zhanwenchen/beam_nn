@@ -1,7 +1,7 @@
 import os
 import argparse
 import glob
-import warnings
+# import warnings
 from pprint import pprint
 import shutil
 import torch
@@ -39,10 +39,7 @@ def train(identifier):
 
             # cuda flag
             using_cuda = model_params['cuda'] and torch.cuda.is_available()
-            if using_cuda is True:
-                print('train.py: Using ' + str(torch.cuda.get_device_name(0)))
-            else:
-                warnings.warn('train.py: Not using CUDA')
+            print('train.py: Using ' + str(torch.cuda.get_device_name(0)))
 
             # Load primary training data
             num_samples = 10 ** 5
