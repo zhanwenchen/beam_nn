@@ -48,10 +48,10 @@ if __name__ == "__main__":
     del stft_real, stft_imag
 
     # move element position axis
-    stft = np.moveaxis(stft, 1, 2)
+    stft = np.moveaxis(stft, 1, 2) # TODO: Duplicate?
 
     # reshape the to flatten first two axes
-    stft = np.reshape(stft, [N_beams*N_segments, 2*N_elements, N_fft])
+    stft = np.reshape(stft, [N_beams*N_segments, 2*N_elements, N_fft]) # TODO: Duplicate?
 
     # setup model dirs dictionary
     model_dirs_fname = '../model_dirs.txt'
@@ -123,7 +123,7 @@ if __name__ == "__main__":
     stft[:, :, N_elements:2*N_elements, np.int32(N_fft/2)+1:] = -1 * stft[:, :, N_elements:2*N_elements, np.int32(N_fft/2)+1:]
 
     # move element position axis
-    stft = np.moveaxis(stft, 1, 2)
+    stft = np.moveaxis(stft, 1, 2) # TODO: Duplicate?
 
     # change variable names
     new_stft_real = stft[:, :N_elements, :, :]
