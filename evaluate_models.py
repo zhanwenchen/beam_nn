@@ -17,15 +17,15 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('identifier', help='Option to load model params from a file. Values in this file take precedence.')
     parser.add_argument('max_to_evaluate', type=int, nargs='?', default=-1, help='The maximum number of models to evaluate, regardless of how many matched folders.')
-    parser.add_argument('--disable_cudnn', action='store_true', help='To avoid mystery CuDNN error')
+    # parser.add_argument('--disable_cudnn', action='store_true', help='To avoid mystery CuDNN error')
     args = parser.parse_args()
 
     identifier = args.identifier
     max_to_evaluate = args.max_to_evaluate
-    disable_cudnn = args.disable_cudnn
+    # disable_cudnn = args.disable_cudnn
 
-    if disable_cudnn is True:
-        torch.backends.cudnn.enabled = False
+    # if disable_cudnn is True:
+    #     torch.backends.cudnn.enabled = False
 
     model_search_path = os.path.join('DNNs', str(identifier) + '_trained')
     models = glob.glob(model_search_path)
@@ -68,17 +68,20 @@ if __name__ == '__main__':
 
         print('\n\nevaluate_models.py: processing simulation for model', model_index + 1, 'of', num_models, ':', os.path.basename(new_folder_name), '\n\n')
         Popen(commands[0], shell=True).wait()
+        if not os.path.isfile(os.path.join(new_folder_name, 'scan_batteries', 'target_anechoic_cyst_5mm', 'target_5_SNR_10dB', 'dnn.png')):
+            raise RuntimeError('evaluate_models.py: dnn.png check failed for simulation target_5.')
+
         print('\n\nevaluate_models.py: processing phantom for model', model_index + 1, 'of', num_models, ':', os.path.basename(new_folder_name), '\n\n')
         Popen(commands[1], shell=True).wait()
+        if not os.path.isfile(os.path.join(new_folder_name, 'scan_batteries', 'target_phantom_anechoic_cyst_2p5mm', 'target_5', 'dnn.png')):
+            raise RuntimeError('evaluate_models.py: dnn.png check failed for phantom target_5.')
+
         print('\n\nevaluate_models.py: processing in vivo for model', model_index + 1, 'of', num_models, ':', os.path.basename(new_folder_name), '\n\n')
         Popen(commands[2], shell=True).wait()
+        if not os.path.isfile(os.path.join(new_folder_name, 'scan_batteries', 'target_in_vivo', 'target_19', 'dnn.png')):
+            raise RuntimeError('evaluate_models.py: dnn.png check failed for in_vivo target_19.')
 
-        # Check for dnn.png in all 3 experiments.
-        if os.path.isfile(os.path.join(new_folder_name, 'scan_batteries', 'target_anechoic_cyst_5mm', 'target_5_SNR_10dB', 'dnn.png')) \
-            and os.path.isfile(os.path.join(new_folder_name, 'scan_batteries', 'target_phantom_anechoic_cyst_2p5mm', 'target_5', 'dnn.png')) \
-            and os.path.isfile(os.path.join(new_folder_name, 'scan_batteries', 'target_in_vivo', 'target_19', 'dnn.png')):
+        shutil.move(new_folder_name, new_folder_name.replace('_evaluating', '_evaluated'))
 
-            shutil.move(new_folder_name, new_folder_name.replace('_evaluating', '_evaluated'))
-            if max_to_evaluate > -1: count += 1
-        else:
-            raise "evaluate_models.py: dnn.png check failed."
+        if max_to_evaluate > -1:
+            count += 1

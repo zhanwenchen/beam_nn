@@ -1,18 +1,3 @@
-# import numpy as np
-# import os
-# import h5py
-# import torch
-# from torch import nn
-# import argparse
-# from scipy.io import savemat
-# import time
-
-# modify path
-# import sys
-# sys.path.insert(0, '../../../../../src')
-# from model import FullyConnectedNet
-# from utils import read_model_params
-
 import os
 import argparse
 import time
@@ -23,7 +8,7 @@ from torch.autograd import Variable
 import numpy as np
 from scipy.io import savemat
 
-from lib.utils import read_model_params
+from lib.utils import get_which_model_from_params_fname
 from lib.lenet import LeNet
 
 
@@ -94,34 +79,7 @@ if __name__ == "__main__":
         model_params_fname = os.path.join(model_dirs[k], 'model_params.txt')
         if not os.path.isfile(model_params_fname):
             model_params_fname = os.path.join(model_dirs[k], 'model_params.json')
-        model_params = read_model_params(model_params_fname)
-        model = LeNet(model_params['input_size'],
-                      model_params['output_size'],
-
-                      model_params['batch_norm'],
-
-                      model_params['use_pooling'],
-                      model_params['pooling_method'],
-
-                      model_params['conv1_kernel_size'],
-                      model_params['conv1_num_kernels'],
-                      model_params['conv1_stride'],
-                      model_params['conv1_dropout'],
-
-                      model_params['pool1_kernel_size'],
-                      model_params['pool1_stride'],
-
-                      model_params['conv2_kernel_size'],
-                      model_params['conv2_num_kernels'],
-                      model_params['conv2_stride'],
-                      model_params['conv2_dropout'],
-
-                      model_params['pool2_kernel_size'],
-                      model_params['pool2_stride'],
-
-                      model_params['fcs_hidden_size'],
-                      model_params['fcs_num_hidden_layers'],
-                      model_params['fcs_dropout'])
+        model = get_which_model_from_params_fname(LeNet, model_params_fname)
         model.load_state_dict(torch.load(os.path.join(os.path.dirname(model_params_fname), 'model.dat'), map_location='cpu'))
         model.eval()
         model = model.to(device)

@@ -6,7 +6,7 @@ from pprint import pprint
 import shutil
 import torch
 
-from lib.utils import read_model_params, save_model_params, ensure_dir, add_suffix_to_path
+from lib.utils import save_model_params, ensure_dir, add_suffix_to_path, get_which_model_from_params_fname
 from lib.dataloader import ApertureDataset
 from lib.lenet import LeNet
 from lib.logger import Logger
@@ -28,65 +28,22 @@ def train(identifier):
         shutil.move(model_folder, new_model_folder_name)
         ks = glob.glob(os.path.join(new_model_folder_name, 'k_*'))
         for k in ks:
+
+
+            # Load model
             model_params_path = os.path.join(k, model_params_fname)
             print('train.py: training model', model_params_path, 'with hyperparams')
 
-            # load model params.
-            model_params = read_model_params(model_params_path)
-
-            # print model and training parameters.
-            pprint(model_params)
-
-            # cuda flag
-            using_cuda = model_params['cuda'] and torch.cuda.is_available()
-            print('train.py: Using ' + str(torch.cuda.get_device_name(0)))
-
-            # Load primary training data
-            num_samples = 10 ** 5
-            dat_train = ApertureDataset(model_params['data_train'], num_samples, k=model_params['k'], target_is_data=model_params['data_is_target'])
-            loader_train = torch.utils.data.DataLoader(dat_train, batch_size=model_params['batch_size'], shuffle=True, num_workers=1)
-
-            # Load secondary training data - used to evaluate training loss after every epoch
-            num_samples = 10 ** 4
-            dat_train2 = ApertureDataset(model_params['data_train'], num_samples, k=model_params['k'], target_is_data=model_params['data_is_target'])
-            loader_train_eval = torch.utils.data.DataLoader(dat_train2, batch_size=model_params['batch_size'], shuffle=False, num_workers=1)
-
-            # Load validation data - used to evaluate validation loss after every epoch
-            num_samples = 10 ** 4
-            dat_val = ApertureDataset(model_params['data_val'], num_samples, k=model_params['k'], target_is_data=model_params['data_is_target'])
-            loader_val = torch.utils.data.DataLoader(dat_val, batch_size=model_params['batch_size'], shuffle=False, num_workers=1)
 
             # create model
-            model = LeNet(model_params['input_size'],
-                          model_params['output_size'],
+            model, model_params = get_which_model_from_params_fname(LeNet, model_params_path, return_params=True)
 
-                          model_params['batch_norm'],
-
-                          model_params['use_pooling'],
-                          model_params['pooling_method'],
-
-                          model_params['conv1_kernel_size'],
-                          model_params['conv1_num_kernels'],
-                          model_params['conv1_stride'],
-                          model_params['conv1_dropout'],
-
-                          model_params['pool1_kernel_size'],
-                          model_params['pool1_stride'],
-
-                          model_params['conv2_kernel_size'],
-                          model_params['conv2_num_kernels'],
-                          model_params['conv2_stride'],
-                          model_params['conv2_dropout'],
-
-                          model_params['pool2_kernel_size'],
-                          model_params['pool2_stride'],
-
-                          model_params['fcs_hidden_size'],
-                          model_params['fcs_num_hidden_layers'],
-                          model_params['fcs_dropout'])
-
-            if using_cuda == True:
+            # configure cuda
+            using_cuda = model_params['cuda'] and torch.cuda.is_available()
+            if using_cuda is True:
+                print('train.py: Using device ', torch.cuda.get_device_name(0))
                 model.cuda()
+
 
             # save initial weights
             if model_params['save_initial'] and model_params['save_dir']:
@@ -117,6 +74,23 @@ def train(identifier):
                 raise ValueError('model_params[\'optimizer\'] must be either Adam or SGD. Got ' + model_params['optimizer'])
 
             logger = Logger()
+
+            # Load training, validation, and test data
+            # Load primary training data
+            num_samples = 10 ** 5
+            dat_train = ApertureDataset(model_params['data_train'], num_samples, k=model_params['k'], target_is_data=model_params['data_is_target'])
+            loader_train = torch.utils.data.DataLoader(dat_train, batch_size=model_params['batch_size'], shuffle=True, num_workers=1)
+
+            # Load secondary training data - used to evaluate training loss after every epoch
+            num_samples = 10 ** 4
+            dat_train2 = ApertureDataset(model_params['data_train'], num_samples, k=model_params['k'], target_is_data=model_params['data_is_target'])
+            loader_train_eval = torch.utils.data.DataLoader(dat_train2, batch_size=model_params['batch_size'], shuffle=False, num_workers=1)
+
+            # Load validation data - used to evaluate validation loss after every epoch
+            num_samples = 10 ** 4
+            dat_val = ApertureDataset(model_params['data_val'], num_samples, k=model_params['k'], target_is_data=model_params['data_is_target'])
+            loader_val = torch.utils.data.DataLoader(dat_val, batch_size=model_params['batch_size'], shuffle=False, num_workers=1)
+
 
             trainer = Trainer(model=model,
                               loss=loss,

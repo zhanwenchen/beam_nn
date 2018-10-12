@@ -8,7 +8,7 @@ from lib.fully_connected_net import FullyConnectedNet
 
 
 class LeNet(nn.Module):
-    def __init__(self, input_size,
+    def __init__(self, input_channel,
                        output_size,
 
                        batch_norm,
@@ -40,13 +40,14 @@ class LeNet(nn.Module):
 
         # Instance attributes for use in self.forward() later.
         self.input_channel = input_channel
+        self.batch_norm = batch_norm
         output_size = output_size
+        
         input_size = output_size / self.input_channel
         if input_size.is_integer():
             input_size = int(input_size)
         else:
-            raise ValueError('output_size / input_channel = {} / {} = {}'.format(output_size, input_size, input_size))
-        self.hidden_size = fcs_hidden_size
+            raise ValueError('output_size / input_channel = {} / {} = {}'.format(output_size, input_channel, input_size))
 
         # If not using pooling, set all pooling operations to 1 by 1.
         if use_pooling is False:
@@ -109,8 +110,9 @@ class LeNet(nn.Module):
         # pytorch.conv1d accepts shape (Batch, Channel, Width)
         # pytorch.conv2d accepts shape (Batch, Channel, Height, Width)
         # import code; code.interact(local=dict(globals(), **locals()))
-        num_elements = int(x.shape[1] / 2)
-        x = x.view(-1, 2, num_elements)
+        num_elements = int(x.shape[1] / self.input_channel)
+        # x = x.view(-1, 2, num_elements)
+        x = x.view(-1, self.input_channel, num_elements)
 
         x = self.conv1(x)
         x = self.pool1(x)

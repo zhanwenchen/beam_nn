@@ -19,7 +19,14 @@ def choose_hyperparameters_from_file(hyperparameter_ranges_file):
         ranges = json.load(f)
 
     # Load constants.
-    input_size = ranges['input_size']
+    input_channel = random.choice(ranges['input_channel'])
+    output_size = ranges['output_size']
+    input_size = output_size / input_channel
+    if input_size.is_integer():
+        input_size = int(input_size)
+    else:
+        raise ValueError('output_size / input_channel = {} / {} = {}'.format(output_size, input_channel, input_size))
+
 
     batch_norm = random.choice(ranges['batch_norm'])
     use_pooling = random.choice(ranges['use_pooling'])
@@ -102,8 +109,8 @@ def choose_hyperparameters_from_file(hyperparameter_ranges_file):
         learning_rate = random.uniform(*ranges['learning_rate_adam'])
 
     hyperparameters = {
-        'input_size': input_size,
-        'output_size': ranges['output_size'],
+        'input_channel': input_channel,
+        'output_size': output_size,
 
         'batch_norm': batch_norm,
 

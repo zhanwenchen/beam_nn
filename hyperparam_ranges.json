@@ -1,5 +1,4 @@
-{
-    "input_size": 65,
+{   "input_channel": [1, 2],
     "output_size": 130,
 
     "batch_norm": [0, 1],
