@@ -78,7 +78,7 @@ def choose_hyperparameters_from_file(hyperparameter_ranges_file):
 
 
     if len(possible_size_combinations) == 0:
-        raise ValueError('create_models: no possible combination for pool1 given conv1_output_size[1] = ' + str(conv1_output_size[1]) + '; pool1_kernel_size_ranges = ' + str(pool1_kernel_size_ranges) + '; pool1_stride_ranges = ' + str(pool1_stride_ranges))
+        raise ValueError('create_models: no possible combination for pool1 given conv1_output_size[1] = ' + str(conv1_output_size[1]) + '; pool1_kernel_size_ranges = ' + str(pool1_kernel_size_range) + '; pool1_stride_ranges = ' + str(pool1_stride_range))
 
     conv1_kernel_size, conv1_stride, pool1_kernel_size, pool1_stride, conv2_kernel_size, conv2_stride, pool2_kernel_size, pool2_stride = random.choice(possible_size_combinations)
 
