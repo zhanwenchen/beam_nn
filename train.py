@@ -13,11 +13,15 @@ from lib.logger import Logger
 from lib.trainer import Trainer
 
 
+model_parent_folder = 'DNNs'
 model_params_fname = 'model_params.json'
 
 
 def train(identifier):
-    models = glob.glob(os.path.join('DNNs', str(identifier) + '_created'))
+    models = glob.glob(os.path.join(model_parent_folder, str(identifier) + '_created'))
+
+    if not models:
+        raise ValueError('train.py: given identifier {} matched no models.'.format(identifier))
 
     for model_folder in models:
         new_model_folder_name = model_folder.replace('_created', '_training')
