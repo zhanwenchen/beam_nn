@@ -35,15 +35,19 @@ if __name__ == "__main__":
     parser.add_argument('-c', '--cuda', help='Option to use GPU.', action="store_true")
     args = parser.parse_args()
 
+    is_using_cuda = args.cuda and get_cuda_available()
+
     # cuda flag
-    print('torch.cuda.is_available(): ' + str(torch.cuda.is_available()))
-    if args.cuda and torch.cuda.is_available():
+    print('torch.cuda.is_available(): ' + str(is_using_cuda))
+    if is_using_cuda:
         print('Using ' + str(torch.cuda.get_device_name(0)))
     else:
         print('Not using CUDA')
 
+
+
     # setup device based on cuda flag
-    device = torch.device("cuda:0" if args.cuda else "cpu")
+    device = torch.device("cuda:0" if is_using_cuda else "cpu")
 
     # load stft data
     f = h5py.File("old_stft.mat", "r")

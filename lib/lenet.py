@@ -38,16 +38,18 @@ class LeNet(nn.Module):
 
         super(LeNet, self).__init__()
 
-        self.input_size = input_size
+        # Instance attributes for use in self.forward() later.
+        self.input_channel = input_channel
+        output_size = output_size
+        input_size = output_size / self.input_channel
+        if input_size.is_integer():
+            input_size = int(input_size)
+        else:
+            raise ValueError('output_size / input_channel = {} / {} = {}'.format(output_size, input_size, input_size))
         self.hidden_size = fcs_hidden_size
-        self.output_size = output_size
-
-        self.batch_norm = batch_norm
-
-        input_channel = 2
 
         # If not using pooling, set all pooling operations to 1 by 1.
-        if use_pooling == False:
+        if use_pooling is False:
             # warnings.warn('lenet: not using pooling')
             pool1_kernel_size = 1
             pool1_stride = 1
@@ -63,7 +65,7 @@ class LeNet(nn.Module):
         self.conv1.bias.data.fill_(0)
 
         self.conv1_drop = nn.Dropout2d(p=conv1_dropout)
-        if self.batch_norm == True:
+        if batch_norm is True:
             self.batch_norm1 = nn.BatchNorm1d(conv1_num_kernels)
 
         # Pool1
@@ -80,7 +82,7 @@ class LeNet(nn.Module):
         self.conv2.bias.data.fill_(0)
 
         self.conv2_drop = nn.Dropout2d(p=conv2_dropout)
-        if self.batch_norm == True:
+        if batch_norm is True:
             self.batch_norm2 = nn.BatchNorm1d(conv2_num_kernels)
 
         # Pool2
