@@ -6,6 +6,8 @@ from pprint import pprint
 import shutil
 import torch
 
+from torchsummary import summary
+
 from lib.utils import save_model_params, ensure_dir, add_suffix_to_path, get_which_model_from_params_fname
 from lib.dataloader import ApertureDataset
 from lib.lenet import LeNet
@@ -37,7 +39,7 @@ def train(identifier):
 
             # create model
             model, model_params = get_which_model_from_params_fname(LeNet, model_params_path, return_params=True)
-
+            # summary(model, (130,))
             # configure cuda
             using_cuda = model_params['cuda'] and torch.cuda.is_available()
             if using_cuda is True:

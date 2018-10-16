@@ -1,7 +1,8 @@
 import os
-import torch
-from torch.cuda import is_available as get_cuda_available
 import json
+import shutil
+import errno
+
 
 from .lenet import LeNet
 
@@ -95,3 +96,28 @@ def get_which_model_from_params_fname(model_class, model_params_fname, return_pa
 
 
     return model
+
+
+
+# https://stackoverflow.com/a/1994840/3853537
+def copy_anything(src, dst):
+    if os.path.exists(dst):
+        print('utils.py: {} exists'.format(dst))
+        # shutil.rmtree(dst)
+        # shutil.copytree(src, dst)
+    try:
+        shutil.copytree(src, dst)
+    except OSError as exc: # python >2.5
+        if exc.errno == errno.ENOTDIR:
+            shutil.copy(src, dst)
+        else:
+            raise
+
+
+# MATLAB convenience function for cleaning buffer before reading the last info
+def clean_buffers(out, err):
+    out.seek(0)
+    out.truncate(0)
+
+    err.seek(0)
+    err.truncate(0)

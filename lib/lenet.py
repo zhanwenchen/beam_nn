@@ -42,7 +42,7 @@ class LeNet(nn.Module):
         self.input_channel = input_channel
         self.batch_norm = batch_norm
         output_size = output_size
-        
+
         input_size = output_size / self.input_channel
         if input_size.is_integer():
             input_size = int(input_size)
@@ -110,9 +110,12 @@ class LeNet(nn.Module):
         # pytorch.conv1d accepts shape (Batch, Channel, Width)
         # pytorch.conv2d accepts shape (Batch, Channel, Height, Width)
         # import code; code.interact(local=dict(globals(), **locals()))
+        # print('lenet: init x.size() =', x.size())
         num_elements = int(x.shape[1] / self.input_channel)
+        # print('lenet: num_elements =', num_elements)
         # x = x.view(-1, 2, num_elements)
         x = x.view(-1, self.input_channel, num_elements)
+        # print('lenet: after x.view, x.size() =', x.size())
 
         x = self.conv1(x)
         x = self.pool1(x)

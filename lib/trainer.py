@@ -3,7 +3,7 @@ import torch
 import numpy as np
 import time
 import os
-
+from torch import from_numpy, save
 
 class Trainer():
 
@@ -46,7 +46,7 @@ class Trainer():
                 X_power = np.sum(np.sum(X ** 2))
                 C = X_power / SNR
                 X_noise = X + noise * np.sqrt(C)
-                data[0] = torch.from_numpy(np.float32( X_noise) )
+                data[0] = from_numpy(np.float32( X_noise) )
 
             inputs = Variable(data[0], requires_grad=False)
             targets = Variable(data[1], requires_grad=False)
@@ -72,13 +72,13 @@ class Trainer():
         """ Compute model loss for provided data loader"""
         if self.cuda:
             self.model.cuda()
-            self.loss.cuda()
+            self.loss.cuda() # TODO: Is this a bug?
 
         self.model.eval()
 
         total_loss = 0
-        for batch_idx, data in enumerate(dat_loader):
-
+        # for batch_idx, data in enumerate(dat_loader):
+        for data in dat_loader:
             # add gaussian noise
             if self.data_noise_gaussian:
                 X = data[0].numpy()
@@ -89,7 +89,7 @@ class Trainer():
                 X_power = np.sum(np.sum(X ** 2))
                 C = X_power / SNR
                 X_noise = X + noise * np.sqrt(C)
-                data[0] = torch.from_numpy(np.float32( X_noise) )
+                data[0] = from_numpy(np.float32(X_noise))
 
             inputs = Variable(data[0], requires_grad=False)
             targets = Variable(data[1], requires_grad=False)
@@ -114,7 +114,7 @@ class Trainer():
         epoch = 1
         loss_val_best = 100
         num_epochs_increased = 0
-        epoch_best = 1
+        # epoch_best = 1
 
         # Perform training
         while True:
@@ -148,7 +148,7 @@ class Trainer():
 
                 # save model weights
                 if self.save_dir:
-                    torch.save(self.model.state_dict(), os.path.join(self.save_dir, 'model.dat'))
+                    save(self.model.state_dict(), os.path.join(self.save_dir, 'model.dat'))
 
             else:
                 num_epochs_increased += 1
