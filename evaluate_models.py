@@ -53,6 +53,7 @@ if __name__ == '__main__':
     # Add MATLAB helper scripts shared by all scan batteries.
     clean_buffers(out, err)
     print('{}: LIB_MATLAB_DIRNAME = {}'.format(SCRIPT_FNAME, LIB_MATLAB_DIRNAME))
+    print(os.path.isdir(LIB_MATLAB_DIRNAME))
     try:
         eng.addpath(LIB_MATLAB_DIRNAME, nargout=0, stdout=out, stderr=err)
         sys.stdout.write(out.getvalue())
