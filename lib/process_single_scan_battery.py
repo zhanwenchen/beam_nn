@@ -52,7 +52,7 @@ def process_single_scan_battery(model_folder, source_scan_battery_dirname, matla
 
     # MATLAB add process_scripts
     clean_buffers(out, err)
-    print('model_scan_battery_process_scripts_dirname =', model_scan_battery_process_scripts_dirname)
+    print('{}: model_scan_battery_process_scripts_dirname = {}'.format(SCRIPT_FNAME, model_scan_battery_process_scripts_dirname))
     print(os.path.isdir(model_scan_battery_process_scripts_dirname))
     try:
         eng.addpath(model_scan_battery_process_scripts_dirname, nargout=0, stdout=out, stderr=err)
