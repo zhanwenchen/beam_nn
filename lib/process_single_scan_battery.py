@@ -52,8 +52,6 @@ def process_single_scan_battery(model_folder, source_scan_battery_dirname, matla
 
     # MATLAB add process_scripts
     clean_buffers(out, err)
-    print('{}: model_scan_battery_process_scripts_dirname = {}'.format(SCRIPT_FNAME, model_scan_battery_process_scripts_dirname))
-    print(os.path.isdir(model_scan_battery_process_scripts_dirname))
     try:
         eng.addpath(model_scan_battery_process_scripts_dirname, nargout=0, stdout=out, stderr=err)
         sys.stdout.write(out.getvalue())
@@ -62,7 +60,6 @@ def process_single_scan_battery(model_folder, source_scan_battery_dirname, matla
         sys.stdout.write(out.getvalue())
         sys.stderr.write(err.getvalue())
         raise RuntimeError(str(e))
-
 
     for target_dirname in target_dirnames:
         # print('{}: processing target directory {}'.format(SCRIPT_FNAME, target_dirname))
@@ -137,6 +134,16 @@ def process_single_scan_battery(model_folder, source_scan_battery_dirname, matla
                 except Exception as e:
                     raise OSError('Error: unable to remove file {}'.format(file_path))
 
+    # MATLAB remove process_scripts
+    clean_buffers(out, err)
+    try:
+        eng.rmpath(model_scan_battery_process_scripts_dirname, nargout=0, stdout=out, stderr=err)
+        sys.stdout.write(out.getvalue())
+        sys.stderr.write(err.getvalue())
+    except Exception as e:
+        sys.stdout.write(out.getvalue())
+        sys.stderr.write(err.getvalue())
+        raise RuntimeError(str(e))
 
     # Remove scan battery-level folders
     for folder in SCAN_BATTERY_FOLDERS_TO_REMOVE:
@@ -148,7 +155,7 @@ def process_single_scan_battery(model_folder, source_scan_battery_dirname, matla
             except Exception as e:
                 raise OSError('Error: unable to remove file {}'.format(folder_path))
 
-    # Remove target-level files
+    # Remove scan battery-level files
     for file in SCAN_BATTERY_FILES_TO_REMOVE:
         file_path = os.path.join(model_scan_battery_dirname, file)
         if os.path.isfile(file_path):
