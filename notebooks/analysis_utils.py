@@ -7,7 +7,7 @@ from glob import glob
 import numpy as np
 import pandas as pd
 import scipy.stats
-import matplotlib.image as mpimg
+# import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 from pprint import pprint
 
@@ -27,6 +27,7 @@ USE_K = 'k_4'
 
 plot_size_factor = 7
 
+scan_batteries_names = ['target_anechoic_cyst_5mm', 'target_phantom_anechoic_cyst_2p5mm', 'target_in_vivo']
 
 # CR
 def append_speckle_stats(df, model_idx, column_name, stat_name, columns_stat_das, columns_stat_dnn, speckle_stats_das, speckle_stats_dnn, index):
@@ -132,7 +133,10 @@ def get_df(identifier):
 
     for model_idx, model_folder in enumerate(model_folders):
         model_name = os.path.basename(model_folder)
+        # scan_batteries_names = ['target_anechoic_cyst_5mm', 'target_in_vivo', 'target_phantom_anechoic_cyst_2p5mm']
+        # scan_batteries = [os.path.join(model_folder, sb) for sb in scan_batteries_names]
         scan_batteries = glob(os.path.join(model_folder, 'scan_batteries', '*'))
+        # scan_batteries = sorted(scan_batteries, key=os.path.getmtime)
 
         for scan_battery_folder in scan_batteries:
             target_folders = glob(os.path.join(scan_battery_folder, 'target_*'))
@@ -260,7 +264,9 @@ def inspect_model_by_name(model_folder, df):
 
     model_name = os.path.basename(model_folder)
     scan_batteries_dirname = os.path.join(model_folder, 'scan_batteries')
-    scan_batteries_folders = glob(os.path.join(scan_batteries_dirname, 'target_*'))
+    # scan_batteries_folders = glob(os.path.join(scan_batteries_dirname, 'target_*'))
+    # scan_batteries_folders = sorted(scan_batteries_folders, key=os.path.getmtime)
+    scan_batteries_folders = [os.path.join(scan_batteries_dirname, sb) for sb in scan_batteries_names]
     num_scan_batteries = len(scan_batteries_folders)
 
     if num_scan_batteries == 0:
@@ -272,6 +278,9 @@ def inspect_model_by_name(model_folder, df):
         targets = glob(os.path.join(scan_batteries_folder, 'target_*'))
 
         num_targets = len(targets)
+
+        if num_targets == 0:
+            raise ValueError('No targets batteries found in path {}'.format(os.path.join(scan_batteries_folder, 'target_*')))
 
         fig, axes = plt.subplots(num_targets, 2, figsize=(2 * plot_size_factor, num_targets * plot_size_factor), frameon=False)
 
