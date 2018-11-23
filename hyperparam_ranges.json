@@ -28,7 +28,7 @@
 
     "cost_function": ["MSE", "L1", "SmoothL1"],
 
-    "optimizer": ["Adam", "SGD"],
+    "optimizer": ["Adam"],
     "momentum": [0.8, 1],
     "learning_rate_adam": [0, 0.0002],
     "learning_rate_sgd": [0, 0.02]

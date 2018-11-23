@@ -152,7 +152,8 @@ def create_models(num_networks, hyperparameter_ranges_file):
     data_is_target_list = [0]
     num_scat_list = [1, 2, 3]
     batch_size_list = [32]
-    data_noise_gaussian_list = [0, 1]
+    # data_noise_gaussian_list = [0, 1]
+    data_noise_gaussian_list = [1] # Decided on 11/22/2018 b/c better models
     #dropout_input_list = [0, 0.1, 0.2]
     #dropout_list = [0, 0.1, 0.2, 0.3, 0.4, 0.5]
     weight_decay_list = [0]
