@@ -25,13 +25,11 @@ def read_model_params(model_params_fname):
             for line in f:
                 [key, value] = line.split(',')
                 value = value.rstrip()
-                if value.isdigit():
-                    value = int(value)
-                else:
-                    try:
+                if isinstance(value, (int, float)):
+                    if value.isdigit():
+                        value = int(value)
+                    else:
                         value = float(value)
-                    except:
-                        raise
                 model_params[key] = value
 
     return model_params
