@@ -1,4 +1,5 @@
 import os
+from os.path import isfile, basename, join
 import warnings
 import sys
 import random
@@ -46,11 +47,11 @@ def append_speckle_stats(df, model_idx, column_name, stat_name, columns_stat_das
     return columns_stat_das, columns_stat_dnn
 
 
-def get_df(identifier):
+def get_df(identifier, exclude_bad_models=False):
     # TODO: 1. Use scan_batteries to load das stats instead of walk through models.
     # TODO: 2. Walk model_folders only once.
     # setup dnn directory list
-    model_folders, num_models = get_models(identifier)
+    model_folders, num_models = get_models(identifier, exclude_bad_models=exclude_bad_models)
 
     columns = [
         'input_channel',
@@ -98,9 +99,9 @@ def get_df(identifier):
 
 
     # loop through dnns and store model params
-    for i, model_folder in enumerate(model_folders):
-        model_params = os.path.join(model_folder, 'k_4', MODEL_PARAMS_FNAME)
-        model_params_alt = os.path.join(model_folder, 'k_4', MODEL_PARAMS_FNAME_ALT)
+    for model_folder in model_folders:
+        model_params = join(model_folder, 'k_4', MODEL_PARAMS_FNAME)
+        model_params_alt = join(model_folder, 'k_4', MODEL_PARAMS_FNAME_ALT)
         try:
             model_params = read_model_params(model_params)
         except:
@@ -126,22 +127,22 @@ def get_df(identifier):
                 # Sometimes losses are NaN, where NumPy.min() raises.
                 loss_val[i, kk] = np.nanmin(dat[:, 3])
 
-    df['loss_val_k_3'] = pd.Series(loss_val[:, 0], index=df.index)
-    df['loss_val_k_4'] = pd.Series(loss_val[:, 1], index=df.index)
-    df['loss_val_k_5'] = pd.Series(loss_val[:, 2], index=df.index)
+    df.loc[:, 'loss_val_k_3'] = pd.Series(loss_val[:, 0], index=df.index)
+    df.loc[:, 'loss_val_k_4'] = pd.Series(loss_val[:, 1], index=df.index)
+    df.loc[:, 'loss_val_k_5'] = pd.Series(loss_val[:, 2], index=df.index)
 
 
     for model_idx, model_folder in enumerate(model_folders):
-        model_name = os.path.basename(model_folder)
+        model_name = basename(model_folder)
         # scan_batteries_names = ['target_anechoic_cyst_5mm', 'target_in_vivo', 'target_phantom_anechoic_cyst_2p5mm']
         # scan_batteries = [os.path.join(model_folder, sb) for sb in scan_batteries_names]
-        scan_batteries = glob(os.path.join(model_folder, 'scan_batteries', '*'))
+        scan_batteries = glob(join(model_folder, 'scan_batteries', '*'))
         # scan_batteries = sorted(scan_batteries, key=os.path.getmtime)
 
         for scan_battery_folder in scan_batteries:
-            target_folders = glob(os.path.join(scan_battery_folder, 'target_*'))
+            target_folders = glob(join(scan_battery_folder, 'target_*'))
 
-            scan_battery_name = os.path.basename(scan_battery_folder)
+            scan_battery_name = basename(scan_battery_folder)
 
             columns_cr_das = []
             columns_cr_dnn = []
@@ -166,13 +167,13 @@ def get_df(identifier):
 
 
             for target_idx, target_folder in enumerate(target_folders):
-                speckle_stats_das_fname = os.path.join(target_folder, 'speckle_stats_das.txt')
-                speckle_stats_dnn_fname = os.path.join(target_folder, 'speckle_stats_dnn.txt')
+                speckle_stats_das_fname = join(target_folder, 'speckle_stats_das.txt')
+                speckle_stats_dnn_fname = join(target_folder, 'speckle_stats_dnn.txt')
 
                 speckle_stats_das = pd.read_csv(speckle_stats_das_fname, delimiter=",", header=None).values
                 speckle_stats_dnn = pd.read_csv(speckle_stats_dnn_fname, delimiter=",", header=None).values
 
-                column_name = '_'.join([scan_battery_name, os.path.basename(target_folder)])
+                column_name = '_'.join([scan_battery_name, basename(target_folder)])
 
                 # CR
                 columns_cr_das, columns_cr_dnn = append_speckle_stats(df, model_idx, column_name, 'cr', columns_cr_das, columns_cr_dnn, speckle_stats_das, speckle_stats_dnn, 0)
@@ -243,19 +244,24 @@ def get_df(identifier):
             raise ValueError('{}: {} is not in the index'.format(SCRIPT_FNAME, numeric_column))
 
 
-    df[numeric_columns] = df[numeric_columns].apply(pd.to_numeric, errors='raise')
+    df.loc[:, numeric_columns].apply(pd.to_numeric, errors='raise')
 
     return df
 
 
-def get_models(identifier):
+def get_models(identifier, exclude_bad_models=False):
     model_search_path = os.path.join('..', 'DNNs', str(identifier) + '_evaluated')
     model_folders = glob(model_search_path)
-    num_models = len(model_folders)
-    if num_models == 0:
+    num_all_models = len(model_folders)
+    if num_all_models == 0:
         raise ValueError('analysis_utils: given identifier ' + str(identifier) + ' , expanded to ' + str(model_search_path) + ' matched no model.')
 
-    return model_folders, num_models
+    if not exclude_bad_models is True:
+        return model_folders, num_all_models
+
+    good_models = [model_dirname for model_dirname in model_folders if not isfile(join(model_dirname, 'EXCLUDE'))]
+
+    return good_models, len(good_models)
 
 
 def inspect_model_by_name(model_folder, df):
