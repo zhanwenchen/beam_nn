@@ -1,0 +1,162 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{textcomp}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{authblk}
+\graphicspath{ {./images/} }
+
+\title{Ultrasound Beamforming with Convolutional Neural Networks on Channel Data}
+\author{Zhanwen Chen, Adam Luchies, Brett Byram}
+\affil{Vanderbilt University}
+\date{February 15, 2019}
+\email{zhanwen.chen@vanderbilt.edu}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+Convolutional neural networks have been successful in detecting spatial
+structures \cite{??}. Our group has shown the effectiveness of fully-connected
+deep neural networks in \cite{???} in improving ultrasound image quality in
+\textit{in vivo} experiments. Convolutional neural networks may learn special
+properties of channel data.
+
+Other potential benefits of CNNs include:
+
+
+\section{Methods}
+
+\subsection{Model Hyperparameter Search}
+
+\section{Evaluation}
+
+\subsection{The Consistency Measure}
+
+
+
+
+
+
+
+
+BeamNN: the problem is lateral beam profiles
+
+Beam can conv learn to treat complex numbers differently?
+
+Beam look into conv2d
+
+Beam look into boxplot vs CNR
+
+BEAM Implementation Details:
+
+1. Are we initializing the non-NN layers (batch_norm, dropout, etc) as if they were NN layers? Check lenet.py and fully_connected_layer.py.
+    1. Actually fully_connected_layer.py is doing it the same. Probably wrong.
+2. Why init bias with 0.1 as opposed to 0? Answer: some people use 0.01 instead of 0 or uniform (PyTorch default)  for ReLU but there’s little evidence that this is better.
+3.
+
+BEAM-AB Test
+
+1. jspsych-ab Login/session management
+
+Sampling for combinatorics (consult stats office hours), stats tests
+
+Biostatistics Office Hours http://biostat.mc.vanderbilt.edu/wiki/Main/Clinics
+
+2. beam-cnn: Is it better to have 1 or 2 channels?
+
+3. beam-cnn: Total weights - vs DNNs
+
+BeamNN Evaluate
+
+1. I (Phil) manually exclude (with a file named EXCLUDE under each model folder)
+2. Then have someone compare 12 pictures for 10 models (10 * 9 / 2 = 45. 45 * 12 = 540). Too much work?
+
+
+Improvement
+1. CR improvement
+2. CNR improvement
+3. CR and CNR
+4. Larger depth of field (another metric)
+5. Smaller model
+6. Faster model performance
+
+
+BEAM TODOs:
+
+1. Normalized Cross Correlation for Speckle Width
+2. Spatial Coherence with PyTorch functions for loss
+3. Unet (Fully Convolutional)
+4. Autoencoders?
+5. I need to visualize input and output data in lenet, not just stft. Stft is so much bigger than lenet input. Ask adam about that.
+6. Buy a white noise machine
+7. Question: what are the networks learning? The manual process by which Adam suppressed the noise, for simulated cyst only?
+8. Identify some good models
+9. Identify hyperparameters
+10. Evaluation clustering
+11. Get Byram good models
+12. Explore which loss is better
+13. Explore 1D vs 2D data
+
+
+Beam-NN Paper/Notes:
+
+1. Paragraphs about overfitting:  For simulated cysts. CNNs had a ?% improvement, measure in the percentage increase in CNR, over DNNs. However, the same models have worse CNRs for phantom cysts and in vivo targets.  Furthermore, unlike fully-connected neural networks, give the same model, the simulated cyst CNRs do not correlate with those of phantom cysts or in vivo targets. In addition, the phantom cyst CNRs do not correlate with in vivo CNRs.  A possible conceptual solution is training at all frequencies, in addition to only 70mm.  A possible data issue is that the neural network is learning the process by which we generate the simulated cysts, even with the Gaussian noise we applied to the simulation data. We understand that the simulation process does not represent the phantom cysts.  Are our training data generated the same way (waiting on Adam)?  In terms of deep learning solutions, we want to introduce more regularization techniques, such as input dropout and batch_norm. 
+2. Paragraph about debugging:  Plotting x (old_stft.mat) - y (new_stft.mat) for both DNNs and CNNs. 
+3. Paragraph about pre- and post-processing:  You have data and you have models. Data folders look like  20180523_DNN_L74_70mm     - DNNS         -     - process_single_scan_battery_anechoic_cyst.sh (copy scan_batteries, r3_dnn_apply, r4_dnn_istft; r5_dnn_image; r6_dnn_image_display;)     - process_single_scan_battery_in_vivo.sh     - process_single_scan_battery_phantom_2p5mm.sh     - scan_batteries         - target_anechoic_cyst_5mm             - creation_scripts                 - create_cyst_dirs_noiseless.py                 - create_cyst_dirs.py (create target_x_SNR_ydB folders including cyst_num.txt and SNR_dB.txt)                 - process_parallel_create_noise.sh                 - process_parallel_create_noiseless.sh                 - process_single_create_noise.sh (invoke r1_generate_chandat.m, which generates chandat.mat for noises)                 - process_single_create_noiseless.sh                 - r1_generate_chandat_noiseless.m                 - r1_generate_chandat.m (use cyst_num.txt, SNR_dB.txt generated by create_cyst_dirs.py, and noiseless chandat.mat to generate chandat.mat with noise)              - delete_files.sh             - folders_in_battery.txt             - model_dirs.txt             - phantoms                 - create_phantom.m                 - phantom_cyst.m                 - phantom1.mat                 - phantom2.mat                 - phantom3.mat                 - phantom4.mat                 - phantom5.mat              - process_scripts                 - process_parallel_das.sh (invoke process_single_das.sh)                 - process_single_das.sh (invoke r4_das_snr.m) (TODO: used to invoke r2_das_image.m,r3_das_image_display.m, r2_dnn_stft.m, but why commented out?)                 - r2_das_image.m                 - r2_dnn_stft.m                 - r3_das_image_display.m                 - r3_dnn_apply.py (apply dnn to old_stft.mat)                 - r4_dnn_istft.m                 - r5_dnn_image.m                 - r6_dnn_image_display.m              - target_1_SNR_10dB                 - chandat.mat                 - cyst_num.txt                 - das.png                 - old_stft.mat                 - snr_das.txt                 - speckle_stats_das.txt              - target_2_SNR_10dB             - target_3_SNR_10dB             - target_4_SNR_10dB             - target_5_SNR_10dB          - target_in_vivo         - target_phantom_anechoic_cyst_2p5mm  The process is using “chandat.mat”, generate “old_stft.mat”. Then apply CNNs as well as DAS to get new_stft.mat. It then use data pre-generated with Field II.  To set up the complete pre- and post-processing.
+4. Paragraph about the computational complexity of the pre- and post-processing:  It takes 12 hours to train 50 CNN models using 8 GPUs on ACCRE. It takes another 3 days to do evaluation on the CNNs on ACCRE using only CPUs (sequential, small data), because of application.
+
+
+
+
+
+Dropout is better for simulated cysts and phantom than for in vivo. I thought we were overfitting on the simulated cyst data, but that would also have been the case for DNNs. Possible solution: mingle different kinds of training data.
+
+
+Remove pooling:
+1. Pooling asssumes locality invariant. Not true for our task.
+
+Instead of MSE, use Spatial Coherence
+
+But what if instead of chandat -> chanda, we do chandat -> cnr? How to process chandat so that cnr is high and speckle snr is similar?
+
+
+Also the analysis notebook could be better by comparing das vs dnn for each target instead of averaging.
+
+In terms of software, processing scripts (r3_dnn.py, *.m) should be in lib, not scan_batteries, because they get deleted after evaluation so they don’t end up in copied scan_batteries anyway.
+
+ImageSE dynamic range
+
+Beam-NN
+
+Don’t choose pool_1_stride. Choose pool1_size. Why is it always 2 or 3? Doesn’t conv1_output_size[1] change?
+
+Other TODOs:
+3. BEAM cyst data with reverb
+4. BEAM cyst data without reverb
+5. BEAM Adam doesn’t have point target data with reverb yet 
+Explore point target (my current train data) vs cyst w/ reverb Explore point target (my current train data) vs cyst w/o reverb
+
+2. BEAM Top 10 Hyperparam Analysis (100%)
+3. BEAM Train More with Adam (100%)
+7. BEAM Train More with Adam and Gaussian Noise (0%)
+
+
+2. BEAM Get Top Images
+3. BEAM Compare 1-channel vs 2-channel
+
+1. BEAM images (30 mins)
+2. BEAM 1-channel vs 2-channel training test (30 mins)
+
+
+\section{1-Channel (1D) vs 1-Channel (2D) vs 2-Channel (1D)}
+\section{1-Channel vs. 2-Channel Data}
+
+
+\clearpage
+\bibliographystyle{unsrt}
+\bibliography{references.bib}
+
+\end{document}
