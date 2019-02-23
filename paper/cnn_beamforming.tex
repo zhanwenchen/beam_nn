@@ -6,7 +6,7 @@
 \usepackage{authblk}
 \graphicspath{ {./images/} }
 
-\title{Ultrasound Beamforming with Convolutional Neural Networks on Channel Data}
+\title{Ultrasound Beamforming with Convolutional Neural Networks}
 \author{Zhanwen Chen, Adam Luchies, Brett Byram}
 \affil{Vanderbilt University}
 \date{February 15, 2019}
@@ -18,32 +18,48 @@
 
 \section{Introduction}
 
-Convolutional neural networks have been successful in detecting spatial
-structures \cite{??}. Our group has shown the effectiveness of fully-connected
-deep neural networks in \cite{???} in improving ultrasound image quality in
-\textit{in vivo} experiments. Convolutional neural networks may learn special
+Convolutional neural networks have been successful in detecting hierarchical
+spatial structures, based on biological analogs from visual cortex research \cite{??}.
+Our group has shown the effectiveness of fully-connected
+deep neural networks in \cite{???} in improving ultrasound image quality by
+suppressing off-axis scattering. Convolutional neural networks may learn special
 properties of channel data.
 
 Other potential benefits of CNNs include:
+1. CR improvement
+2. CNR improvement
+3. CR and CNR
+4. Larger depth of field (another metric)
+5. Smaller model
+6. Faster model performance
 
 
 \section{Methods}
-
-\subsection{Model Hyperparameter Search}
-
-\section{Evaluation}
-\subsection{AB Test}
-
-
-\subsection{The Consistency Measure}
-
-\section{Discussions}
+\subsection{Model Training}
+\subsubsection{Model Hyperparameter Search}
 
 \subsection{Model Selection}
-
 Before validation, we pick models is by our immediate visual inspection of
 in vivo images, to sift out all-black images and do a sanity check. The formal
-validation is through an A\/B test framework, Platform for Heuristic Image Learning (PHIL). PHIL asks a domain expert - in this case three doctors
+validation is through an A\/B test framework, Platform for Heuristic Image Learning (PHIL). PHIL asks a domain expert - in this case three doctors. Test (not model selection) is based on the evaluation of an additional doctor.
+
+\subsection{Model Evaluation}
+\subsubsection{The Consistency Measure}
+Empirical. CNR based.
+\subsubsection{Image AB Test}
+
+We developed a platform for expert-based statistical approach to evaluate
+medical images - the Platform for Heuristic Imgae Learning (PHIL).
+This is akin to A\/B testing. We use stats. We use doctors.
+
+
+\section{Discussions}
+\subsection{Neural Network Hyperparameters}
+
+We use consistent models, boxplots.
+\subsubsection{Pooling}
+Pooling is good.
+
 
 \subsection{Overfitting}
 
@@ -59,7 +75,6 @@ Beam can conv learn to treat complex numbers differently?
 
 Beam look into conv2d
 
-Beam look into boxplot vs CNR
 
 BEAM Implementation Details:
 
@@ -86,13 +101,6 @@ BeamNN Evaluate
 2. Then have someone compare 12 pictures for 10 models (10 * 9 / 2 = 45. 45 * 12 = 540). Too much work?
 
 
-Improvement
-1. CR improvement
-2. CNR improvement
-3. CR and CNR
-4. Larger depth of field (another metric)
-5. Smaller model
-6. Faster model performance
 
 
 BEAM TODOs:
