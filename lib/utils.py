@@ -4,10 +4,7 @@ import shutil
 import errno
 
 
-from .lenet import LeNet
-
-
-__all__ = ['get_which_model_from_params_fname', 'read_model_params', 'ensure_dir', 'add_suffix_to_path']
+__all__ = ['get_which_model_from_params_fname', 'read_model_params', 'ensure_dir', 'add_suffix_to_path', 'get_pool_output_dims', 'get_conv_output_dims']
 
 
 def _decode(o):
@@ -165,7 +162,7 @@ def clean_buffers(out, err):
     err.truncate(0)
 
 
-def get_pooling_output_dims(input_dims, kernel_dims, stride_dims):
+def get_pool_output_dims(input_dims, kernel_dims, stride_dims):
     '''
     Calculate pooling layer output sizes, according to
     http://cs231n.github.io/convolutional-networks/
@@ -174,9 +171,6 @@ def get_pooling_output_dims(input_dims, kernel_dims, stride_dims):
     H2=(H1−F)/S+1
     D2=D1
     '''
-    if isinstance(stride_dims, int, float):
-        stride_dims = (stride_dims, stride_dims)
-
     try:
         pool_input_width, pool_input_height, pool_input_dims = input_dims
         pool_kernel_width, pool_kernel_height = kernel_dims
@@ -200,9 +194,6 @@ def get_conv_output_dims(input_dims, pad_dims, kernel_dims, stride_dims):
     H2=(H1−F+2P)/S+1 (i.e. width and height are computed equally by symmetry)
     D2=K
     '''
-    if isinstance(stride_dims, int, float):
-        stride_dims = (stride_dims, stride_dims)
-
     try:
         conv_input_width, conv_input_height, conv_input_dims = input_dims
         conv_pad_width, conv_pad_height = pad_dims
