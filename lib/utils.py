@@ -174,7 +174,6 @@ def get_pooling_output_dims(input_dims, kernel_dims, stride_dims):
     H2=(H1−F)/S+1
     D2=D1
     '''
-
     if isinstance(stride_dims, int, float):
         stride_dims = (stride_dims, stride_dims)
 
@@ -190,3 +189,30 @@ def get_pooling_output_dims(input_dims, kernel_dims, stride_dims):
     pool_output_dims = pool_input_dims
 
     return pool_output_width, pool_output_height, pool_output_dims
+
+
+def get_conv_output_dims(input_dims, pad_dims, kernel_dims, stride_dims):
+    '''
+    Calculate pooling layer output sizes, according to
+    http://cs231n.github.io/convolutional-networks/
+
+    W2=(W1−F+2P)/S+1
+    H2=(H1−F+2P)/S+1 (i.e. width and height are computed equally by symmetry)
+    D2=K
+    '''
+    if isinstance(stride_dims, int, float):
+        stride_dims = (stride_dims, stride_dims)
+
+    try:
+        conv_input_width, conv_input_height, conv_input_dims = input_dims
+        conv_pad_width, conv_pad_height = pad_dims
+        conv_kernel_width, conv_kernel_height = kernel_dims
+        conv_stride_width, conv_stride_height = stride_dims
+    except:
+        raise ValueError('{}.get_conv_output_dims: inputs must be ((W_in, H_in, D_in), (W_kernel, H_kernel), (W_stride, H_stride))'.format(__name__))
+
+    conv_output_width = (conv_input_width - conv_kernel_width + 2 * conv_pad_width)/conv_stride_width + 1
+    conv_output_height = (conv_input_height - conv_kernel_height + 2 * conv_pad_height)/conv_stride_height + 1
+    conv_output_dims = conv_input_dims
+
+    return conv_output_width, conv_output_height, conv_output_dims
