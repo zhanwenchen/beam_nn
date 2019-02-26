@@ -6,7 +6,6 @@ from pprint import pprint
 import shutil
 import torch
 
-from torchsummary import summary
 
 from lib.utils import save_model_params, ensure_dir, add_suffix_to_path, get_which_model_from_params_fname
 from lib.dataloader import ApertureDataset
