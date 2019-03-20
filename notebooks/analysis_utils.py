@@ -59,7 +59,7 @@ def get_df(identifier, exclude_bad_models=False):
         'batch_norm',
         'use_pooling',
         'pooling_method',
-        'conv1_kernel_size',
+        'conv1_kernel_width',
         'conv1_num_kernels',
         'conv1_stride',
         'conv1_dropout',
@@ -216,7 +216,7 @@ def get_df(identifier, exclude_bad_models=False):
     # Convert model params columns to numeric
     # print(list(df))
     numeric_columns = [ \
-        'conv1_kernel_size',
+        'conv1_kernel_width',
         'conv1_num_kernels',
         'conv1_stride',
         'conv1_dropout',

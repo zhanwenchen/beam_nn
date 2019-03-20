@@ -1,11 +1,12 @@
-from torch import nn
+# from torch import nn
 import torch
 import os
-
+from torch.nn import Module, ModuleList, Linear, ReLU, Dropout, BatchNorm1d
+from torch.nn.init import kaiming_normal_
 # import warnings
 
 
-class FullyConnectedNet(nn.Module):
+class FullyConnectedNet(Module):
     """Fully connected network. ReLU is the activation function.
         Network parameters are intialized with a normal distribution.
     Args:
@@ -35,24 +36,24 @@ class FullyConnectedNet(nn.Module):
         self.batch_norm = batch_norm
 
         # input connects to first hidden layer
-        self.layers = nn.ModuleList([nn.Linear(fcs_input_size, fcs_hidden_size)])
+        self.layers = ModuleList([Linear(fcs_input_size, fcs_hidden_size)])
         for i in range(fcs_num_hidden_layers - 1):
-            self.layers.append(nn.Linear(fcs_hidden_size, fcs_hidden_size))
+            self.layers.append(Linear(fcs_hidden_size, fcs_hidden_size))
         # last hidden connects to output layer
-        self.layers.append(nn.Linear(fcs_hidden_size, output_size))
+        self.layers.append(Linear(fcs_hidden_size, output_size))
 
 
         # build as many batch_norm layers minus the last one
         # TODO: assume there's no output batch norm
-        if self.batch_norm == True:
-            self.batch_norm_layers = nn.ModuleList([nn.BatchNorm1d(fcs_hidden_size)]) # TODO: not input_size?
+        if self.batch_norm is True:
+            self.batch_norm_layers = ModuleList([BatchNorm1d(fcs_hidden_size)]) # TODO: not input_size?
             for i in range(fcs_num_hidden_layers - 1):
-                self.batch_norm_layers.append(nn.BatchNorm1d(fcs_hidden_size))
+                self.batch_norm_layers.append(BatchNorm1d(fcs_hidden_size))
 
 
         # activation and fcs_dropout
-        self.relu = nn.ReLU()
-        self.dropout = nn.Dropout(fcs_dropout) # TODO: is dropout actually reusable?
+        self.relu = ReLU()
+        self.dropout = Dropout(fcs_dropout) # TODO: is dropout actually reusable?
         # self.dropout_input = nn.Dropout(dropout_input)
 
 
@@ -65,7 +66,7 @@ class FullyConnectedNet(nn.Module):
 
         for i in range(len(self.layers) - 1):
             x = self.layers[i](x)
-            if self.batch_norm == True:
+            if self.batch_norm is True:
                 x = self.batch_norm_layers[i](x)
             x = self.relu(x)
             x = self.dropout(x) # is dropout learnable?
@@ -78,5 +79,5 @@ class FullyConnectedNet(nn.Module):
 
     def _initialize_weights(self):
         for i in range(len(self.layers)):
-            nn.init.kaiming_normal_(self.layers[i].weight.data)
+            kaiming_normal_(self.layers[i].weight.data)
             self.layers[i].bias.data.fill_(0.01) # TODO: Why 0.01 instead of 0?

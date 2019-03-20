@@ -1,4 +1,4 @@
-{   "input_channel": [1, 2],
+{   "input_channel": [1],
     "output_size": 130,
 
     "batch_norm": [0, 1],
@@ -6,7 +6,7 @@
     "use_pooling": [0, 1],
     "pooling_method": "max",
 
-    "conv1_kernel_size": [6, 32],
+    "conv1_kernel_width": [6, 32],
     "conv1_num_kernels": [8, 51],
     "conv1_stride": [1],
     "conv1_dropout": [0, 0],

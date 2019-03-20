@@ -108,7 +108,7 @@ def get_which_model_from_params_fname(model_class, model_params_fname, return_pa
                             model_params['use_pooling'],
                             model_params['pooling_method'],
 
-                            model_params['conv1_kernel_size'],
+                            model_params['conv1_kernel_width'],
                             model_params['conv1_num_kernels'],
                             model_params['conv1_stride'],
                             model_params['conv1_dropout'],
@@ -132,7 +132,6 @@ def get_which_model_from_params_fname(model_class, model_params_fname, return_pa
 
     if return_params is True:
         return model, model_params
-
 
     return model
 
@@ -185,7 +184,7 @@ def get_pool_output_dims(input_dims, kernel_dims, stride_dims):
     return pool_output_width, pool_output_height, pool_output_dims
 
 
-def get_conv_output_dims(input_dims, pad_dims, kernel_dims, stride_dims):
+def get_conv_output_dims(input_dims, pad_dims, kernel_dims, stride_dims, num_kernels):
     '''
     Calculate pooling layer output sizes, according to
     http://cs231n.github.io/convolutional-networks/
@@ -195,7 +194,7 @@ def get_conv_output_dims(input_dims, pad_dims, kernel_dims, stride_dims):
     D2=K
     '''
     try:
-        conv_input_width, conv_input_height, conv_input_dims = input_dims
+        conv_input_width, conv_input_height, conv_input_depth = input_dims
         conv_pad_width, conv_pad_height = pad_dims
         conv_kernel_width, conv_kernel_height = kernel_dims
         conv_stride_width, conv_stride_height = stride_dims
@@ -204,6 +203,7 @@ def get_conv_output_dims(input_dims, pad_dims, kernel_dims, stride_dims):
 
     conv_output_width = (conv_input_width - conv_kernel_width + 2 * conv_pad_width)/conv_stride_width + 1
     conv_output_height = (conv_input_height - conv_kernel_height + 2 * conv_pad_height)/conv_stride_height + 1
-    conv_output_dims = conv_input_dims
+    # print('conv_output_height = (W − F + 2P)/S + 1 = ({} - {} + 2 x {})/{} + 1 = {}'.format(conv_input_height, conv_kernel_height, conv_pad_height, conv_stride_height, conv_output_height))
+    conv_output_dims = num_kernels
 
     return conv_output_width, conv_output_height, conv_output_dims

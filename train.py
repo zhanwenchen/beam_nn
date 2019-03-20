@@ -33,7 +33,7 @@ def train(identifier):
 
             # Load model
             model_params_path = os.path.join(k, model_params_fname)
-            print('train.py: training model', model_params_path, 'with hyperparams')
+            # print('train.py: training model', model_params_path, 'with hyperparams')
 
 
             # create model
@@ -42,7 +42,7 @@ def train(identifier):
             # configure cuda
             using_cuda = model_params['cuda'] and torch.cuda.is_available()
             if using_cuda is True:
-                print('train.py: Using device ', torch.cuda.get_device_name(0))
+                # print('train.py: Using device ', torch.cuda.get_device_name(0))
                 model.cuda()
 
 
@@ -50,7 +50,7 @@ def train(identifier):
             if model_params['save_initial'] and model_params['save_dir']:
                 suffix = '_initial'
                 path = add_suffix_to_path(model_params_fname['save_dir'], suffix)
-                print('Saving model weights in : ' + path)
+                # print('Saving model weights in : ' + path)
                 ensure_dir(path)
                 torch.save(model.state_dict(), os.path.join(path, 'model.dat'))
                 save_model_params(os.path.join(path, model_params_fname), model_params)
