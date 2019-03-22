@@ -119,20 +119,20 @@ def choose_hyperparameters_from_file(hyperparameter_ranges_file):
                         not pool1_output_width.is_integer() or \
                         pool1_output_height <= 0 or \
                         not pool1_output_height.is_integer():
-                        if pool1_output_width <= 0:
-                            print('pool1_output_width = {} < 0'.format(pool1_output_width))
-                        if not pool1_output_width.is_integer():
-                            print('type(pool1_output_width) =', type(pool1_output_width))
-                            print('pool1_output_width = {} is not an integer'.format(pool1_output_width))
+                        # if pool1_output_width <= 0:
+                            # print('pool1_output_width = {} < 0'.format(pool1_output_width))
+                        # if not pool1_output_width.is_integer():
+                            # print('type(pool1_output_width) =', type(pool1_output_width))
+                            # print('pool1_output_width = {} is not an integer'.format(pool1_output_width))
 
-                        if pool1_output_height <= 0:
-                            print('pool1_output_height = {} < 0'.format(pool1_output_height))
-                        if not pool1_output_height.is_integer():
-                            print('type(pool1_output_height) =', type(pool1_output_height))
-                            print('pool1_output_height = {} is not an integer'.format(pool1_output_height))
+                        # if pool1_output_height <= 0:
+                            # print('pool1_output_height = {} < 0'.format(pool1_output_height))
+                        # if not pool1_output_height.is_integer():
+                            # print('type(pool1_output_height) =', type(pool1_output_height))
+                            # print('pool1_output_height = {} is not an integer'.format(pool1_output_height))
                         continue
                     pool1_output_size = (pool1_output_width, pool1_output_height, pool1_output_depth)
-                    print('pool1_output_size =', pool1_output_size)
+                    # print('pool1_output_size =', pool1_output_size)
 
 
                     for conv2_kernel_size in conv2_kernel_size_range:
@@ -161,21 +161,21 @@ def choose_hyperparameters_from_file(hyperparameter_ranges_file):
                                 not conv2_output_width.is_integer() or \
                                 conv2_output_height <= 0 or \
                                 not conv2_output_height.is_integer():
-                                if conv2_output_width <= 0:
-                                    print('conv2_output_width = {} < 0'.format(conv2_output_width))
-                                if not conv2_output_width.is_integer():
-                                    print('type(conv2_output_width) =', type(conv2_output_width))
-                                    print('conv2_output_width = {} is not an integer'.format(conv2_output_width))
+                                # if conv2_output_width <= 0:
+                                    # print('conv2_output_width = {} < 0'.format(conv2_output_width))
+                                # if not conv2_output_width.is_integer():
+                                    # print('type(conv2_output_width) =', type(conv2_output_width))
+                                    # print('conv2_output_width = {} is not an integer'.format(conv2_output_width))
 
-                                if conv2_output_height <= 0:
-                                    print('conv2_output_height = {} < 0'.format(conv2_output_height))
-                                if not conv2_output_height.is_integer():
-                                    print('type(conv2_output_height) =', type(conv2_output_height))
-                                    print('conv2_output_height = {} is not an integer'.format(conv2_output_height))
+                                # if conv2_output_height <= 0:
+                                    # print('conv2_output_height = {} < 0'.format(conv2_output_height))
+                                # if not conv2_output_height.is_integer():
+                                    # print('type(conv2_output_height) =', type(conv2_output_height))
+                                    # print('conv2_output_height = {} is not an integer'.format(conv2_output_height))
 
                                 continue
                             conv2_output_size = (conv2_output_width, conv2_output_height, conv2_output_depth)
-                            print('conv2_output_size =', conv2_output_size)
+                            # print('conv2_output_size =', conv2_output_size)
 
                             for pool2_kernel_size in pool2_kernel_size_range:
                                 for pool2_stride in pool2_stride_range:
@@ -198,20 +198,20 @@ def choose_hyperparameters_from_file(hyperparameter_ranges_file):
                                         not pool2_output_width.is_integer() or \
                                         pool2_output_height <= 0 or \
                                         not pool2_output_height.is_integer():
-                                        if pool2_output_width <= 0:
-                                            print('pool2_output_width = {} <= 0'.format(pool2_output_width))
-                                        if not pool2_output_width.is_integer():
-                                            print('type(pool2_output_width) =', type(pool2_output_width))
-                                            print('pool2_output_width = {} is not an integer'.format(pool2_output_width))
+                                        # if pool2_output_width <= 0:
+                                            # print('pool2_output_width = {} <= 0'.format(pool2_output_width))
+                                        # if not pool2_output_width.is_integer():
+                                            # print('type(pool2_output_width) =', type(pool2_output_width))
+                                            # print('pool2_output_width = {} is not an integer'.format(pool2_output_width))
 
-                                        if pool2_output_height <= 0:
-                                            print('pool2_output_height = {} <= 0'.format(pool2_output_height))
-                                        if not pool2_output_height.is_integer():
-                                            print('type(pool2_output_height) =', type(pool2_output_height))
-                                            print('pool2_output_height = {} is not an integer'.format(pool2_output_height))
+                                        # if pool2_output_height <= 0:
+                                            # print('pool2_output_height = {} <= 0'.format(pool2_output_height))
+                                        # if not pool2_output_height.is_integer():
+                                            # print('type(pool2_output_height) =', type(pool2_output_height))
+                                            # print('pool2_output_height = {} is not an integer'.format(pool2_output_height))
                                         continue
                                     pool2_output_size = (pool2_output_width, pool2_output_height, pool2_output_depth)
-                                    print('pool2_output_size =', pool2_output_size)
+                                    # print('pool2_output_size =', pool2_output_size)
 
                                     possible_size_combinations.append((conv1_kernel_width, conv1_stride, pool1_kernel_size, pool1_stride, conv2_kernel_size, conv2_stride, pool2_kernel_size, pool2_stride))
 
@@ -327,6 +327,8 @@ def create_models(num_networks, hyperparameter_ranges_file):
             # print(model_params['save_dir'])
             ensure_dir(model_params['save_dir'])
             save_model_params(os.path.join(model_params['save_dir'], model_params_fname), model_params)
+
+        print('create_models: created model {}_{}'.format(identifier, count))
 
     return identifier
 
