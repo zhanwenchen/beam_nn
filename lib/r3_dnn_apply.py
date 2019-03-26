@@ -87,7 +87,7 @@ def main(target_dirname, cuda=True):
             # model_params_fname = os.path.join(model_dirs[k], 'model_params.json')
         model_params_fname = os.path.join(os.path.join(model_dirname, 'k_' + str(k)), MODEL_PARAMS_FNAME)
         # print('{}: model_params_fname = {}'.format(SCRIPT_FNAME, model_params_fname))
-        try
+        # try
         model = get_which_model_from_params_fname(LeNet, model_params_fname)
 
 
