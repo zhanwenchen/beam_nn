@@ -24,13 +24,13 @@ SCRIPT_FNAME = os.path.basename(__file__)
 PROJECT_DIRNAME = os.path.dirname(__file__)
 LIB_DIRNAME = os.path.join(PROJECT_DIRNAME, 'lib')
 LIB_MATLAB_DIRNAME = os.path.abspath(os.path.join(LIB_DIRNAME, 'matlab'))
-is_profiling_gpu = False
+is_profiling_gpu = True
 
 if is_profiling_gpu: from lib.gpu_profile import gpu_profile
 
 
 if __name__ == '__main__':
-    sys.settrace(gpu_profile)
+    if is_profiling_gpu: sys.settrace(gpu_profile)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('identifier', help='Option to load model params from a file. Values in this file take precedence.')
