@@ -24,9 +24,14 @@ SCRIPT_FNAME = os.path.basename(__file__)
 PROJECT_DIRNAME = os.path.dirname(__file__)
 LIB_DIRNAME = os.path.join(PROJECT_DIRNAME, 'lib')
 LIB_MATLAB_DIRNAME = os.path.abspath(os.path.join(LIB_DIRNAME, 'matlab'))
+is_profiling_gpu = False
+
+if is_profiling_gpu: from lib.gpu_profile import gpu_profile
 
 
 if __name__ == '__main__':
+    sys.settrace(gpu_profile)
+
     parser = argparse.ArgumentParser()
     parser.add_argument('identifier', help='Option to load model params from a file. Values in this file take precedence.')
     parser.add_argument('max_to_evaluate', type=int, nargs='?', default=-1, help='The maximum number of models to evaluate, regardless of how many matched folders.')
@@ -89,23 +94,29 @@ if __name__ == '__main__':
 
         time_start = time.time()
 
+        if is_profiling_gpu: gpu_profile(frame=sys._getframe(), event='line', arg=None)
+
         print('{}: processing simulation for model {} of {}: {}'.format(SCRIPT_FNAME, model_index+1, num_models, model_name))
         process_single_scan_battery(new_folder_name, os.path.join('scan_batteries', 'target_anechoic_cyst_5mm'), matlab_session=eng)
         if not os.path.isfile(os.path.join(new_folder_name, 'scan_batteries', 'target_anechoic_cyst_5mm', 'target_5_SNR_10dB', 'dnn.png')):
             raise RuntimeError('evaluate_models.py: dnn.png check failed for simulation target_5.')
+        if is_profiling_gpu: gpu_profile(frame=sys._getframe(), event='line', arg=None)
 
         print('{}: processing phantom for model {} of {}: {}'.format(SCRIPT_FNAME, model_index+1, num_models, model_name))
         process_single_scan_battery(new_folder_name, os.path.join('scan_batteries', 'target_phantom_anechoic_cyst_2p5mm'), matlab_session=eng)
         if not os.path.isfile(os.path.join(new_folder_name, 'scan_batteries', 'target_phantom_anechoic_cyst_2p5mm', 'target_5', 'dnn.png')):
             raise RuntimeError('evaluate_models.py: dnn.png check failed for phantom target_5.')
+        if is_profiling_gpu: gpu_profile(frame=sys._getframe(), event='line', arg=None)
 
         print('{}: processing in vivo for model {} of {}: {}'.format(SCRIPT_FNAME, model_index+1, num_models, model_name))
         process_single_scan_battery(new_folder_name, os.path.join('scan_batteries', 'target_in_vivo'), matlab_session=eng)
         if not os.path.isfile(os.path.join(new_folder_name, 'scan_batteries', 'target_in_vivo', 'target_19', 'dnn.png')):
             raise RuntimeError('evaluate_models.py: dnn.png check failed for in_vivo target_19.')
 
+        if is_profiling_gpu: gpu_profile(frame=sys._getframe(), event='line', arg=None)
         print('{}: it took {:.2f} to evaluate model {} for all scan batteries'.format(SCRIPT_FNAME, time.time() - time_start, model_name))
         shutil.move(new_folder_name, new_folder_name.replace('_evaluating', '_evaluated'))
+
 
         if max_to_evaluate > -1:
             count += 1
