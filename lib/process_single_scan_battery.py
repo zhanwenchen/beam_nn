@@ -21,7 +21,7 @@ SCAN_BATTERY_FOLDERS_TO_REMOVE = ['process_scripts', 'creation_scripts', 'phanto
 SCAN_BATTERY_FILES_TO_REMOVE = ['delete_files.sh', 'folders_in_battery.txt', 'model_dirs.txt']
 
 
-def process_single_scan_battery(model_folder, source_scan_battery_dirname, matlab_session=None):
+def process_single_scan_battery(model_folder, source_scan_battery_dirname, matlab_session=None, cuda=True):
     # Make sure model_folder and source_scan_battery_dirname exist.
     if not os.path.isdir(model_folder):
         raise OSError('{}: model folder {} does not exist'.format(SCRIPT_FNAME, model_folder))
@@ -63,7 +63,7 @@ def process_single_scan_battery(model_folder, source_scan_battery_dirname, matla
 
     for target_dirname in target_dirnames:
         # print('{}: processing target directory {}'.format(SCRIPT_FNAME, target_dirname))
-        r3_dnn_apply(target_dirname)
+        r3_dnn_apply(target_dirname, cuda=cuda)
 
         # MATLAB cd into target folder
         # print('{}: MATLAB cd into target folder'.format(SCRIPT_FNAME))

@@ -87,11 +87,10 @@ def main(target_dirname, cuda=True):
             # model_params_fname = os.path.join(model_dirs[k], 'model_params.json')
         model_params_fname = os.path.join(os.path.join(model_dirname, 'k_' + str(k)), MODEL_PARAMS_FNAME)
         # print('{}: model_params_fname = {}'.format(SCRIPT_FNAME, model_params_fname))
-        try
         model = get_which_model_from_params_fname(LeNet, model_params_fname)
 
 
-        model.load_state_dict(torch.load(os.path.join(os.path.dirname(model_params_fname), 'model.dat'), map_location='cpu'))
+        model.load_state_dict(torch.load(os.path.join(os.path.dirname(model_params_fname), 'model.dat'), map_location=my_device))
         model.eval()
         model = model.to(my_device)
 
@@ -108,8 +107,9 @@ def main(target_dirname, cuda=True):
 
         # process with the network
         with torch.set_grad_enabled(False):
-            aperture_data_new = model(aperture_data).to('cpu').data.numpy()
+            aperture_data_new = model(aperture_data).cpu().data.numpy()
 
+        del aperture_data
         # summary(model, aperture_data.shape)
         # delete the model
         del model
@@ -117,6 +117,7 @@ def main(target_dirname, cuda=True):
         # rescale the data and store new data in stft
         stft[:, :, k] = aperture_data_new * aperture_data_norm[:, np.newaxis]
 
+        del aperture_data_new
         # stop timer
         # print('time: {:.2f}'.format(time.time() - t0))
 
@@ -140,6 +141,8 @@ def main(target_dirname, cuda=True):
     new_stft_real = stft[:, :N_elements, :, :]
     new_stft_imag = stft[:, N_elements:, :, :]
 
+    del stft
+
     # change dimensions
     new_stft_real = new_stft_real.transpose()
     new_stft_imag = new_stft_imag.transpose()
@@ -147,6 +150,6 @@ def main(target_dirname, cuda=True):
     # save new stft data
     new_stft_fname = os.path.join(target_dirname, 'new_stft.mat')
     savemat(new_stft_fname, {'new_stft_real': new_stft_real, 'new_stft_imag': new_stft_imag})
-
+    del new_stft_real, new_stft_imag
 # if __name__ == "__main__":
 #     main()
