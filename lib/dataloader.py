@@ -1,8 +1,9 @@
+import os
+
 import h5py
 import numpy as np
-import os
 from torch.utils.data import Dataset
-import torch
+from torch import from_numpy
 
 
 class ApertureDataset(Dataset):
@@ -25,7 +26,6 @@ class ApertureDataset(Dataset):
 
         # Open file
         with h5py.File(fname, 'r') as f:
-
             # Get number of samples available for each type
             inputs_real = f['/' + str(k) + '/X/real']
             inputs_imag = f['/' + str(k) + '/X/imag']
@@ -55,8 +55,9 @@ class ApertureDataset(Dataset):
                                      f['/' + str(k) + '/Y/imag'][0:self.num_samples]])
 
         # convert data to single precision pytorch tensors
-        self.data_tensor = torch.from_numpy(inputs).float()
-        self.target_tensor = torch.from_numpy(targets).float()
+        self.data_tensor = from_numpy(inputs).float()
+        self.target_tensor = from_numpy(targets).float()
+        print('dataloader: self.data_tensor.size =', self.data_tensor.size())
 
     def __len__(self):
         return self.data_tensor.size(0)
