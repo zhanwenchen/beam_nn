@@ -57,7 +57,6 @@ class ApertureDataset(Dataset):
         # convert data to single precision pytorch tensors
         self.data_tensor = from_numpy(inputs).float()
         self.target_tensor = from_numpy(targets).float()
-        print('dataloader: self.data_tensor.size =', self.data_tensor.size())
 
     def __len__(self):
         return self.data_tensor.size(0)
