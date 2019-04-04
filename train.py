@@ -1,21 +1,33 @@
 import os
 import argparse
+import random
+import numpy as np
 import glob
 # import warnings
-from pprint import pprint
+
+# from pprint import pprint
 import shutil
 import torch
 
 
 from lib.utils import save_model_params, ensure_dir, add_suffix_to_path, get_which_model_from_params_fname
 from lib.dataloader import ApertureDataset
-from lib.lenet import LeNet
+# from lib.lenet import LeNet
+# from lib.alexnet import AlexNet
 from lib.logger import Logger
 from lib.trainer import Trainer
 
 
 model_parent_folder = 'DNNs'
 model_params_fname = 'model_params.json'
+
+
+def seed_everything(seed=1234):
+    random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
 
 
 def train(identifier):
@@ -29,15 +41,13 @@ def train(identifier):
         shutil.move(model_folder, new_model_folder_name)
         ks = glob.glob(os.path.join(new_model_folder_name, 'k_*'))
         for k in ks:
-
-
             # Load model
             model_params_path = os.path.join(k, model_params_fname)
             # print('train.py: training model', model_params_path, 'with hyperparams')
 
-
             # create model
-            model, model_params = get_which_model_from_params_fname(LeNet, model_params_path, return_params=True)
+            # model, model_params = get_which_model_from_params_fname(LeNet, model_params_path, return_params=True)
+            model, model_params = get_which_model_from_params_fname(model_params_path, return_params=True)
             # summary(model, (130,))
             # configure cuda
             using_cuda = model_params['cuda'] and torch.cuda.is_available()
@@ -121,4 +131,5 @@ def main():
 
 
 if __name__ == '__main__':
+    seed_everything()
     main()

@@ -12,7 +12,7 @@ In a , 65 (W) x 4 (H=2, P=2) x 1 (D).
 
 import torch.nn.functional as F
 # import torch.nn as nn
-from torch import nn, prod
+from torch import nn
 from torch.nn import Conv2d, MaxPool2d, BatchNorm2d, Dropout2d
 
 from lib.fully_connected_net import FullyConnectedNet
@@ -50,6 +50,19 @@ class LeNet(nn.Module):
                        fcs_hidden_size,
                        fcs_num_hidden_layers,
                        fcs_dropout):
+    # def __init__(self,
+    #              input_height=None,
+    #              input_width=None,
+    #              input_num_channels=None,
+    #
+    #              conv1_kernel_height=None,
+    #              conv1_kernel_height=None,
+    #              conv1_num_kernels=None,
+    #              conv1_stride_height=None,
+    #              conv1_stride_width=None,
+    #
+
+                 # output_size=None):
 
         super(LeNet, self).__init__()
 
@@ -61,7 +74,7 @@ class LeNet(nn.Module):
         except AssertionError:
             raise AssertionError('{}: output_size should be a Python integer. Got {} of type {}'.format(__name__, output_size, type(output_size)))
 
-        input_size = output_size / self.input_channel
+        input_size = output_size / self.input_num_channels
         if input_size.is_integer():
             input_size = int(input_size)
         else:
