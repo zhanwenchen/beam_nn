@@ -1,9 +1,13 @@
 from torch.autograd import Variable
 import torch
 import numpy as np
-import time
+from time import time
 import os
+
+
 from torch import from_numpy, save
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+
 
 class Trainer():
 
@@ -23,6 +27,7 @@ class Trainer():
         self.logger = logger
         self.data_noise_gaussian = data_noise_gaussian
         self.save_dir = save_dir
+        self.scheduler = ReduceLROnPlateau(optimizer, 'min')
 
 
     def train_epoch(self):
@@ -119,27 +124,32 @@ class Trainer():
         # Perform training
         while True:
             # Run one iteration of SGD
-            t0 = time.time()
+            t0 = time()
             loss_train = self.train_epoch()
             loss_train_eval = self.compute_loss(self.loader_train_eval)
             loss_val = self.compute_loss(self.loader_val)
-            time_epoch = time.time() - t0
-            self.logger.add_entry( {'loss_train' : loss_train,
-                                'loss_train_eval' : loss_train_eval,
-                                'loss_val' : loss_val} )
+            self.scheduler.step(loss_val)
+            time_epoch = time() - t0
+            self.logger.add_entry({
+                'loss_train': loss_train,
+                'loss_train_eval': loss_train_eval,
+                'loss_val': loss_val,
+            })
 
             # save logger info
             if self.save_dir:
                 self.logger.append(os.path.join(self.save_dir, 'log.txt'))
 
             # change in loss_val
-            d_loss_val = (loss_val-loss_val_best)/loss_val_best * 100
+            diff_loss_percentage = (loss_val - loss_val_best) / loss_val_best * 100
+
+            diff_valid = (loss_val - loss_train_eval) / loss_train_eval * 100
 
             # display results
-            print('E: {:} / Train: {:.3e} / Valid: {:.3e} / Diff Valid: {:.2f}% / Diff Valid-Train: {:.1f}% / Time: {:.2f}'.format(epoch, loss_train_eval, loss_val, d_loss_val, (loss_val - loss_train_eval)/loss_train_eval*100, time_epoch))
-
+            print('E: {:} / Train: {:.3e} / Valid: {:.3e} / Diff Valid: {:.2f}% / Diff Valid-Train: {:.1f}% / Time: {:.2f}'.format(epoch, loss_train_eval, loss_val, diff_loss_percentage, diff_valid, time_epoch))
             # if validation loss improves
-            if d_loss_val < -0.05:
+            if diff_loss_percentage < -5:
+                print('Validation Loss Improves')
                 num_epochs_increased = 0
 
                 # record epoch and loss
