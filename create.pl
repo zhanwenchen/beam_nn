@@ -209,4 +209,15 @@ find_alexnet(AlexNet, [InputHeight, InputWidth, InputChannels]) :-
 
 
 find_alexnets(AlexNets) :-
-  once(findnsols(1, AlexNet, find_alexnet(AlexNet, [2, 65, 1]), AlexNets)).
+  once(findnsols(10, AlexNet, find_alexnet(AlexNet, [2, 65, 1]), AlexNets)).
+
+use_module(library(http/json)).
+
+output_10 :-
+  find_alexnets(AlexNets), open('test2.json', write, Stream), json_write_dict(Stream, AlexNets), close(Stream).
+
+write_dict_to_file(Dict, Fname) :-
+  open(Fname, write, Stream), json_write_dict(Stream, Dict), close(Stream).
+
+get_time(Lol) :-
+  get_time(Timestamp), format_time(atom(Lol), '%Y%m%d%k%M%S%f', Timestamp).
