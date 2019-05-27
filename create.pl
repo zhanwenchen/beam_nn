@@ -1,3 +1,5 @@
+:- use_module(library(http/json)).
+
 get_output_size([InputHeight, InputWidth, _], CurrentLayer, [OutputHeight, OutputWidth, OutputDepth]) :-
   CurrentLayer.type == conv2d,
   OutChannels is CurrentLayer.out_channels,
@@ -48,27 +50,27 @@ is_network_legal(InputSizes, [CurrentLayer|RestLayers]) :-
 %   is_network_legal([227, 227, 3], AlexNet).
 
 % Use of repeat, random: https://stackoverflow.com/a/36350988
-main(Conv1KernelHeight) :-
-  % between(20, 200, Conv1KernelHeight),
-  (repeat, random_between(20, 200, Conv1KernelHeight)),
-  % random_between(20, 200, Conv1KernelHeight),
-  Conv1 = conv1{type: conv2d, out_channels: 96, kernel_height: Conv1KernelHeight, kernel_width: 11, padding_height: 0, padding_width: 0, stride_height: 4, stride_width: 4},
-  Pool1 = pool1{type: maxpool2d, kernel_height: 3, kernel_width: 3, stride_height: 2, stride_width: 2},
-  Conv2 = conv2{type: conv2d, out_channels: 256, kernel_height: 5, kernel_width: 5, padding_height: 2, padding_width: 2, stride_height: 1, stride_width: 1},
-  Pool2 = pool2{type: maxpool2d, kernel_height: 3, kernel_width: 3, stride_height: 2, stride_width: 2},
-  Conv3 = conv3{type: conv2d, out_channels: 384, kernel_height: 3, kernel_width: 3, padding_height: 1, padding_width: 1, stride_height: 1, stride_width: 1},
-  Conv4 = conv4{type: conv2d, out_channels: 384, kernel_height: 3, kernel_width: 3, padding_height: 1, padding_width: 1, stride_height: 1, stride_width: 1},
-  Conv5 = conv5{type: conv2d, out_channels: 256, kernel_height: 3, kernel_width: 3, padding_height: 1, padding_width: 1, stride_height: 1, stride_width: 1},
-  Pool3 = pool3{type: maxpool2d, kernel_height: 3, kernel_width: 3, stride_height: 2, stride_width: 2},
-  AlexNet = [Conv1, Pool1, Conv2, Pool2, Conv3, Conv4, Conv5, Pool3],
-  is_network_legal([227, 227, 3], AlexNet).
+% main(Conv1KernelHeight) :-
+%   % between(20, 200, Conv1KernelHeight),
+%   (repeat, random_between(20, 200, Conv1KernelHeight)),
+%   % random_between(20, 200, Conv1KernelHeight),
+%   Conv1 = conv1{type: conv2d, out_channels: 96, kernel_height: Conv1KernelHeight, kernel_width: 11, padding_height: 0, padding_width: 0, stride_height: 4, stride_width: 4},
+%   Pool1 = pool1{type: maxpool2d, kernel_height: 3, kernel_width: 3, stride_height: 2, stride_width: 2},
+%   Conv2 = conv2{type: conv2d, out_channels: 256, kernel_height: 5, kernel_width: 5, padding_height: 2, padding_width: 2, stride_height: 1, stride_width: 1},
+%   Pool2 = pool2{type: maxpool2d, kernel_height: 3, kernel_width: 3, stride_height: 2, stride_width: 2},
+%   Conv3 = conv3{type: conv2d, out_channels: 384, kernel_height: 3, kernel_width: 3, padding_height: 1, padding_width: 1, stride_height: 1, stride_width: 1},
+%   Conv4 = conv4{type: conv2d, out_channels: 384, kernel_height: 3, kernel_width: 3, padding_height: 1, padding_width: 1, stride_height: 1, stride_width: 1},
+%   Conv5 = conv5{type: conv2d, out_channels: 256, kernel_height: 3, kernel_width: 3, padding_height: 1, padding_width: 1, stride_height: 1, stride_width: 1},
+%   Pool3 = pool3{type: maxpool2d, kernel_height: 3, kernel_width: 3, stride_height: 2, stride_width: 2},
+%   AlexNet = [Conv1, Pool1, Conv2, Pool2, Conv3, Conv4, Conv5, Pool3],
+%   is_network_legal([227, 227, 3], AlexNet).
 
 
 % https://stackoverflow.com/a/41212369
 
 % Find 5 solutions for Conv1KernelHeight such that
-main_2(Listy) :-
-  once(findnsols(5, Conv1KernelHeight, main(Conv1KernelHeight), Listy)).
+% main_2(Listy) :-
+%   once(findnsols(5, Conv1KernelHeight, main(Conv1KernelHeight), Listy)).
 
 
 % Random solutions: https://stackoverflow.com/a/41427112
@@ -211,13 +213,29 @@ find_alexnet(AlexNet, [InputHeight, InputWidth, InputChannels]) :-
 find_alexnets(AlexNets) :-
   once(findnsols(10, AlexNet, find_alexnet(AlexNet, [2, 65, 1]), AlexNets)).
 
-use_module(library(http/json)).
 
-output_10 :-
-  find_alexnets(AlexNets), open('test2.json', write, Stream), json_write_dict(Stream, AlexNets), close(Stream).
+% output_10 :-
+%   find_alexnets(AlexNets), open('test2.json', write, Stream), json_write_dict(Stream, AlexNets), close(Stream).
 
-write_dict_to_file(Dict, Fname) :-
-  open(Fname, write, Stream), json_write_dict(Stream, Dict), close(Stream).
+write_model_to_file_per_k(Dict, Dirname, K) :-
+  atomic_list_concat([Dirname, '/', 'k_', K], Kname),
+  make_directory(Kname),
+  atomic_list_concat([Kname, '/', 'model_params.json'], Fname),
+  open(Fname, write, Stream),
+  json_write_dict(Stream, Dict),
+  close(Stream).
 
-get_time(Lol) :-
-  get_time(Timestamp), format_time(atom(Lol), '%Y%m%d%k%M%S%f', Timestamp).
+write_model_to_file(Dict) :-
+  timestring(Timestring),
+  atomic_list_concat(['DNNs/', 'alexnet_2_65_1', Timestring], Dirname),
+  make_directory(Dirname),
+  maplist(write_model_to_file_per_k(Dict, Dirname), ['3', '4', '5']).
+
+timestring(Timestring) :-
+  get_time(Timestamp), format_time(atom(Timestring), '%Y%m%d%H%M%S%f', Timestamp).
+
+find_and_write_alexnet :-
+  find_alexnet(AlexNet, [2, 65, 1]), write_model_to_file(AlexNet).
+
+main(HowMany) :-
+  once(findnsols(HowMany, [], find_and_write_alexnet, _)).
