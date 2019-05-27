@@ -51,6 +51,7 @@ def _decode(o):
 
 def read_model_params(model_params_fname):
     """Read and return model params from json (text) file."""
+    # print('read_model_params: model_params_fname = {}'.format(model_params_fname))
     if not os.path.exists(model_params_fname):
         raise OSError('utils.read_model_params: {} doesn\'t exist'.format(model_params_fname))
 
@@ -117,11 +118,11 @@ def get_which_model_from_params_fname(model_params_fname, return_params=False):
     # load the model
     model_params = read_model_params(model_params_fname)
     if 'model' not in model_params:
-        print('get_which_model_from_params_fname: using LeNet')
+        # print('get_which_model_from_params_fname: using LeNet')
         from lib.lenet import LeNet # Circular dependency
         model_class = LeNet
     elif model_params['model'] == 'AlexNet':
-        print('get_which_model_from_params_fname: using AlexNet')
+        # print('get_which_model_from_params_fname: using AlexNet')
         from lib.alexnet import AlexNet
         model_class = AlexNet
 
@@ -130,7 +131,7 @@ def get_which_model_from_params_fname(model_params_fname, return_params=False):
     else:
         input_channel = 2 # By default, we used 2-channel (2*65) input
 
-        model_params_init = {k:v for k,v in model_params.items() if k not in EXCLUDE_MODEL_PARAMS_KEYS}
+    model_params_init = {k:v for k,v in model_params.items() if k not in EXCLUDE_MODEL_PARAMS_KEYS}
 
     try:
         model = model_class(**model_params_init)
@@ -179,6 +180,35 @@ def get_which_model_from_params_fname_old(model_class, model_params_fname, retur
     else:
         input_channel = 2 # By default, we used 2-channel (2*65) input
 
+    model = model_class(input_channel,
+                        # model_params['input'],
+                        model_params['output_size'],
+
+                        model_params['batch_norm'],
+
+                        model_params['use_pooling'],
+                        model_params['pooling_method'],
+
+                        model_params['conv1_kernel_size'],
+                        model_params['conv1_num_kernels'],
+                        model_params['conv1_stride'],
+                        model_params['conv1_dropout'],
+
+                        model_params['pool1_kernel_size'],
+                        model_params['pool1_stride'],
+
+                        model_params['conv2_kernel_size'],
+                        model_params['conv2_num_kernels'],
+                        model_params['conv2_stride'],
+                        model_params['conv2_dropout'],
+
+                        model_params['pool2_kernel_size'],
+                        model_params['pool2_stride'],
+
+                        model_params['fcs_hidden_size'],
+                        model_params['fcs_num_hidden_layers'],
+                        model_params['fcs_dropout'])
+
     try:
         # model = model_class(**model_params)
         model = model_class(input_channel,
@@ -190,7 +220,7 @@ def get_which_model_from_params_fname_old(model_class, model_params_fname, retur
                             model_params['use_pooling'],
                             model_params['pooling_method'],
 
-                            model_params['conv1_kernel_width'],
+                            model_params['conv1_kernel_size'],
                             model_params['conv1_num_kernels'],
                             model_params['conv1_stride'],
                             model_params['conv1_dropout'],
@@ -210,7 +240,7 @@ def get_which_model_from_params_fname_old(model_class, model_params_fname, retur
                             model_params['fcs_num_hidden_layers'],
                             model_params['fcs_dropout'])
     except Exception as e:
-        raise RuntimeError('{}.get_which_model_from_params_fname: unable to instantiate model class {} with model_params = {}\n. Encountered error: {}'.format(__name__, model_class, model_params, e))
+        raise RuntimeError('{}.get_which_model_from_params_fname_old: unable to instantiate model class {} with model_params = {}\n. Encountered error: {}'.format(__name__, model_class, model_params, e))
 
     if return_params is True:
         return model, model_params
@@ -218,11 +248,22 @@ def get_which_model_from_params_fname_old(model_class, model_params_fname, retur
     return model
 
 
+# https://stackoverflow.com/a/46014620/3853537
+def copy_create_destination(src, dest):
+    try:
+        shutil.copy(src, dest)
+    except IOError as e:
+        # ENOENT(2): file does not exist, raised also on missing dest parent dir
+        if e.errno != errno.ENOENT:
+            raise
+        # try creating parent directories
+        os.makedirs(os.path.dirname(dest))
+        shutil.copy(src, dest)
 
 # https://stackoverflow.com/a/1994840/3853537
 def copy_anything(src, dst):
-    if os.path.exists(dst):
-        print('utils.py: {} exists'.format(dst))
+    # if os.path.exists(dst):
+        # print('utils.py: {} exists'.format(dst))
         # shutil.rmtree(dst)
         # shutil.copytree(src, dst)
     try:
@@ -276,7 +317,7 @@ def get_layer_output_size(layer_input_sizes, layer):
     Args:
         layer_input_sizes: tuple of (H_in, W_in, D_in). E.g. (2, 65, 1)
     '''
-    print('get_layers_sizes: layer_input_sizes={}'.format(layer_input_sizes))
+    # print('get_layers_sizes: layer_input_sizes={}'.format(layer_input_sizes))
 
     if isinstance(layer, Conv2d):
         return get_conv_output_dims(layer_input_sizes, layer.padding, layer.kernel_size, layer.stride, layer.out_channels)
@@ -310,7 +351,7 @@ def get_pool_output_dims(input_dims, kernel_dims, stride_dims):
 
     pool_output_height = floor((pool_input_height - pool_kernel_height)/pool_stride_height + 1)
     pool_output_width = floor((pool_input_width - pool_kernel_width)/pool_stride_width + 1)
-    print('{pool_output_width} = floor(({pool_input_width} - {pool_kernel_width})/{pool_stride_width} + 1)'.format(pool_output_width=pool_output_width, pool_input_width=pool_input_width, pool_kernel_width=pool_kernel_width, pool_stride_width=pool_stride_width))
+    # print('{pool_output_width} = floor(({pool_input_width} - {pool_kernel_width})/{pool_stride_width} + 1)'.format(pool_output_width=pool_output_width, pool_input_width=pool_input_width, pool_kernel_width=pool_kernel_width, pool_stride_width=pool_stride_width))
     pool_output_dims = pool_input_dims
 
     return pool_output_height, pool_output_width, pool_output_dims
@@ -362,7 +403,7 @@ def get_conv_output_dims(input_dims, pad_dims, kernel_dims, stride_dims, num_ker
 
     conv_output_height = floor((conv_input_height - conv_kernel_height + 2 * conv_pad_height)/conv_stride_height + 1)
     conv_output_width = floor((conv_input_width - conv_kernel_width + 2 * conv_pad_width)/conv_stride_width + 1)
-    print('{conv_output_width} = floor(({conv_input_width} - {conv_kernel_width} + 2 * {conv_pad_width})/{conv_stride_width} + 1)'.format(conv_output_width=conv_output_width, conv_input_width=conv_input_width, conv_kernel_width=conv_kernel_width, conv_pad_width=conv_pad_width, conv_stride_width=conv_stride_width))
+    # print('{conv_output_width} = floor(({conv_input_width} - {conv_kernel_width} + 2 * {conv_pad_width})/{conv_stride_width} + 1)'.format(conv_output_width=conv_output_width, conv_input_width=conv_input_width, conv_kernel_width=conv_kernel_width, conv_pad_width=conv_pad_width, conv_stride_width=conv_stride_width))
     # print('conv_output_height = (W − F + 2P)/S + 1 = ({} - {} + 2 x {})/{} + 1 = {}'.format(conv_input_height, conv_kernel_height, conv_pad_height, conv_stride_height, conv_output_height))
     conv_output_dims = num_kernels
 

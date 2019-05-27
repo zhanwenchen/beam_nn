@@ -1,3 +1,9 @@
+%% create_models.pl
+%% usage: Under project directory (containing this file, create.pl)
+%% $ swipl
+%% ?- ['create.pl']
+%% ?- main(50) % create 50 models (under project/DNNs/)
+
 :- use_module(library(http/json)).
 
 get_output_size([InputHeight, InputWidth, _], CurrentLayer, [OutputHeight, OutputWidth, OutputDepth]) :-

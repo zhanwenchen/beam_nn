@@ -11,14 +11,17 @@ import scipy.stats
 # import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 from pprint import pprint
+from torch import load, numel
 
 sys.path.insert(0, '..')
-from lib.utils import read_model_params
+from lib.utils import read_model_params, get_which_model_from_params_fname_old
+from lib.lenet import LeNet
 
 SCRIPT_FNAME = os.path.basename(__file__)
 
 MODEL_PARAMS_FNAME = 'model_params.json'
 MODEL_PARAMS_FNAME_ALT = 'model_params.txt'
+MODEL_FNAME = 'model.dat'
 speckle_stats_cnr_idx = 1
 
 MODELS_DIRNAME = 'DNNs'
@@ -47,11 +50,11 @@ def append_speckle_stats(df, model_idx, column_name, stat_name, columns_stat_das
     return columns_stat_das, columns_stat_dnn
 
 
-def get_df(identifier, exclude_bad_models=False):
+def get_df(identifier, exclude_bad_models=False, no_expan_path=False):
     # TODO: 1. Use scan_batteries to load das stats instead of walk through models.
     # TODO: 2. Walk model_folders only once.
     # setup dnn directory list
-    model_folders, num_models = get_models(identifier, exclude_bad_models=exclude_bad_models)
+    model_folders, num_models = get_models(identifier, exclude_bad_models=exclude_bad_models, no_expan_path=no_expan_path)
 
     columns = [
         'input_channel',
@@ -249,8 +252,11 @@ def get_df(identifier, exclude_bad_models=False):
     return df
 
 
-def get_models(identifier, exclude_bad_models=False):
-    model_search_path = os.path.join('..', 'DNNs', str(identifier) + '_evaluated')
+def get_models(identifier, exclude_bad_models=False, no_expan_path=False):
+    if no_expan_path is True:
+        model_search_path = os.path.join(identifier)
+    else:
+        model_search_path = os.path.join('..', 'DNNs', str(identifier) + '_evaluated')
     model_folders = glob(model_search_path)
     num_all_models = len(model_folders)
     if num_all_models == 0:
@@ -372,3 +378,72 @@ def compare_two_models(model_folder_1, model_folder_2, df):
 
 
     plt.show()
+
+
+def get_num_weights_biases(model_dirname, printing=False):
+    k_directory_string = join(model_dirname, 'k_*')
+    k_dirnames = glob(k_directory_string)
+
+    sum_weights_and_biases_ks = {}
+
+    for k_dirname in k_dirnames:
+        sum_weights_and_biases_k = 0
+        which_k = basename(k_dirname)
+        tensor_dict = load(join(k_dirname, MODEL_FNAME), map_location='cpu') # OrderedDict
+        tensor_list = list(tensor_dict.items())
+        for layer_tensor_name, tensor in tensor_list:
+            if 'batch_norm' in layer_tensor_name:
+                continue
+            how_many_this_layer = numel(tensor)
+            if printing is True:
+                print('{}: {}: {}'.format(which_k, layer_tensor_name, how_many_this_layer))
+            sum_weights_and_biases_k += how_many_this_layer
+
+        if printing is True:
+            print('{} has a total of {} weights and biases'.format(which_k, sum_weights_and_biases_k))
+            print()
+
+        sum_weights_and_biases_ks[which_k] = sum_weights_and_biases_k
+        # model_params_fname = join(k_dirname, MODEL_PARAMS_FNAME)
+        # alt_model_params_fname = join(k_dirname, MODEL_PARAMS_FNAME_ALT)
+        # model = get_which_model_from_params_fname_old(LeNet, model_params_fname)
+        # try:
+        #     model = get_which_model_from_params_fname_old(LeNet, model_params_fname)
+        # except:
+        #     if not isfile(model_params_fname):
+        #         print('Folder {} doesn\'t exist'.format(model_params_fname))
+        #     else:
+        #         print('Folder {} does exist, but is not read'.format(model_params_fname))
+        #     try:
+        #         model = get_which_model_from_params_fname_old(LeNet, alt_model_params_fname)
+        #     except Exception as e:
+        #         continue
+
+        # model.load_state_dict(load(join(k_dirname, 'model.dat'), map_location='cpu'))
+        # try:
+            # model.load_state_dict(load(join(k_dirname, 'model.dat'), map_location='cpu'))
+        # except RuntimeError as runtime_err:
+#                 raise OSError('Trying to build model using alternative model params file .txt, but encountered error \'{}\''.format(e))
+            # continue
+
+        # num_weights_and_biases_k = sum(param.numel() for param in model.parameters() \
+        #                            if param.requires_grad is True)
+        # num_weights_and_biases_ks[basename(k_dirname)] = num_weights_and_biases_k
+
+
+
+            # PyTorch version error: unable to load batch_norm layers trained
+            # using a version prior to 0.4.0. Unfortunately, we have to ignore
+            # lots of models but oh well.
+    #             print('Skipping after encountering runtime_err: {}'.format(runtime_err))
+    #         except ZeroDivisionError as division_:
+    #             print('Skipping after encountering runtime_err: {}'.format(runtime_err))
+    #             continue
+
+
+
+        # 1. check existence of
+    # from pprint import pprint
+    # pprint(sum_weights_and_biases_ks)
+
+    return sum_weights_and_biases_ks

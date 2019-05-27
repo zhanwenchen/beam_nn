@@ -1,0 +1,78 @@
+{
+  "input_height": 2,
+  "input_width": 65,
+  "input_num_channels": 1,
+
+  "output_size": 130,
+
+  "batch_norm": [0, 1],
+  "use_pooling": [0, 1],
+
+  "conv1_num_kernels": [32],
+  "conv1_kernel_height": [2],
+  "conv1_kernel_width": [9],
+  "conv1_stride_height": [2],
+  "conv1_stride_width": [3],
+  "conv1_padding_height": [1],
+  "conv1_padding_width": [2],
+
+
+  "pool1_kernel_height": [1],
+  "pool1_kernel_width": [3],
+  "pool1_stride_height": [1],
+  "pool1_stride_width": [2],
+
+  "conv2_num_kernels": [96],
+  "conv2_kernel_height": [2],
+  "conv2_kernel_width": [5],
+  "conv2_stride_height": [2],
+  "conv2_stride_width": [1],
+  "conv2_padding_height": [1],
+  "conv2_padding_width": [2],
+
+  "pool2_kernel_height": [1],
+  "pool2_kernel_width": [3],
+  "pool2_stride_height": [1],
+  "pool2_stride_width": [2],
+
+  "conv3_num_kernels": [192],
+  "conv3_kernel_height": [2],
+  "conv3_kernel_width": [3],
+  "conv3_stride_height": [2],
+  "conv3_stride_width": [1],
+  "conv3_padding_height": [1],
+  "conv3_padding_width": [1],
+
+  "conv4_num_kernels": [64],
+  "conv4_kernel_height": [2],
+  "conv4_kernel_width": [3],
+  "conv4_stride_height": [2],
+  "conv4_stride_width": [1],
+  "conv4_padding_height": [1],
+  "conv4_padding_width": [1],
+
+  "conv5_num_kernels": [64],
+  "conv5_kernel_height": [2],
+  "conv5_kernel_width": [3],
+  "conv5_stride_height": [2],
+  "conv5_stride_width": [1],
+  "conv5_padding_height": [1],
+  "conv5_padding_width": [1],
+
+  "pool3_kernel_height": [1],
+  "pool3_kernel_width": [2],
+  "pool3_stride_height": [1],
+  "pool3_stride_width": [2],
+
+  "avgpool_out_height": [2],
+  "avgpool_out_width": [4],
+
+  "fcs_hidden_size": [4096],
+
+  "cost_function": ["MSE", "L1", "SmoothL1"],
+
+  "optimizer": ["Adam"],
+  "momentum": [0.8, 1],
+  "learning_rate_adam": [0, 0.0002],
+  "learning_rate_sgd": [0, 0.02]
+}

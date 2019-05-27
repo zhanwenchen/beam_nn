@@ -70,20 +70,21 @@ class Trainer():
             # total_loss += loss.data[0] # before PyTorch 0.4.0
             total_loss += loss.item() # PyTorch 0.4.0 and after
 
-        return total_loss / len(self.loader_train)
+        return total_loss / len(self.loader_train) # TODO: why len(self.loader_train)?
 
 
     def compute_loss(self, dat_loader):
         """ Compute model loss for provided data loader"""
         if self.cuda:
             self.model.cuda()
-            self.loss.cuda() # TODO: Is this a bug?
+            # self.loss.cuda() # CHANGED: loss.cuda() does nothing
 
         self.model.eval()
 
         total_loss = 0
         # for batch_idx, data in enumerate(dat_loader):
         for data in dat_loader:
+            # TODO: Is this needed for vaidation?
             # add gaussian noise
             if self.data_noise_gaussian:
                 X = data[0].numpy()
@@ -101,7 +102,7 @@ class Trainer():
             if self.cuda:
                 inputs = inputs.cuda()
                 targets = targets.cuda()
-                self.loss = self.loss.cuda()
+                # self.loss = self.loss.cuda() # CHANGED: loss.cuda() does nothing
 
             outputs = self.model(inputs)
             loss = self.loss(outputs, targets)
