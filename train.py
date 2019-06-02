@@ -2,7 +2,7 @@ import os
 import argparse
 import random
 import numpy as np
-import glob
+from glob import glob
 # import warnings
 
 # from pprint import pprint
@@ -31,7 +31,7 @@ def seed_everything(seed=1234):
 
 
 def train(identifier):
-    models = glob.glob(os.path.join(model_parent_folder, str(identifier) + '_created'))
+    models = glob(os.path.join(model_parent_folder, str(identifier) + '_created'))
 
     if not models:
         raise ValueError('train.py: given identifier {} matched no models.'.format(identifier))
@@ -39,7 +39,7 @@ def train(identifier):
     for model_folder in models:
         new_model_folder_name = model_folder.replace('_created', '_training')
         shutil.move(model_folder, new_model_folder_name)
-        ks = glob.glob(os.path.join(new_model_folder_name, 'k_*'))
+        ks = glob(os.path.join(new_model_folder_name, 'k_*'))
         for k in ks:
             # Load model
             model_params_path = os.path.join(k, model_params_fname)

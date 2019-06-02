@@ -33,7 +33,25 @@ get_output_size([InputHeight, InputWidth, InChannels], CurrentLayer, [OutputHeig
   OutputDepth is InChannels.
 
 
+get_output_size([_, _, InChannels], CurrentLayer, [OutputHeight, OutputWidth, OutputDepth]) :-
+  CurrentLayer.type == adaptiveavgpool2d,
+
+  OutputHeight is CurrentLayer.out_height,
+  OutputWidth is CurrentLayer.out_width,
+  OutputDepth is InChannels.
+%
+%
+% get_output_size([InputHeight, InputWidth, InChannels], CurrentLayer, [OutputHeight, OutputWidth, OutputDepth]) :-
+%   CurrentLayer.type == fcs,
+%
+%   OutputHeight is CurrentLayer.out_height,
+%   OutputWidth is CurrentLayer.out_width,
+%   OutputDepth is InChannels.
+
+
 is_network_legal(_, []).
+is_network_legal(_, [CurrentLayer]) :-
+  CurrentLayer.type == fcs.
 is_network_legal(InputSizes, [CurrentLayer|RestLayers]) :-
   get_output_size(InputSizes, CurrentLayer, [OutputHeight, OutputWidth, OutputDepth]),
   OutputHeight >= 1,
@@ -105,10 +123,11 @@ find_alexnet(AlexNet, [InputHeight, InputWidth, InputChannels]) :-
   random_between(1, Conv1KernelHeightUpperBound, Conv1KernelHeight),
   random_between(1, Conv1KernelWidthUpperBound, Conv1KernelWidth),
 
-  Conv1 = conv1{type: conv2d, out_channels: Conv1NumKernels, kernel_height: Conv1KernelHeight, kernel_width: Conv1KernelWidth, padding_height: Conv1PaddingHeight, padding_width: Conv1PaddingWidth, stride_height: Conv1StrideHeight, stride_width: Conv1StrideWidth},
+  Conv1 = conv1{in_channels: InputChannels, type: conv2d, out_channels: Conv1NumKernels, kernel_height: Conv1KernelHeight, kernel_width: Conv1KernelWidth, padding_height: Conv1PaddingHeight, padding_width: Conv1PaddingWidth, stride_height: Conv1StrideHeight, stride_width: Conv1StrideWidth},
 
   get_output_size([InputHeight, InputWidth, InputChannels], Conv1, [Pool1InputHeight, Pool1InputWidth, Pool1InputDepth]),
 
+  % ReLU1 = relu{type: relu},
 
   %% Pool1 sizes
   random_between(1, 5, Pool1StrideHeight),
@@ -133,7 +152,7 @@ find_alexnet(AlexNet, [InputHeight, InputWidth, InputChannels]) :-
   random_between(1, Conv2KernelHeightUpperBound, Conv2KernelHeight),
   random_between(1, Conv2KernelWidthUpperBound, Conv2KernelWidth),
 
-  Conv2 = conv2{type: conv2d, out_channels: Conv2NumKernels, kernel_height: Conv2KernelHeight, kernel_width: Conv2KernelWidth, padding_height: Conv2PaddingHeight, padding_width: Conv2PaddingWidth, stride_height: Conv2StrideHeight, stride_width: Conv2StrideWidth},
+  Conv2 = conv2{type: conv2d, in_channels: Conv1NumKernels, out_channels: Conv2NumKernels, kernel_height: Conv2KernelHeight, kernel_width: Conv2KernelWidth, padding_height: Conv2PaddingHeight, padding_width: Conv2PaddingWidth, stride_height: Conv2StrideHeight, stride_width: Conv2StrideWidth},
 
   get_output_size([Conv2InputHeight, Conv2InputWidth, Conv2InputDepth], Conv2, [Pool2InputHeight, Pool2InputWidth, Pool2InputDepth]),
 
@@ -162,7 +181,7 @@ find_alexnet(AlexNet, [InputHeight, InputWidth, InputChannels]) :-
   random_between(1, Conv3KernelHeightUpperBound, Conv3KernelHeight),
   random_between(1, Conv3KernelWidthUpperBound, Conv3KernelWidth),
 
-  Conv3 = conv3{type: conv2d, out_channels: Conv3NumKernels, kernel_height: Conv3KernelHeight, kernel_width: Conv3KernelWidth, padding_height: Conv3PaddingHeight, padding_width: Conv3PaddingWidth, stride_height: Conv3StrideHeight, stride_width: Conv3StrideWidth},
+  Conv3 = conv3{type: conv2d, in_channels: Conv2NumKernels, out_channels: Conv3NumKernels, kernel_height: Conv3KernelHeight, kernel_width: Conv3KernelWidth, padding_height: Conv3PaddingHeight, padding_width: Conv3PaddingWidth, stride_height: Conv3StrideHeight, stride_width: Conv3StrideWidth},
 
   get_output_size([Conv3InputHeight, Conv3InputWidth, Conv3InputDepth], Conv3, [Conv4InputHeight, Conv4InputWidth, Conv4InputDepth]),
 
@@ -179,7 +198,7 @@ find_alexnet(AlexNet, [InputHeight, InputWidth, InputChannels]) :-
   random_between(1, Conv4KernelHeightUpperBound, Conv4KernelHeight),
   random_between(1, Conv4KernelWidthUpperBound, Conv4KernelWidth),
 
-  Conv4 = conv4{type: conv2d, out_channels: Conv4NumKernels, kernel_height: Conv4KernelHeight, kernel_width: Conv4KernelWidth, padding_height: Conv4PaddingHeight, padding_width: Conv4PaddingWidth, stride_height: Conv4StrideHeight, stride_width: Conv4StrideWidth},
+  Conv4 = conv4{type: conv2d, in_channels: Conv3NumKernels, out_channels: Conv4NumKernels, kernel_height: Conv4KernelHeight, kernel_width: Conv4KernelWidth, padding_height: Conv4PaddingHeight, padding_width: Conv4PaddingWidth, stride_height: Conv4StrideHeight, stride_width: Conv4StrideWidth},
 
   get_output_size([Conv4InputHeight, Conv4InputWidth, Conv4InputDepth], Conv4, [Conv5InputHeight, Conv5InputWidth, Conv5InputDepth]),
 
@@ -196,9 +215,9 @@ find_alexnet(AlexNet, [InputHeight, InputWidth, InputChannels]) :-
   random_between(1, Conv5KernelHeightUpperBound, Conv5KernelHeight),
   random_between(1, Conv5KernelWidthUpperBound, Conv5KernelWidth),
 
-  Conv5 = conv5{type: conv2d, out_channels: Conv5NumKernels, kernel_height: Conv5KernelHeight, kernel_width: Conv5KernelWidth, padding_height: Conv5PaddingHeight, padding_width: Conv5PaddingWidth, stride_height: Conv5StrideHeight, stride_width: Conv5StrideWidth},
+  Conv5 = conv5{type: conv2d, in_channels: Conv4NumKernels, out_channels: Conv5NumKernels, kernel_height: Conv5KernelHeight, kernel_width: Conv5KernelWidth, padding_height: Conv5PaddingHeight, padding_width: Conv5PaddingWidth, stride_height: Conv5StrideHeight, stride_width: Conv5StrideWidth},
 
-  get_output_size([Conv5InputHeight, Conv5InputWidth, Conv5InputDepth], Conv5, [Pool3InputHeight, Pool3InputWidth, _]),
+  get_output_size([Conv5InputHeight, Conv5InputWidth, Conv5InputDepth], Conv5, [Pool3InputHeight, Pool3InputWidth, Pool3InputDepth]),
 
 
   %% Pool3 sizes
@@ -210,9 +229,23 @@ find_alexnet(AlexNet, [InputHeight, InputWidth, InputChannels]) :-
 
   Pool3 = pool3{type: maxpool2d, kernel_height: Pool3KernelHeight, kernel_width: Pool3KernelWidth, stride_height: Pool3StrideHeight, stride_width: Pool3StrideWidth},
 
+  get_output_size([Pool3InputHeight, Pool3InputWidth, Pool3InputDepth], Pool3, [AdaptiveAvgPoolInputHeight, AdaptiveAvgPoolInputWidth, AdaptiveAvgPoolInputDepth]),
+
+  write([AdaptiveAvgPoolInputHeight, AdaptiveAvgPoolInputWidth, AdaptiveAvgPoolInputDepth]),
+  %% AdaptiveAvgPool sizes
+  AdaptiveAvgPool = adaptiveavgpool2d{type: adaptiveavgpool2d, out_height: AdaptiveAvgPoolInputHeight, out_width: AdaptiveAvgPoolInputWidth},
+  % write(AdaptiveAvgPoolInputHeight),
+  % write(' '),
+
+  %% FCs sizes
+  random_between(1, 3, FCsNumLayers),
+  random_between(100, 500, FCsLayerWidth),
+  FCsInputSize is AdaptiveAvgPoolInputHeight * AdaptiveAvgPoolInputWidth * AdaptiveAvgPoolInputDepth,
+  FCsOutputSize = 130,
+  FCs = fcs{type: fcs, input_size: FCsInputSize, output_size: FCsOutputSize, num_layers: FCsNumLayers, width: FCsLayerWidth},
 
 
-  AlexNet = [Conv1, Pool1, Conv2, Pool2, Conv3, Conv4, Conv5, Pool3],
+  AlexNet = [Conv1, Pool1, Conv2, Pool2, Conv3, Conv4, Conv5, Pool3, AdaptiveAvgPool, FCs],
   is_network_legal([InputHeight, InputWidth, InputChannels], AlexNet).
 
 
@@ -233,7 +266,7 @@ write_model_to_file_per_k(Dict, Dirname, K) :-
 
 write_model_to_file(Dict) :-
   timestring(Timestring),
-  atomic_list_concat(['DNNs/', 'alexnet_2_65_1', Timestring], Dirname),
+  atomic_list_concat(['DNNs/', 'alexnet_2_65_1', Timestring, '_created'], Dirname),
   make_directory(Dirname),
   maplist(write_model_to_file_per_k(Dict, Dirname), ['3', '4', '5']).
 
