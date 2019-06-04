@@ -149,6 +149,7 @@ find_alexnet(AlexNet, [InputHeight, InputWidth, InputChannels]) :-
   % Limit upperbound of kernel sizes to positive output (W - **F** + 2P >= 0, that is, F <= W + 2P)
   Conv2KernelHeightUpperBound is Conv2InputHeight + 2 * Conv2PaddingHeight,
   Conv2KernelWidthUpperBound is Conv2InputWidth + 2 * Conv2PaddingWidth,
+  write(Conv2KernelHeightUpperBound),
   random_between(1, Conv2KernelHeightUpperBound, Conv2KernelHeight),
   random_between(1, Conv2KernelWidthUpperBound, Conv2KernelWidth),
 
@@ -249,9 +250,53 @@ find_alexnet(AlexNet, [InputHeight, InputWidth, InputChannels]) :-
   is_network_legal([InputHeight, InputWidth, InputChannels], AlexNet).
 
 
-find_alexnets(AlexNets) :-
-  once(findnsols(10, AlexNet, find_alexnet(AlexNet, [2, 65, 1]), AlexNets)).
+% find_alexnets(AlexNets) :-
+%   once(findnsols(10, AlexNet, find_alexnet(AlexNet, [2, 65, 1]), AlexNets)).
 
+
+% model layers and training stuff
+find_full_alexnet(Alexnet) :-
+  find_alexnet(Layers, [2, 65, 1]),
+
+  random_member(CostFunction, ['MSE', 'L1', 'SmoothL1']),
+  random_member(Optimizer, ['Adam', 'SGD']),
+  (Optimizer = 'Adam', random(0.000002, 0.0002, LearningRate) ; (Optimizer = 'SGD', random(0.000002, 0.02, LearningRate))), % NOTE: This is deprecated in Prolog but wth.
+  random(0.0, 0.03, WeightDecay),
+
+  % Training and validation data locations
+  random(1, 3, NumScatter),
+  DataDirname = '/Users/zhanwenchen/Downloads/20180402_L74_70mm',
+  atomic_list_concat([DataDirname, '/train_', NumScatter, '.h5'], DataTrain),
+  atomic_list_concat([DataDirname, '/val_', NumScatter, '.h5'], DataVal),
+
+  Alexnet = model{type: alexnet,
+                  input_dims: [2, 65, 1],
+                  version: '1.0',
+                  cost_function: CostFunction,
+                  optimizer: Optimizer,
+                  learning_rate: LearningRate,
+                  weight_decay: WeightDecay,
+                  data_is_target: 0,
+                  batch_size: 32,
+                  data_noise_gaussian: 1,
+                  patience: 20,
+                  data_train: DataTrain,
+                  data_val: DataVal,
+                  layers: Layers}.
+
+% for count in range(num_networks):
+%     data_is_target = choice(data_is_target_list)
+%     data_noise_gaussian = choice(data_noise_gaussian_list)
+%     weight_decay = choice(weight_decay_list)
+%
+%     # get params
+%     model_params = choose_hyperparameters_from_file(hyperparameter_ranges_file)
+%
+%    # set other params
+%     model_params['data_is_target'] = data_is_target
+%     home = os.path.expanduser('~')
+%     model_params['data_train'] = os.path.join(home,'Downloads', '20180402_L74_70mm', 'train_' + str(n_scat) + '.h5')
+%     model_params['data_val'] = os.path.join(home, 'Downloads', '20180402_L74_70mm', 'val_' + str(n_scat) + '.h5')
 
 % output_10 :-
 %   find_alexnets(AlexNets), open('test2.json', write, Stream), json_write_dict(Stream, AlexNets), close(Stream).
@@ -260,21 +305,22 @@ write_model_to_file_per_k(Dict, Dirname, K) :-
   atomic_list_concat([Dirname, '/', 'k_', K], Kname),
   make_directory(Kname),
   atomic_list_concat([Kname, '/', 'model_params.json'], Fname),
+  NewDict = Dict.put(k, K),
   open(Fname, write, Stream),
-  json_write_dict(Stream, Dict),
+  json_write_dict(Stream, NewDict),
   close(Stream).
 
 write_model_to_file(Dict) :-
   timestring(Timestring),
   atomic_list_concat(['DNNs/', 'alexnet_2_65_1', Timestring, '_created'], Dirname),
   make_directory(Dirname),
-  maplist(write_model_to_file_per_k(Dict, Dirname), ['3', '4', '5']).
+  maplist(write_model_to_file_per_k(Dict, Dirname), [3, 4, 5]).
 
 timestring(Timestring) :-
   get_time(Timestamp), format_time(atom(Timestring), '%Y%m%d%H%M%S%f', Timestamp).
 
 find_and_write_alexnet :-
-  find_alexnet(AlexNet, [2, 65, 1]), write_model_to_file(AlexNet).
+  find_full_alexnet(AlexNet), write_model_to_file(AlexNet).
 
 main(HowMany) :-
   once(findnsols(HowMany, [], find_and_write_alexnet, _)).

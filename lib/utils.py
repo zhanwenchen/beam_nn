@@ -1,5 +1,5 @@
 import os
-import json
+from json import load, dump
 import shutil
 import errno
 from math import floor
@@ -60,7 +60,7 @@ def read_model_params(model_params_fname):
         if model_params_fname.endswith('.json'):
             try:
                 # model_params = json.load(f, object_hook=_decode)
-                model_params = json.load(f)
+                model_params = load(f)
             except:
                 raise
         elif model_params_fname.endswith('.txt'):
@@ -96,7 +96,7 @@ def read_model_params(model_params_fname):
 def save_model_params(model_params_fname, model_params_dict):
     """Save model params to a json (text) file"""
     with open(model_params_fname, 'w') as f:
-        json.dump(model_params_dict, f, indent=4)
+        dump(model_params_dict, f, indent=4)
 
 
 def ensure_dir(path):
@@ -118,6 +118,16 @@ def add_suffix_to_path(path, suffix):
 def get_which_model_from_params_fname(model_params_fname, return_params=False):
     # load the model
     model_params = read_model_params(model_params_fname)
+
+    # If the json is a list, it's a FlexNet
+    if 'type' in model_params and model_params['type'] == 'alexnet' and model_params['version'] == '1.0':
+        from lib.flexnet import FlexNet
+        model_class = FlexNet
+        model = FlexNet(model_params_fname)
+        if return_params is True:
+            return model, model_params
+        return model
+
     if 'model' not in model_params:
         # print('get_which_model_from_params_fname: using LeNet')
         from lib.lenet import LeNet # Circular dependency

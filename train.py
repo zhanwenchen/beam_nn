@@ -50,14 +50,16 @@ def train(identifier):
             model, model_params = get_which_model_from_params_fname(model_params_path, return_params=True)
             # summary(model, (130,))
             # configure cuda
-            using_cuda = model_params['cuda'] and torch.cuda.is_available()
+            if 'cuda' in model_params:
+                using_cuda = model_params['cuda'] and torch.cuda.is_available()
+            else:
+                using_cuda = torch.cuda.is_available()
             if using_cuda is True:
                 # print('train.py: Using device ', torch.cuda.get_device_name(0))
                 model.cuda()
 
-
             # save initial weights
-            if model_params['save_initial'] and model_params['save_dir']:
+            if 'save_initial' in model_params and model_params['save_initial'] and model_params['save_dir']:
                 suffix = '_initial'
                 path = add_suffix_to_path(model_params_fname['save_dir'], suffix)
                 # print('Saving model weights in : ' + path)
