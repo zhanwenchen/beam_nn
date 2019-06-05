@@ -2,7 +2,7 @@ import os
 import argparse
 import random
 import numpy as np
-import glob
+from glob import glob
 # import warnings
 
 # from pprint import pprint
@@ -31,7 +31,7 @@ def seed_everything(seed=1234):
 
 
 def train(identifier):
-    models = glob.glob(os.path.join(model_parent_folder, str(identifier) + '_created'))
+    models = glob(os.path.join(model_parent_folder, str(identifier) + '_created'))
 
     if not models:
         raise ValueError('train.py: given identifier {} matched no models.'.format(identifier))
@@ -39,7 +39,7 @@ def train(identifier):
     for model_folder in models:
         new_model_folder_name = model_folder.replace('_created', '_training')
         shutil.move(model_folder, new_model_folder_name)
-        ks = glob.glob(os.path.join(new_model_folder_name, 'k_*'))
+        ks = glob(os.path.join(new_model_folder_name, 'k_*'))
         for k in ks:
             # Load model
             model_params_path = os.path.join(k, model_params_fname)
@@ -50,14 +50,16 @@ def train(identifier):
             model, model_params = get_which_model_from_params_fname(model_params_path, return_params=True)
             # summary(model, (130,))
             # configure cuda
-            using_cuda = model_params['cuda'] and torch.cuda.is_available()
+            if 'cuda' in model_params:
+                using_cuda = model_params['cuda'] and torch.cuda.is_available()
+            else:
+                using_cuda = torch.cuda.is_available()
             if using_cuda is True:
                 # print('train.py: Using device ', torch.cuda.get_device_name(0))
                 model.cuda()
 
-
             # save initial weights
-            if model_params['save_initial'] and model_params['save_dir']:
+            if 'save_initial' in model_params and model_params['save_initial'] and model_params['save_dir']:
                 suffix = '_initial'
                 path = add_suffix_to_path(model_params_fname['save_dir'], suffix)
                 # print('Saving model weights in : ' + path)

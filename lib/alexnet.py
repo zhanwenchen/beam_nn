@@ -15,18 +15,6 @@ from lib.utils import get_layers_sizes
 
 printing = False
 
-
-# import torch.nn as nn
-# import torch.utils.model_zoo as model_zoo
-
-
-# __all__ = ['AlexNet', 'alexnet']
-
-
-# model_urls = {
-#     'alexnet': 'https://download.pytorch.org/models/alexnet-owt-4df8aa71.pth',
-# }
-
 # input_num_channels = 1
 # input_height = 2
 # input_width = 65
@@ -86,10 +74,7 @@ printing = False
 # pool3_stride_height = 1
 # pool3_stride_width = 2
 #
-# avgpool_out_height = 2
-# avgpool_out_width = 4
-#
-# fcs_hidden_size = 4096
+# fcs_hidden_size = 256
 
 # output_size = 130
 
@@ -104,7 +89,6 @@ class AlexNet(Module):
                  conv4_num_kernels=None, conv4_kernel_height=None, conv4_kernel_width=None, conv4_stride_height=None, conv4_stride_width=None, conv4_padding_height=None, conv4_padding_width=None,
                  conv5_num_kernels=None, conv5_kernel_height=None, conv5_kernel_width=None, conv5_stride_height=None, conv5_stride_width=None, conv5_padding_height=None, conv5_padding_width=None,
                  pool3_kernel_height=None, pool3_kernel_width=None, pool3_stride_height=None, pool3_stride_width=None,
-                 avgpool_out_height=None, avgpool_out_width=None,
                  fcs_hidden_size=None,
                  ):
         super(AlexNet, self).__init__()
@@ -130,8 +114,8 @@ class AlexNet(Module):
         print('self.features_output_sizes =', self.features_output_sizes)
         self.features_output_prod = self.features_output_sizes[0] * self.features_output_sizes[1] * self.features_output_sizes[2]
         print('self.features_output_prod =', self.features_output_prod)
-        # self.avgpool = AdaptiveAvgPool2d((self.features_output_prod[0], self.features_output_prod[1])) # constraining by architecture.
-        self.avgpool = AdaptiveAvgPool2d((avgpool_out_height, avgpool_out_width)) # parameterized
+        self.avgpool = AdaptiveAvgPool2d((self.features_output_sizes[0], self.features_output_sizes[1])) # constraining by architecture.
+        # self.avgpool = AdaptiveAvgPool2d((avgpool_out_height, avgpool_out_width)) # parameterized
         print('fcs_hidden_size = {}, output_size={}'.format(fcs_hidden_size, output_size))
         self.classifier = Sequential(
             Dropout(),

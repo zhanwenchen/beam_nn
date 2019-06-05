@@ -28,9 +28,9 @@ class FullyConnectedNet(Module):
 
         # print('fully_connected_net: got input_size = %s, output_size = %s, fcs_hidden_size = %s, num_hidden_layers = %s, fcs_dropout = %s, fcs_dropout_input = %s, batch_norm = %s' % (input_size, output_size, fcs_hidden_size, num_hidden_layers, fcs_dropout, fcs_dropout_input, batch_norm))
         super().__init__()
-        if fcs_input_size.is_integer():
+        if not isinstance(fcs_input_size, int) and fcs_input_size.is_integer():
             fcs_input_size = int(fcs_input_size)
-        else:
+        elif not isinstance(fcs_input_size, int):
             raise ValueError('fully_connected_net: fcs_input_size', fcs_input_size, 'is not an integer')
 
         self.batch_norm = batch_norm

@@ -13,7 +13,7 @@ In a , 65 (W) x 4 (H=2, P=2) x 1 (D).
 import torch.nn.functional as F
 # import torch.nn as nn
 from torch import nn
-from torch.nn import Conv2d, MaxPool2d, BatchNorm2d, Dropout2d
+from torch.nn import Module, Conv2d, MaxPool2d, BatchNorm2d, Dropout2d
 
 from lib.fully_connected_net import FullyConnectedNet
 from lib.utils import get_pool_output_dims, get_conv_output_dims
@@ -22,8 +22,8 @@ from lib.utils import get_pool_output_dims, get_conv_output_dims
 printing = False
 
 
-class LeNet(nn.Module):
-    def __init__(self, input_channel,
+class LeNet(Module):
+    def __init__(self, input_num_channels,
                        output_size,
 
                        batch_norm,
@@ -50,24 +50,10 @@ class LeNet(nn.Module):
                        fcs_hidden_size,
                        fcs_num_hidden_layers,
                        fcs_dropout):
-    # def __init__(self,
-    #              input_height=None,
-    #              input_width=None,
-    #              input_num_channels=None,
-    #
-    #              conv1_kernel_height=None,
-    #              conv1_kernel_height=None,
-    #              conv1_num_kernels=None,
-    #              conv1_stride_height=None,
-    #              conv1_stride_width=None,
-    #
-
-                 # output_size=None):
-
         super(LeNet, self).__init__()
 
         # Instance attributes for use in self.forward() later.
-        self.input_channel = input_channel
+        self.input_num_channels = input_num_channels
         self.batch_norm = batch_norm
         try:
             assert isinstance(output_size, int)
@@ -78,7 +64,7 @@ class LeNet(nn.Module):
         if input_size.is_integer():
             input_size = int(input_size)
         else:
-            raise ValueError('output_size / input_channel = {} / {} = {}'.format(output_size, input_channel, input_size))
+            raise ValueError('output_size / input_num_channels = {} / {} = {}'.format(output_size, input_num_channels, input_size))
 
         # If not using pooling, set all pooling operations to 1 by 1.
         if use_pooling is False:
@@ -93,7 +79,7 @@ class LeNet(nn.Module):
         # #####################################################################
         conv1_input_width = 65
         conv1_input_height = 2
-        conv1_input_depth = input_channel
+        conv1_input_depth = input_num_channels
 
         conv1_kernel_width = conv1_kernel_width
         conv1_kernel_height = 2
@@ -104,21 +90,21 @@ class LeNet(nn.Module):
         conv1_pad_width = 0
         conv1_pad_height = 1
 
-        conv1_output_width, conv1_output_height, conv1_output_depth = get_conv_output_dims(
-            (conv1_input_width, conv1_input_height, conv1_input_depth),
-            (conv1_pad_width, conv1_pad_height),
-            (conv1_kernel_width, conv1_kernel_height),
-            (conv1_stride_width, conv1_stride_height),
+        conv1_output_height, conv1_output_width, conv1_output_depth = get_conv_output_dims(
+            (conv1_input_height, conv1_input_width, conv1_input_depth),
+            (conv1_pad_height, conv1_pad_width),
+            (conv1_kernel_height, conv1_kernel_width),
+            (conv1_stride_height, conv1_stride_width),
             conv1_num_kernels)
 
         # conv1_output_size = (conv1_num_kernels, (input_size - conv1_kernel_width) / conv1_stride + 1)
-        conv1_output_size = (conv1_output_width, conv1_output_height, conv1_output_depth)
+        conv1_output_size = (conv1_output_height, conv1_output_width, conv1_output_depth)
         if printing: print('lenet.__init__: conv1_output_size (W,H,D) =', conv1_output_size)
 
         # self.conv1 = nn.Conv1d(input_channel, conv1_num_kernels, conv1_kernel_width, stride=conv1_stride) # NOTE: THIS IS CORRECT!!!! CONV doesn't depend on num_features!
         # pytorch.conv2d accepts shape (Batch (assumed), Channel, Height, Width) - ((Batch, 1, 2, 65))
         # https://pytorch.org/docs/stable/nn.html#torch.nn.Conv2d
-        self.conv1 = Conv2d(input_channel, conv1_num_kernels,
+        self.conv1 = Conv2d(input_num_channels, conv1_num_kernels,
             (conv1_kernel_height, conv1_kernel_width),
             stride=(conv1_stride_height, conv1_stride_width),
             padding=(conv1_pad_height, conv1_pad_width))
@@ -134,22 +120,22 @@ class LeNet(nn.Module):
         # #####################################################################
         # Pool1
         # #####################################################################
-        pool1_input_width = conv1_output_width
         pool1_input_height = conv1_output_height
+        pool1_input_width = conv1_output_width
         pool1_input_depth = conv1_output_depth
 
-        pool1_kernel_width = pool1_kernel_size
         pool1_kernel_height = 1
+        pool1_kernel_width = pool1_kernel_size
 
         pool1_stride_width = pool1_stride
         pool1_stride_height = pool1_kernel_height
 
-        pool1_output_width, pool1_output_height, pool1_output_depth = get_pool_output_dims(
-            (pool1_input_width, pool1_input_height, pool1_input_depth),
-            (pool1_kernel_width, pool1_kernel_height),
-            (pool1_stride_width, pool1_stride_height))
+        pool1_output_height, pool1_output_width, pool1_output_depth = get_pool_output_dims(
+            (pool1_input_height, pool1_input_width, pool1_input_depth),
+            (pool1_kernel_height, pool1_kernel_width),
+            (pool1_stride_height, pool1_stride_width))
 
-        pool1_output_size = (pool1_output_width, pool1_output_height, pool1_output_depth)
+        pool1_output_size = (pool1_output_height, pool1_output_width, pool1_output_depth)
         if printing: print('lenet.__init__: pool1_output_size (W,H,D) =', pool1_output_size)
 
         # self.pool1 = nn.MaxPool1d(pool1_kernel_size, stride=pool1_stride) # stride=pool1_kernel_size by default
@@ -173,13 +159,13 @@ class LeNet(nn.Module):
         conv2_pad_width = 0
         conv2_pad_height = 0
 
-        conv2_output_width, conv2_output_height, conv2_output_depth = get_conv_output_dims(
-            (conv2_input_width, conv2_input_height, conv2_input_depth),
-            (conv2_pad_width, conv2_pad_height),
-            (conv2_kernel_width, conv2_kernel_height),
-            (conv2_stride_width, conv2_stride_height),
+        conv2_output_height, conv2_output_width, conv2_output_depth = get_conv_output_dims(
+            (conv2_input_height, conv2_input_width, conv2_input_depth),
+            (conv2_pad_height, conv2_pad_width),
+            (conv2_kernel_height, conv2_kernel_width),
+            (conv2_stride_height, conv2_stride_width),
             conv2_num_kernels)
-        conv2_output_size = (conv2_output_width, conv2_output_height, conv2_output_depth)
+        conv2_output_size = (conv2_output_height, conv2_output_width, conv2_output_depth)
 
         if printing: print('lenet.__init__: conv2_output_size (W,H,D) =', conv2_output_size)
 
@@ -210,12 +196,12 @@ class LeNet(nn.Module):
         pool2_stride_width = pool2_stride
         pool2_stride_height = pool2_kernel_height
 
-        pool2_output_width, pool2_output_height, pool2_output_depth = get_pool_output_dims(
-            (pool2_input_width, pool2_input_height, pool2_input_depth),
-            (pool2_kernel_width, pool2_kernel_height),
-            (pool2_stride_width, pool2_stride_height))
+        pool2_output_height, pool2_output_width, pool2_output_depth = get_pool_output_dims(
+            (pool2_input_height, pool2_input_width, pool2_input_depth),
+            (pool2_kernel_height, pool2_kernel_width),
+            (pool2_stride_height, pool2_stride_width))
 
-        pool2_output_size = (pool2_output_width, pool2_output_height, pool2_output_depth)
+        pool2_output_size = (pool2_output_height, pool2_output_width, pool2_output_depth)
         if printing: print('lenet.__init__: pool2_output_size (W,H,D) =', pool2_output_size)
 
         self.pool2 = MaxPool2d(pool2_kernel_size, stride=pool2_stride) # stride=pool1_kernel_size by default
@@ -231,7 +217,7 @@ class LeNet(nn.Module):
 
         # FCs
         # fcs_input_size = pool2_output_size[0] * pool2_output_size[1]
-        fcs_input_size = pool2_output_width * pool2_output_height * pool2_output_depth
+        fcs_input_size = pool2_output_height * pool2_output_width * pool2_output_depth
         self.fcs = FullyConnectedNet(fcs_input_size,
                                      output_size,
 
