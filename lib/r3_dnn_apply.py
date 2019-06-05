@@ -13,7 +13,6 @@ from torch import from_numpy, device
 from torch.cuda import is_available as get_cuda_available
 
 from lib.utils import get_which_model_from_params_fname
-from lib.lenet import LeNet
 
 
 SCRIPT_FNAME = os.path.basename(__file__)
@@ -21,7 +20,7 @@ MODEL_PARAMS_FNAME = 'model_params.json'
 
 
 
-def main(target_dirname, cuda=True):
+def main(target_dirname, cuda=False):
     scan_battery_dirname = os.path.dirname(target_dirname)
     model_dirname = os.path.dirname(os.path.dirname(scan_battery_dirname))
 
@@ -86,7 +85,7 @@ def main(target_dirname, cuda=True):
         # if not os.path.isfile(model_params_fname):
             # model_params_fname = os.path.join(model_dirs[k], 'model_params.json')
         model_params_fname = os.path.join(os.path.join(model_dirname, 'k_' + str(k)), MODEL_PARAMS_FNAME)
-        model = get_which_model_from_params_fname(LeNet, model_params_fname)
+        model = get_which_model_from_params_fname(model_params_fname)
 
 
         model.load_state_dict(torch.load(os.path.join(os.path.dirname(model_params_fname), 'model.dat'), map_location=my_device))

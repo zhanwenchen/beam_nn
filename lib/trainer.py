@@ -142,15 +142,15 @@ class Trainer():
                 self.logger.append(os.path.join(self.save_dir, 'log.txt'))
 
             # change in loss_val
-            diff_loss_percentage = (loss_val - loss_val_best) / loss_val_best * 100
+            diff_loss_percentage_valid = (loss_val - loss_val_best) / loss_val_best * 100
 
-            diff_valid = (loss_val - loss_train_eval) / loss_train_eval * 100
+            diff_loss_valid_train = (loss_val - loss_train_eval) / loss_train_eval * 100
 
             # display results
-            print('E: {:} / Train: {:.3e} / Valid: {:.3e} / Diff Valid: {:.2f}% / Diff Valid-Train: {:.1f}% / Time: {:.2f}'.format(epoch, loss_train_eval, loss_val, diff_loss_percentage, diff_valid, time_epoch))
+            print('E: {:} / Train: {:.3e} / Valid: {:.3e} / Diff Valid: {:.2f}% / Diff Valid-Train: {:.1f}% / Time: {:.2f}'.format(epoch, loss_train_eval, loss_val, diff_loss_percentage_valid, diff_loss_valid_train, time_epoch))
             # if validation loss improves
-            if diff_loss_percentage < -5:
-                print('Validation Loss Improves')
+            if diff_loss_percentage_valid < -5:
+                print('At epoch {}, Validation Loss Improves from {:.3f} to {:.3f}'.format(epoch, loss_val_best, loss_val))
                 num_epochs_increased = 0
 
                 # record epoch and loss

@@ -42,6 +42,7 @@ def train(identifier):
         ks = glob(os.path.join(new_model_folder_name, 'k_*'))
         for k in ks:
             # Load model
+            print('train.py: training {}'.format(k))
             model_params_path = os.path.join(k, model_params_fname)
             # print('train.py: training model', model_params_path, 'with hyperparams')
 

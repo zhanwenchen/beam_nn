@@ -24,7 +24,7 @@ SCRIPT_FNAME = os.path.basename(__file__)
 PROJECT_DIRNAME = os.path.dirname(__file__)
 LIB_DIRNAME = os.path.join(PROJECT_DIRNAME, 'lib')
 LIB_MATLAB_DIRNAME = os.path.abspath(os.path.join(LIB_DIRNAME, 'matlab'))
-is_profiling_gpu = True
+is_profiling_gpu = False
 
 if is_profiling_gpu: from lib.gpu_profile import gpu_profile
 

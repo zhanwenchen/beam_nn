@@ -265,9 +265,11 @@ find_full_alexnet(Alexnet) :-
 
   % Training and validation data locations
   random(1, 3, NumScatter),
-  DataDirname = '/Users/zhanwenchen/Downloads/20180402_L74_70mm',
+  DataDirname = '/home/zhanwenchen/Downloads/20180402_L74_70mm',
   atomic_list_concat([DataDirname, '/train_', NumScatter, '.h5'], DataTrain),
   atomic_list_concat([DataDirname, '/val_', NumScatter, '.h5'], DataVal),
+
+  random(0.8, 1.0, Momentum),
 
   Alexnet = model{type: alexnet,
                   input_dims: [2, 65, 1],
@@ -282,6 +284,7 @@ find_full_alexnet(Alexnet) :-
                   patience: 20,
                   data_train: DataTrain,
                   data_val: DataVal,
+                  momentum: Momentum,
                   layers: Layers}.
 
 % for count in range(num_networks):
