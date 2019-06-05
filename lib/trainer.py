@@ -149,8 +149,8 @@ class Trainer():
             # display results
             print('E: {:} / Train: {:.3e} / Valid: {:.3e} / Diff Valid: {:.2f}% / Diff Valid-Train: {:.1f}% / Time: {:.2f}'.format(epoch, loss_train_eval, loss_val, diff_loss_percentage_valid, diff_loss_valid_train, time_epoch))
             # if validation loss improves
-            if diff_loss_percentage_valid < -5:
-                print('At epoch {}, Validation Loss Improves from {:.3f} to {:.3f}'.format(epoch, loss_val_best, loss_val))
+            if diff_loss_percentage_valid < 0:
+                print('At epoch {}, Validation Loss Improves by {:.2f} percent from {:.3f} to {:.3f}'.format(epoch, diff_loss_percentage_valid, loss_val_best, loss_val))
                 num_epochs_increased = 0
 
                 # record epoch and loss

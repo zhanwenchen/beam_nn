@@ -281,7 +281,7 @@ find_full_alexnet(Alexnet) :-
                   data_is_target: 0,
                   batch_size: 32,
                   data_noise_gaussian: 1,
-                  patience: 20,
+                  patience: 50,
                   data_train: DataTrain,
                   data_val: DataVal,
                   momentum: Momentum,
@@ -315,7 +315,7 @@ write_model_to_file_per_k(Dict, Dirname, K) :-
 
 write_model_to_file(Dict) :-
   timestring(Timestring),
-  atomic_list_concat(['DNNs/', 'alexnet_2_65_1', Timestring, '_created'], Dirname),
+  atomic_list_concat(['DNNs/', 'alexnet_2_65_1_', Timestring, '_created'], Dirname),
   make_directory(Dirname),
   maplist(write_model_to_file_per_k(Dict, Dirname), [3, 4, 5]).
 
