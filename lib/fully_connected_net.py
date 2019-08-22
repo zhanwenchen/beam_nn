@@ -1,6 +1,3 @@
-# from torch import nn
-import torch
-import os
 from torch.nn import Module, ModuleList, Linear, ReLU, Dropout, BatchNorm1d
 from torch.nn.init import kaiming_normal_
 # import warnings
@@ -45,7 +42,7 @@ class FullyConnectedNet(Module):
 
         # build as many batch_norm layers minus the last one
         # TODO: assume there's no output batch norm
-        if self.batch_norm is True:
+        if self.batch_norm is True or self.batch_norm == 1:
             self.batch_norm_layers = ModuleList([BatchNorm1d(fcs_hidden_size)]) # TODO: not input_size?
             for i in range(fcs_num_hidden_layers - 1):
                 self.batch_norm_layers.append(BatchNorm1d(fcs_hidden_size))

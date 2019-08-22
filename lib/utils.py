@@ -142,38 +142,44 @@ def get_which_model_from_params_fname(model_params_fname, return_params=False):
     else:
         input_channel = 2 # By default, we used 2-channel (2*65) input
 
+    if '2018' in model_params_fname:
+        from lib.lenet_1d import LeNet_1D # Circular dependency
+        model_class = LeNet_1D
     model_params_init = {k:v for k,v in model_params.items() if k not in EXCLUDE_MODEL_PARAMS_KEYS}
 
     try:
-        model = model_class(**model_params_init)
-        # model = model_class(input_channel,
-        #                     # model_params['input'],
-        #                     model_params['output_size'],
-        #
-        #                     model_params['batch_norm'],
-        #
-        #                     model_params['use_pooling'],
-        #                     model_params['pooling_method'],
-        #
-        #                     model_params['conv1_kernel_width'],
-        #                     model_params['conv1_num_kernels'],
-        #                     model_params['conv1_stride'],
-        #                     model_params['conv1_dropout'],
-        #
-        #                     model_params['pool1_kernel_size'],
-        #                     model_params['pool1_stride'],
-        #
-        #                     model_params['conv2_kernel_size'],
-        #                     model_params['conv2_num_kernels'],
-        #                     model_params['conv2_stride'],
-        #                     model_params['conv2_dropout'],
-        #
-        #                     model_params['pool2_kernel_size'],
-        #                     model_params['pool2_stride'],
-        #
-        #                     model_params['fcs_hidden_size'],
-        #                     model_params['fcs_num_hidden_layers'],
-        #                     model_params['fcs_dropout'])
+        # if model_class is FlexNet:
+        #     model = model_class(**model_params_init)
+        # else:
+        print('get_which_model_from_params_fname: input_channel =', input_channel)
+        model = model_class(input_channel,
+                            # model_params['input'],
+                            model_params['output_size'],
+
+                            model_params['batch_norm'],
+
+                            model_params['use_pooling'],
+                            model_params['pooling_method'],
+
+                            model_params['conv1_kernel_size'],
+                            model_params['conv1_num_kernels'],
+                            model_params['conv1_stride'],
+                            model_params['conv1_dropout'],
+
+                            model_params['pool1_kernel_size'],
+                            model_params['pool1_stride'],
+
+                            model_params['conv2_kernel_size'],
+                            model_params['conv2_num_kernels'],
+                            model_params['conv2_stride'],
+                            model_params['conv2_dropout'],
+
+                            model_params['pool2_kernel_size'],
+                            model_params['pool2_stride'],
+
+                            model_params['fcs_hidden_size'],
+                            model_params['fcs_num_hidden_layers'],
+                            model_params['fcs_dropout'])
     except Exception as e:
         raise RuntimeError('{}.get_which_model_from_params_fname: unable to instantiate model class {} with model_params = {}\n. Encountered error: {}'.format(__name__, model_class, model_params, e))
 
