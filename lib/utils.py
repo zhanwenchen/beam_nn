@@ -145,13 +145,19 @@ def get_which_model_from_params_fname(model_params_fname, return_params=False):
     if '2018' in model_params_fname:
         from lib.lenet_1d import LeNet_1D # Circular dependency
         model_class = LeNet_1D
-    model_params_init = {k:v for k,v in model_params.items() if k not in EXCLUDE_MODEL_PARAMS_KEYS}
+
+    if 'type' in model_params and model_params['type'] == 'lenet_1d':
+        from lib.lenet_1d import LeNet_1D # Circular dependency
+        model_class = LeNet_1D
+
+    # model_params_init = {k:v for k,v in model_params.items() if k not in EXCLUDE_MODEL_PARAMS_KEYS}
 
     try:
         # if model_class is FlexNet:
         #     model = model_class(**model_params_init)
         # else:
-        print('get_which_model_from_params_fname: input_channel =', input_channel)
+        # print('get_which_model_from_params_fname: model_class =', model_class)
+        # print('get_which_model_from_params_fname: input_channel =', input_channel)
         model = model_class(input_channel,
                             # model_params['input'],
                             model_params['output_size'],
