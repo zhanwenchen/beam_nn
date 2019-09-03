@@ -41,4 +41,4 @@ def stft(signal, len_each_section, frac_overlap, padding, win_info=boxcar):
         'shift_length': shift_length,
     }
 
-    return out, subOvrlp
+    return out
