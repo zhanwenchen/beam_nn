@@ -57,7 +57,7 @@ def r5_dnn_image(target_dirname):
 
     num_beams = env.shape[1]
 
-    x = range(1, num_beams+1)
+    x = np_arange(1, num_beams+1)
 
     new_x = np_arange(1, num_beams+up_scale_inverse, up_scale_inverse)
 
