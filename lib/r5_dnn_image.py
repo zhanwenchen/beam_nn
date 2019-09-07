@@ -18,7 +18,7 @@ from lib.better_envelope import better_envelope
 
 CHANDAT_FNAME = 'chandat.mat'
 CHANDAT_DNN_FNAME = 'chandat_dnn.mat'
-CHANDAT_IMAGE_SAVE_FNAME = 'chandat_image.mat'
+CHANDAT_IMAGE_SAVE_FNAME = 'dnn_image.mat'
 EPS = np_spacing(1)
 
 def r5_dnn_image(target_dirname):
@@ -81,8 +81,8 @@ def r5_dnn_image(target_dirname):
         'rf_data_filt': rf_data_filt,
         'env': env,
         'env_dB': env_dB,
-        'env_up': env_up,
-        'env_up_dB': env_up_dB,
+        'envUp': env_up,
+        'envUp_dB': env_up_dB,
         'beam_position_x_up': beam_position_x_up,
         'depth': chandat_dnn_obj['depth'],
     })
