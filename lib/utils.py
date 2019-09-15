@@ -1,11 +1,14 @@
 import os
-from json import load, dump
+from os.path import join as os_path_join
+from json import load as json_load, dump
 import shutil
 import errno
 from math import floor
 
-
+from numpy import clip as np_clip, spacing as np_spacing
 from torch.nn import Conv2d, MaxPool2d, ReLU
+EPS = np_spacing(1)
+
 
 EXCLUDE_MODEL_PARAMS_KEYS = {
     'model',
@@ -29,7 +32,26 @@ EXCLUDE_MODEL_PARAMS_KEYS = {
 
 
 # __all__ = ['get_which_model_from_params_fname', 'read_model_params', 'ensure_dir', 'add_suffix_to_path', 'get_pool_output_dims', 'get_conv_output_dims']
+def load_single_value(process_scripts_dirpath, fname):
+    path = os_path_join(process_scripts_dirpath, fname)
 
+    with open(path, 'r') as f:
+        value = float(f.read())
+
+    return value
+
+
+def clip_to_eps(array):
+    '''
+    Inplace clip of array to a min of the Matlab `eps`, which is usually
+    2.220446049250313e-16 and equivalent to numpy.spacing(1)
+    '''
+    np_clip(array, EPS, None, out=array)
+
+
+def get_dict_from_file_json(fpath):
+    with open(fpath) as json_file:
+        return json_load(json_file)
 
 def _decode(o):
     '''

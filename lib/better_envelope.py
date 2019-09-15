@@ -13,16 +13,13 @@ def better_envelope(rf_in):
     # This is equivalent to B=firpm(10,[.2 .8],[1 1],'Hilbert');
     coefficients = remez(num_taps+1, [cutoff_low/2, cutoff_high/2], [1], type='hilbert')
 
-    # REVIEW: this may or may not be equivalent to Q = filtfilt(B,1,rfIn);
     Q = filtfilt(coefficients, 1, rf_in)
 
-    # REVIEW: this may or may not be equivalent to env = sqrt(rfIn(:).^2 + Q(:).^2);
     envelope = np_sqrt(rf_in ** 2 + Q ** 2)
 
-    # This is equivalent to [B,A]=butter(5,.25,'low');
     b, a = butter(5, 0.25, btype='low')
 
-    envelope_filtered = filtfilt(b, a, envelope, axis=0, padtype='odd', padlen=3*(max(len(b),len(a))-1))
+    envelope_filtered = filtfilt(b, a, envelope, axis=0, padtype='odd', padlen=3*(max(len(b), len(a))-1))
 
     envelope_filtered.clip(min=0, out=envelope_filtered)
 
