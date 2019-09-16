@@ -1,30 +1,19 @@
-# %matplotlib inline # pylint: disable=E0001
 from os.path import join as os_path_join
 from math import log10 as math_log10, sqrt as math_sqrt
 from json import dump as json_dump
 from logging import info as logging_info, \
-                    getLogger as logging_getLogger, \
                     INFO as logging_INFO, \
                     debug as loggin_debug
 
 from scipy.io import loadmat
 # from numpy import meshgrid as np_meshgrid
 # from numpy import sqrt as np_sqrt
-from numpy import squeeze as np_squeeze
-from numpy import load as np_load
+from numpy import squeeze as np_squeeze, load as np_load
 from matplotlib import use as matplotlib_use
 matplotlib_use('Agg') # NOTE: Important: this prevents plt from blocking rest of code
-from matplotlib.pyplot import ioff as plt_ioff, \
-                              plot as plt_plot, \
-                              figure as plt_figure, \
-                              imshow as plt_imshow, \
-                              colorbar as plt_colorbar, \
-                              xlabel as plt_xlabel, \
-                              ylabel as plt_ylabel
+from matplotlib.pyplot import subplots as plt_subplots, \
+                              close as plt_close
 # from lib.utils import load_single_value
-
-
-# logging_getLogger().setLevel(logging_INFO)
 
 
 DNN_IMAGE_FNAME = 'dnn_image.mat'
@@ -58,14 +47,17 @@ def r6_dnn_image_display(target_dirname, dnn_image_obj=None, show_fig=False):
     y = np_squeeze(depth) # depth
 
     loggin_debug('{}: r6: Finished squeezing x, y'.format(target_dirname))
-    fig = plt_figure(figsize=(12, 16))
+    fig, ax = plt_subplots()
     loggin_debug('{}: r6: Finished plt.figure'.format(target_dirname))
-    plt_imshow(envUp_dB, vmin=-60, vmax=0, cmap='gray', aspect='auto', extent=[x[0]*1000, x[-1]*1000, y[-1]*1000, y[0]*1000])
+    image = ax.imshow(envUp_dB, vmin=-60, vmax=0, cmap='gray', aspect='auto', extent=[x[0]*1000, x[-1]*1000, y[-1]*1000, y[0]*1000])
+    ax.set_aspect('equal')
     loggin_debug('{}: r6: Finished plt.imshow'.format(target_dirname))
-    plt_colorbar()
+    fig.colorbar(image)
     loggin_debug('{}: r6: Finished plt.colorbar'.format(target_dirname))
-    plt_xlabel('lateral (mm)', fontsize=FONT_SIZE)
-    plt_ylabel('axial (mm)', fontsize=FONT_SIZE)
+    # plt_xlabel('lateral (mm)', fontsize=FONT_SIZE)
+    ax.set_xlabel('lateral (mm)', fontsize=FONT_SIZE)
+    # plt_ylabel('axial (mm)', fontsize=FONT_SIZE)
+    ax.set_ylabel('axial (mm)', fontsize=FONT_SIZE)
     loggin_debug('{}: r6: Finished plt.xlabel/ylabel'.format(target_dirname))
 
     # if show_fig is True:
@@ -74,6 +66,7 @@ def r6_dnn_image_display(target_dirname, dnn_image_obj=None, show_fig=False):
     # Save image to file
     dnn_image_path = os_path_join(target_dirname, DNN_IMAGE_SAVE_FNAME)
     fig.savefig(dnn_image_path)
+    plt_close(fig)
 
     loggin_debug('{}: r6: Finished saving figure'.format(target_dirname))
     # scan_battery_dirname = os_path_dirname(target_dirname)
