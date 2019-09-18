@@ -14,7 +14,8 @@ from shutil import move as shutil_move
 from time import time as time_time
 from logging import basicConfig as logging_basicConfig, \
                     DEBUG as logging_DEBUG, \
-                    INFO as logging_INFO
+                    INFO as logging_INFO, \
+                    getLogger as logging_getLogger
 
 from lib.process_single_scan_battery_keras import process_single_scan_battery_keras
 from lib.utils import copy_anything
@@ -55,10 +56,11 @@ if __name__ == '__main__':
     max_to_evaluate = args.max_to_evaluate
     verbose = args.verbose
 
+    logger = logging_getLogger(__name__)
     if verbose:
-        logging_basicConfig(level=logging_DEBUG)
+        logger.setLevel(logging_DEBUG)
     else:
-        logging_basicConfig(level=logging_INFO)
+        logger.setLevel(logging_INFO)
 
     model_search_path = os_path_join(MODELS_DIRNAME, str(identifier) + '_trained')
     models = glob_glob(model_search_path)
