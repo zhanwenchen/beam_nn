@@ -3,11 +3,16 @@ from os.path import isdir as os_path_isdir, join as os_path_join
 from logging import info as logging_info, getLogger as logging_getLogger, INFO as logging_INFO
 
 from scipy.io import loadmat, savemat
-from numpy import zeros as np_zeros
+# from numpy import zeros as np_zeros
+from torch import zeros as torch_zeros # pylint: disable=E0611
+from torch import float64 as torch_float64 # pylint: disable=E0611
+from torch import stack as torch_stack # pylint: disable=E0611
+from torch import from_numpy as torch_from_numpy # pylint: disable=E0611
 
-from lib.stft import stft
-from lib.non_iter_ls_inv_stft import non_iter_ls_inv_stft
-
+# from lib.stft import stft
+# from lib.non_iter_ls_inv_stft import non_iter_ls_inv_stft
+from lib.stft_wrapper import stft
+from lib.istft_wrapper import istft
 
 CHANDAT_FNAME = 'chandat.mat'
 NEW_STFT_FNAME = 'new_stft.mat'
@@ -15,8 +20,6 @@ LEN_EACH_SECTION = 16
 FRAC_OVERLAP = 0.9
 PADDING = 16
 CHANDAT_DNN_SAVE_FNAME = 'chandat_dnn.mat'
-
-# logging_getLogger().setLevel(logging_INFO)
 
 
 def r4_dnn_istft(target_dirname, chandat_obj=None, new_stft_object=None, is_saving_chandat_dnn=True):
@@ -34,12 +37,14 @@ def r4_dnn_istft(target_dirname, chandat_obj=None, new_stft_object=None, is_savi
 
     if new_stft_object is None:
         new_stft_object = loadmat(os_path_join(target_dirname, NEW_STFT_FNAME))
-    # import pdb; pdb.set_trace()
-    new_stft = new_stft_object['new_stft_real'] + 1j*new_stft_object['new_stft_imag']
+    new_stft_real = torch_from_numpy(new_stft_object['new_stft_real']).double()
+    new_stft_imag = torch_from_numpy(new_stft_object['new_stft_imag']).double()
+    new_stft = torch_stack((new_stft_real, new_stft_imag), axis=-1)
+    # new_stft = new_stft_real + 1j*new_stft_imag
 
     del new_stft_object
 
-    chandat_stft = stft(np_zeros((num_rows, num_elements, num_beams)), LEN_EACH_SECTION, FRAC_OVERLAP, PADDING)
+    chandat_stft = stft(torch_zeros(num_rows, num_elements, num_beams, dtype=torch_float64), LEN_EACH_SECTION, FRAC_OVERLAP, PADDING)
     chandat_stft['origSigSize'] = [num_rows, num_elements, num_beams]
 
     # create new and old stfts
@@ -47,7 +52,9 @@ def r4_dnn_istft(target_dirname, chandat_obj=None, new_stft_object=None, is_savi
     # chandat_stft_new['stft'] = new_stft
     chandat_stft['stft'] = new_stft
 
-    chandat_new = non_iter_ls_inv_stft(chandat_stft)
+    chandat_new = istft(chandat_stft)
+    # chandat_new = non_iter_ls_inv_stft(chandat_stft)
+    # what = istft(chandat_stft, N, window=window, hop_length=2, center=False, onesided=False, normalized=False, pad_mode='constant', length=y)
 
     chandat_new[-3:-1, :, :] = 0
 

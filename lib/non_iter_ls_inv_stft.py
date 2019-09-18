@@ -18,11 +18,13 @@ def non_iter_ls_inv_stft(stft_object):
     wVec = win_info(len_each_section)
     wVecSq = wVec ** 2
     vecC = np_arange(1, num_rows_overlap*shift_length, step=shift_length)
+    # vecC = range(0, num_rows_overlap*shift_length-1, shift_length)
     DlsArr = np_zeros((num_rows,))
     for j in vecC:
         tmpArr = np_arange(j-1, len_each_section+j-1)
+        # tmpArr = np_arange(j, len_each_section+j)
         DlsArr[tmpArr] += wVecSq
-    DlsArrInv = 1/DlsArr
+    # DlsArrInv = 1/DlsArr
     invFT = math_sqrt(len_each_section)*np_ifft(stft_data, axis=0)
     invFT_real = invFT.real
     invFT *= wVec[:, np_newaxis, np_newaxis, np_newaxis]
@@ -30,5 +32,6 @@ def non_iter_ls_inv_stft(stft_object):
     for index, j in enumerate(vecC):
         tmpArr = np_arange(j-1, len_each_section+j-1)
         yEst[tmpArr, :] += invFT_real[:, index, :]
-    sigOut = yEst * DlsArrInv[:, np_newaxis, np_newaxis]
+    # sigOut = yEst * DlsArrInv[:, np_newaxis, np_newaxis]
+    sigOut = yEst / DlsArr[:, np_newaxis, np_newaxis]
     return sigOut

@@ -3,7 +3,8 @@
 ## Project TODOs:
 
 -[] Try Dropout1d instead of current Dropout2d
--[] Try Adam and SGD
+-[] Verify image and speckle stats correctness vs. Matlab
+-[] 
 
 ## Training instructions
 
