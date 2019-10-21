@@ -3,12 +3,16 @@
 %% $ swipl
 %% ?- ['create.pl']
 %% ?- main(50) % create 50 models (under project/DNNs/)
-%% v1.0: FCN
-
+%% v1.0: Implemented FCN
+%% v1.1: Implemented FCN with upsample layer dictionaries.
+%% TODO: combine conv1d and conv2d: it's just a matter of height=1.
 :- use_module(library(http/json)).
+:- set_prolog_flag(verbose, silent).
+:- initialization(main).
 
 % For conv1d, set all heights to 1 so that we have a record.
 get_output_size([InputHeight, InputWidth, _], CurrentLayer, [OutputHeight, OutputWidth, OutputDepth]) :-
+  % Read variables from dictionary
   CurrentLayer.type == conv1d,
   OutChannels is CurrentLayer.out_channels,
   KernelHeight is 1,
@@ -35,6 +39,15 @@ get_output_size([InputHeight, InputWidth, _], CurrentLayer, [OutputHeight, Outpu
   OutputHeight is floor((InputHeight - KernelHeight + 2 * PaddingHeight) / StrideHeight + 1),
   OutputWidth is floor((InputWidth - KernelWidth + 2 * PaddingWidth) / StrideWidth + 1),
   OutputDepth is OutChannels.
+
+get_output_size([InputHeight, InputWidth, InputDepth], CurrentLayer, [OutputHeight, OutputWidth, OutputDepth]) :-
+  CurrentLayer.type == upsample,
+  ScaleFactorHeight is CurrentLayer.scale_factor_height,
+  ScaleFactorWidth is CurrentLayer.scale_factor_width,
+
+  OutputHeight is ScaleFactorHeight * InputHeight,
+  OutputWidth is ScaleFactorWidth * InputWidth,
+  OutputDepth is InputDepth.
 
 get_output_size([InputHeight, InputWidth, InChannels], CurrentLayer, [OutputHeight, OutputWidth, OutputDepth]) :-
   CurrentLayer.type == maxpool1d,
@@ -113,12 +126,14 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
   get_output_size([Conv2InputHeight, Conv2InputWidth, Conv2InputDepth], Conv2, [Upsample1InputHeight, Upsample1InputWidth, Upsample1InputDepth]),
 
   % Upsample 1
-  Upsample1FactorWidth is 2,
-  Conv3InputHeight is Upsample1InputHeight,
-  Conv3InputWidth is Upsample1InputWidth * 2,
+  Upsample1 = upsample1{name: upsample1, type: upsample, scale_factor_height: 1, scale_factor_width: 2},
+  % Upsample1FactorWidth is 2,
+  % Conv3InputHeight is Upsample1InputHeight,
+  % Conv3InputWidth is Upsample1InputWidth * 2,
   % atomic_list_concat(['Conv3InputWidth = ', Conv3InputWidth, '\n'], PrintString),
   % write(PrintString),
-  Conv3InputDepth is Upsample1InputDepth,
+  % Conv3InputDepth is Upsample1InputDepth,
+  get_output_size([Upsample1InputHeight, Upsample1InputWidth, Upsample1InputDepth], Upsample1, [Conv3InputHeight, Conv3InputWidth, Conv3InputDepth]),
 
   % Conv3
   random_between(20, 100, Conv3NumKernels),
@@ -138,11 +153,13 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
   get_output_size([Conv3InputHeight, Conv3InputWidth, Conv3InputDepth], Conv3, [Upsample2InputHeight, Upsample2InputWidth, Upsample2InputDepth]),
 
 
-  % Upsample 2
-  Upsample2FactorWidth is 2,
-  Conv4InputHeight is Upsample2InputHeight,
-  Conv4InputWidth is Upsample2InputWidth * 2,
-  Conv4InputDepth is Upsample2InputDepth,
+  % Upsample2
+  % Upsample2FactorWidth is 2,
+  % Conv4InputHeight is Upsample2InputHeight,
+  % Conv4InputWidth is Upsample2InputWidth * 2,
+  % Conv4InputDepth is Upsample2InputDepth,
+  Upsample2 = upsample2{name: upsample2, type: upsample, scale_factor_height: 1, scale_factor_width: 2},
+  get_output_size([Upsample2InputHeight, Upsample2InputWidth, Upsample2InputDepth], Upsample2, [Conv4InputHeight, Conv4InputWidth, Conv4InputDepth]),
 
   % Conv4
   Conv4NumKernels is InputChannels,
@@ -161,7 +178,7 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
   get_output_size([Conv4InputHeight, Conv4InputWidth, Conv4InputDepth], Conv4, [InputHeight, InputWidth, InputChannels]),
 
   % TODO: implement is_network_legal for upsample dicts
-  FCN = [Conv1, Conv2, Conv3, Conv4],
+  FCN = [Conv1, Conv2, Upsample1, Conv3, Upsample2, Conv4],
   % is_network_legal([InputHeight, InputWidth, InputChannels], FCN), writeln(Conv1NumKernels).
   is_network_legal([InputHeight, InputWidth, InputChannels], FCN).
 
@@ -185,7 +202,7 @@ find_full_fcn(FCN) :-
 
   Momentum is 0,
   % writeln(InputDims),
-  writeln(NumScatter),
+  % writeln(NumScatter),
 
   FCN = model{model: 'FCN',
               input_dims: InputDims,
@@ -225,6 +242,11 @@ timestring(Timestring) :-
 find_and_write_fcn :-
   find_full_fcn(FCN), write_model_to_file(FCN).
 
-main(HowMany) :-
-  % once(findnsols(HowMany, InputDims, (repeat, random_member(InputDims, [[2, 65, 1], [1, 130,1], [1, 65, 2]]), find_and_write_fcn(InputDims)), Y)).
-  once(findnsols(HowMany, [], (repeat, find_and_write_fcn), Y)).
+main :-
+  current_prolog_flag(argv, [HowManyStr|_]),
+  atom_number(HowManyStr, HowManyInt),
+  once(findnsols(HowManyInt, [], (repeat, find_and_write_fcn), Y)),
+  halt.
+
+% main(HowMany) :-
+%   once(findnsols(HowMany, [], (repeat, find_and_write_fcn), Y)).
