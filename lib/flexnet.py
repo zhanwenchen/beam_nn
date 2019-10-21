@@ -1,42 +1,40 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
-from json import load
 from pprint import pprint
 
-from torch.nn import Conv2d, MaxPool2d, AdaptiveAvgPool2d, ReLU, Sequential, Module
+from torch.nn import Conv1d, Conv2d, MaxPool2d, AdaptiveAvgPool2d, ReLU, Sequential, Module, Upsample
 
 from lib.fully_connected_net import FullyConnectedNet
 from lib.flatten import Flatten
 from lib.print_layer import PrintLayer
-
-
-# In[2]:
-
-
-# fname = 'DNNs/alexnet_2_65_120190602141824593525_created/k_4/model_params.json'
+# from lib.utils import get_dict_from_file_json
 
 
 class FlexNet(Module):
-    def __init__(self, model_params_fname, printing=False):
+    # def __init__(self, model_params_fname, printing=False):
+    def __init__(self, model_init_params, printing=True):
         super(FlexNet, self).__init__()
-        # Reqad
-        with open(model_params_fname) as json_file:
-            model_params = load(json_file)
+        # model_params = get_dict_from_file_json(model_params_fname)
 
-        if printing:
-            pprint(model_params)
+        if printing is True:
+            pprint(model_init_params)
 
-        layers = model_params['layers']
+        layers = model_init_params['layers']
         modules = []
 
         for layer in layers:
 
-            if layer['type'] not in ['conv2d', 'maxpool2d', 'adaptiveavgpool2d', 'fcs']:
+            if layer['type'] == 'upsample':
+                module = Upsample(scale_factor=(layer['scale_factor_height'], layer['scale_factor_width']))
+
+            if layer['type'] not in ['conv1d', 'upsample', 'conv2d', 'maxpool2d', 'adaptiveavgpool2d', 'fcs']:
                 raise ValueError('Layer type of {} is not yet implemented'.format(layer['type']))
+
+            if layer['type'] == 'conv1d':
+                module = Conv1d(layer['in_channels'],
+                                layer['out_channels'],
+                                layer['kernel_width'],
+                                stride=layer['stride_width'],
+                                padding=layer['padding_width'],
+                               )
 
             if layer['type'] == 'conv2d':
                 module = Conv2d(layer['in_channels'],
@@ -65,8 +63,8 @@ class FlexNet(Module):
                                            layer['width'],
                                            layer['num_layers'])
 
-            if printing:
-                modules.append(PrintLayer())
+            if printing is True:
+                modules.append(PrintLayer(module))
             modules.append(module)
 
             if layer['type'] == 'conv2d':
@@ -74,9 +72,25 @@ class FlexNet(Module):
 
             net = Sequential(*modules)
             self.net = net
-            self.input_dims = model_params['input_dims']
+            self.input_dims = model_init_params['input_dims']
+            # self.model = model_init_params['model']
 
     def forward(self, x):
-        input_height, input_width, input_num_channels = self.input_dims
-        x = x.view(-1, input_num_channels, input_height, input_width)
-        return self.net(x)
+        # batch_size = x.size(0)
+        input_height, input_width, input_depth = self.input_dims
+        print('FlexNet: initial x.size() = ', x.size())
+        if input_height == 1:
+            # 1D
+            x = x.view(-1, input_depth, input_width)
+        elif input_height == 2:
+            x = x.view(-1, input_depth, input_height, input_width)
+        # x = x.view(-1, input_height, input_width, input_num_channels)
+        x = self.net(x)
+        # if self.model == 'FCN':
+        #     x = self.view(batch_size, -1)
+        if input_height == 1:
+            # 1D
+            x = x.view(-1, input_depth * input_width)
+        elif input_height == 2:
+            x = x.view(-1, input_depth * input_height * input_width)
+        return x
