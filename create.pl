@@ -1,11 +1,18 @@
 %% create_models.pl
-%% usage: Under project directory (containing this file, create.pl)
+%%
+%% Usage 1: Under project directory (containing this file, create.pl)
 %% $ swipl
 %% ?- ['create.pl']
 %% ?- main(50) % create 50 models (under project/DNNs/)
+%%
+%% Usage 2: Under project directory (containing this file, create.pl)
+%% $ swipl create.pl 50 % create 50 models
+%%
 %% v1.0: Implemented FCN
-%% v1.1: Implemented FCN with upsample layer dictionaries.
+%% v1.1: Implemented FCN with upsample layer dict. Use main/command-line args.
+%% v1.2: Fixed conv1d kernel, padding, stride height > 1 issue.
 %% TODO: combine conv1d and conv2d: it's just a matter of height=1.
+
 :- use_module(library(http/json)).
 :- set_prolog_flag(verbose, silent).
 :- initialization(main).
@@ -15,11 +22,14 @@ get_output_size([InputHeight, InputWidth, _], CurrentLayer, [OutputHeight, Outpu
   % Read variables from dictionary
   CurrentLayer.type == conv1d,
   OutChannels is CurrentLayer.out_channels,
-  KernelHeight is 1,
+  KernelHeight is CurrentLayer.kernel_height,
+  KernelHeight == 1,
   KernelWidth is CurrentLayer.kernel_width,
-  PaddingHeight is 1,
+  PaddingHeight is CurrentLayer.padding_height,
+  PaddingHeight == 1,
   PaddingWidth is CurrentLayer.padding_width,
-  StrideHeight is 1,
+  StrideHeight is CurrentLayer.stride_height,
+  StrideHeight == 1,
   StrideWidth is CurrentLayer.stride_width,
 
   OutputHeight is 1,
@@ -51,9 +61,11 @@ get_output_size([InputHeight, InputWidth, InputDepth], CurrentLayer, [OutputHeig
 
 get_output_size([InputHeight, InputWidth, InChannels], CurrentLayer, [OutputHeight, OutputWidth, OutputDepth]) :-
   CurrentLayer.type == maxpool1d,
-  KernelHeight is 1,
+  KernelHeight is CurrentLayer.kernel_height,
+  KernelHeight == 1,
   KernelWidth is CurrentLayer.kernel_width,
-  StrideHeight is 1,
+  StrideHeight is CurrentLayer.stride_height,
+  StrideHeight == 1,
   StrideWidth is CurrentLayer.stride_width,
 
   OutputHeight is 1,
@@ -95,9 +107,9 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
 
   % Conv1 sizes
   random_between(20, 100, Conv1NumKernels),
-  random_between(0, 3, Conv1PaddingHeight),
-  random_between(0, 3, Conv1PaddingWidth),
-  random_between(1, 5, Conv1StrideHeight),
+  random_between(0, 2, Conv1PaddingHeight),
+  random_between(0, 2, Conv1PaddingWidth),
+  random_between(1, 2, Conv1StrideHeight),
   Conv1StrideWidth is 1, % So that we no longer need pooling.
   % Limit upperbound of kernel sizes to positive output (W - **F** + 2P >= 0, that is, F <= W + 2P)
   Conv1KernelHeightUpperBound is InputHeight + 2 * Conv1PaddingHeight,
@@ -111,9 +123,9 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
   %% Conv2
   random_between(20, 100, Conv2NumKernels),
   Conv2NumKernels > Conv1NumKernels,
-  random_between(0, 3, Conv2PaddingHeight),
-  random_between(0, 3, Conv2PaddingWidth),
-  random_between(1, 5, Conv2StrideHeight),
+  random_between(0, 2, Conv2PaddingHeight),
+  random_between(0, 2, Conv2PaddingWidth),
+  random_between(1, 2, Conv2StrideHeight),
   Conv2StrideWidth is 1, % To eliminate the need for pooling.
   % Limit upperbound of kernel sizes to positive output (W - **F** + 2P >= 0, that is, F <= W + 2P)
   Conv2KernelHeightUpperBound is Conv2InputHeight + 2 * Conv2PaddingHeight,
@@ -138,9 +150,9 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
   % Conv3
   random_between(20, 100, Conv3NumKernels),
   Conv3NumKernels > Conv2NumKernels,
-  random_between(0, 3, Conv3PaddingHeight),
-  random_between(0, 3, Conv3PaddingWidth),
-  random_between(1, 5, Conv3StrideHeight),
+  random_between(0, 2, Conv3PaddingHeight),
+  random_between(0, 2, Conv3PaddingWidth),
+  random_between(1, 2, Conv3StrideHeight),
   Conv3StrideWidth is 1, % To eliminate the need for pooling.
   % Limit upperbound of kernel sizes to positive output (W - **F** + 2P >= 0, that is, F <= W + 2P)
   Conv3KernelHeightUpperBound is Conv3InputHeight + 2 * Conv3PaddingHeight,
@@ -163,9 +175,9 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
 
   % Conv4
   Conv4NumKernels is InputChannels,
-  random_between(0, 3, Conv4PaddingHeight),
-  random_between(0, 3, Conv4PaddingWidth),
-  random_between(1, 5, Conv4StrideHeight),
+  random_between(0, 2, Conv4PaddingHeight),
+  random_between(0, 2, Conv4PaddingWidth),
+  random_between(1, 2, Conv4StrideHeight),
   Conv4StrideWidth is 1, % To eliminate the need for pooling.
   % Limit upperbound of kernel sizes to positive output (W - **F** + 2P >= 0, that is, F <= W + 2P)
   Conv4KernelHeightUpperBound is Conv4InputHeight + 2 * Conv4PaddingHeight,
