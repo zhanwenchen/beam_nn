@@ -78,7 +78,7 @@ is_network_legal(InputSizes, [CurrentLayer|RestLayers]) :-
 
 % Predicate to find fully-convolutional networks
 find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
-  repeat, % So that random_between can run more than once.
+  % repeat, % So that random_between can run more than once.
 
   % Conv1 sizes
   random_between(20, 100, Conv1NumKernels),
@@ -91,7 +91,7 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
   Conv1KernelWidthUpperBound is InputWidth + 2 * Conv1PaddingWidth,
   random_between(1, Conv1KernelHeightUpperBound, Conv1KernelHeight),
   random_between(1, Conv1KernelWidthUpperBound, Conv1KernelWidth),
-  OldConv1 = conv1{in_channels: InputChannels, type: conv2d, out_channels: Conv1NumKernels, kernel_height: Conv1KernelHeight, kernel_width: Conv1KernelWidth, padding_height: Conv1PaddingHeight, padding_width: Conv1PaddingWidth, stride_height: Conv1StrideHeight, stride_width: Conv1StrideWidth},
+  OldConv1 = conv1{name: conv1, in_channels: InputChannels, type: conv2d, out_channels: Conv1NumKernels, kernel_height: Conv1KernelHeight, kernel_width: Conv1KernelWidth, padding_height: Conv1PaddingHeight, padding_width: Conv1PaddingWidth, stride_height: Conv1StrideHeight, stride_width: Conv1StrideWidth},
   ((InputHeight = 1, Conv1 = OldConv1.put(type, conv1d)) ; (InputHeight = 2, Conv1 = OldConv1.put(type, conv2d))),
   get_output_size([InputHeight, InputWidth, InputChannels], Conv1, [Conv2InputHeight, Conv2InputWidth, Conv2InputDepth]),
 
@@ -133,7 +133,7 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
   % write(Conv3KernelHeightUpperBound),
   random_between(1, Conv3KernelHeightUpperBound, Conv3KernelHeight),
   random_between(1, Conv3KernelWidthUpperBound, Conv3KernelWidth),
-  OldConv3 = conv3{in_channels: Conv2NumKernels, out_channels: Conv3NumKernels, kernel_height: Conv3KernelHeight, kernel_width: Conv3KernelWidth, padding_height: Conv3PaddingHeight, padding_width: Conv3PaddingWidth, stride_height: Conv3StrideHeight, stride_width: Conv3StrideWidth},
+  OldConv3 = conv3{name: conv3, in_channels: Conv2NumKernels, out_channels: Conv3NumKernels, kernel_height: Conv3KernelHeight, kernel_width: Conv3KernelWidth, padding_height: Conv3PaddingHeight, padding_width: Conv3PaddingWidth, stride_height: Conv3StrideHeight, stride_width: Conv3StrideWidth},
   ((InputHeight = 1, Conv3 = OldConv3.put(type, conv1d)) ; (InputHeight = 2, Conv3 = OldConv3.put(type, conv2d))),
   get_output_size([Conv3InputHeight, Conv3InputWidth, Conv3InputDepth], Conv3, [Upsample2InputHeight, Upsample2InputWidth, Upsample2InputDepth]),
 
@@ -156,18 +156,19 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
   % write(Conv3KernelHeightUpperBound),
   random_between(1, Conv4KernelHeightUpperBound, Conv4KernelHeight),
   random_between(1, Conv4KernelWidthUpperBound, Conv4KernelWidth),
-  OldConv4 = conv4{in_channels: Conv3NumKernels, out_channels: Conv4NumKernels, kernel_height: Conv4KernelHeight, kernel_width: Conv4KernelWidth, padding_height: Conv4PaddingHeight, padding_width: Conv4PaddingWidth, stride_height: Conv4StrideHeight, stride_width: Conv4StrideWidth},
+  OldConv4 = conv4{name: conv4, in_channels: Conv3NumKernels, out_channels: Conv4NumKernels, kernel_height: Conv4KernelHeight, kernel_width: Conv4KernelWidth, padding_height: Conv4PaddingHeight, padding_width: Conv4PaddingWidth, stride_height: Conv4StrideHeight, stride_width: Conv4StrideWidth},
   ((InputHeight = 1, Conv4 = OldConv4.put(type, conv1d)) ; (InputHeight = 2, Conv4 = OldConv4.put(type, conv2d))),
   get_output_size([Conv4InputHeight, Conv4InputWidth, Conv4InputDepth], Conv4, [InputHeight, InputWidth, InputChannels]),
 
   % TODO: implement is_network_legal for upsample dicts
   FCN = [Conv1, Conv2, Conv3, Conv4],
+  % is_network_legal([InputHeight, InputWidth, InputChannels], FCN), writeln(Conv1NumKernels).
   is_network_legal([InputHeight, InputWidth, InputChannels], FCN).
 
 % model layers and training stuff
 find_full_fcn(FCN) :-
-
-  (InputDims = [2, 65, 1]; InputDims = [1, 130, 1]; InputDims = [1, 65, 2]),
+  random_member(InputDims, [[2, 65, 1], [1, 130,1], [1, 65, 2]]),
+  % (InputDims = [2, 65, 1]; InputDims = [1, 130, 1]; InputDims = [1, 65, 2]),
   find_fcn(Layers, InputDims),
 
   random_member(LossFunction, ['MSE', 'SmoothL1']), % CHANGED: no longer use L1, which has proven ineffective.
@@ -176,15 +177,17 @@ find_full_fcn(FCN) :-
   WeightDecay is 0,
 
   % Training and validation data locations
-  random(1, 3, NumScatter),
+  random_between(1, 3, NumScatter),
   % TODO: switchable training data.
   DataDirname = '/Users/zhanwenchen/Documents/projects/beam_nn/data/20180402_L74_70mm',
   atomic_list_concat([DataDirname, '/train_', NumScatter, '.h5'], DataTrain),
   atomic_list_concat([DataDirname, '/val_', NumScatter, '.h5'], DataVal),
 
   Momentum is 0,
+  % writeln(InputDims),
+  writeln(NumScatter),
 
-  FCN = model{type: fcn,
+  FCN = model{model: 'FCN',
               input_dims: InputDims,
               version: '0.1',
               loss_function: LossFunction,
@@ -223,4 +226,5 @@ find_and_write_fcn :-
   find_full_fcn(FCN), write_model_to_file(FCN).
 
 main(HowMany) :-
-  once(findnsols(HowMany, [], find_and_write_fcn, _)).
+  % once(findnsols(HowMany, InputDims, (repeat, random_member(InputDims, [[2, 65, 1], [1, 130,1], [1, 65, 2]]), find_and_write_fcn(InputDims)), Y)).
+  once(findnsols(HowMany, [], (repeat, find_and_write_fcn), Y)).
