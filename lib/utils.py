@@ -4,15 +4,16 @@ from json import load as json_load, dump
 import shutil
 import errno
 from math import floor
+from copy import copy as copy_copy
 
-from numpy import clip as np_clip, spacing as np_spacing
+from h5py import File as h5py_File
+from numpy import clip as np_clip, spacing as np_spacing, array as np_array
 from torch.nn import Conv2d, MaxPool2d, ReLU
 EPS = np_spacing(1)
 
 
 EXCLUDE_MODEL_PARAMS_KEYS = {
     'model',
-    'cost_function',
     'cost_function',
     'optimizer',
     'learning_rate',
@@ -31,7 +32,15 @@ EXCLUDE_MODEL_PARAMS_KEYS = {
 }
 
 
-# __all__ = ['get_which_model_from_params_fname', 'read_model_params', 'ensure_dir', 'add_suffix_to_path', 'get_pool_output_dims', 'get_conv_output_dims']
+def get_mat_obj_from_h5py(mat_fpath):
+    obj = {}
+    with h5py_File(mat_fpath, 'r') as f:
+        for k, v in f.items():
+            obj[k] = np_array(v)
+
+    return obj
+
+
 def load_single_value(process_scripts_dirpath, fname):
     path = os_path_join(process_scripts_dirpath, fname)
 
@@ -51,7 +60,8 @@ def clip_to_eps(array):
 
 def get_dict_from_file_json(fpath):
     with open(fpath) as json_file:
-        return json_load(json_file)
+        obj = json_load(json_file)
+    return obj
 
 def _decode(o):
     '''
@@ -72,6 +82,51 @@ def _decode(o):
         return o
 
 
+# def read_model_params(model_params_fpath):
+#     """Read and return model params from json (text) file."""
+#     # print('read_model_params: model_params_fname = {}'.format(model_params_fname))
+#     if model_params_fpath.endswith('.json') and os_path_exists(model_params_fpath):
+#         try:
+#             with open(model_params_fpath, 'r') as f:
+#                 model_params = json_load(f)
+#         except:
+#             raise
+#
+#
+#     if not os.path.exists(model_params_fname):
+#         raise OSError('utils.read_model_params: {} doesn\'t exist'.format(model_params_fname))
+#
+#
+#         elif model_params_fname.endswith('.txt'):
+#             model_params = {}
+#             for line in f:
+#                 [key, value] = line.split(',')
+#                 value = value.rstrip()
+#
+#                 # Try to read string values
+#                 if isinstance(value, str):
+#                     # If value can be turned into a float, then it could also
+#                     # be an integer.
+#                     try:
+#                         value = float(value)
+#                         if value.is_integer():
+#                             value = int(value)
+#                     except ValueError:
+#                         # If value cannot be turned into a float, then it must
+#                         # not be a number. In this case, don't do anything and
+#                         # pass it on as string.
+#                         pass
+#
+#                 # if isinstance(value, (int, float)):
+#                 #     if value.isdigit():
+#                 #         value = int(value)
+#                 #     else:
+#                 #         value = float(value)
+#                 model_params[key] = value
+#
+#     return model_params
+
+
 def read_model_params(model_params_fname):
     """Read and return model params from json (text) file."""
     # print('read_model_params: model_params_fname = {}'.format(model_params_fname))
@@ -82,7 +137,7 @@ def read_model_params(model_params_fname):
         if model_params_fname.endswith('.json'):
             try:
                 # model_params = json.load(f, object_hook=_decode)
-                model_params = load(f)
+                model_params = json_load(f)
             except:
                 raise
         elif model_params_fname.endswith('.txt'):
@@ -154,11 +209,40 @@ def get_which_model_from_params_fname(model_params_fname, return_params=False):
         # print('get_which_model_from_params_fname: using LeNet')
         from lib.lenet import LeNet # Circular dependency
         model_class = LeNet
+
     elif model_params['model'] == 'AlexNet':
         # print('get_which_model_from_params_fname: using AlexNet')
         from lib.alexnet import AlexNet
         model_class = AlexNet
 
+    elif model_params['model'] == 'FCN':
+        # from lib.fcn import FCN
+        # model_class = FCN
+        from lib.flexnet import FlexNet
+        model_init_params = copy_copy(model_params)
+        # model_class = FlexNet
+        # Delete training parameters
+        del model_init_params['batch_size']
+        del model_init_params['data_is_target']
+        del model_init_params['data_noise_gaussian']
+        del model_init_params['data_train']
+        del model_init_params['data_val']
+        del model_init_params['k']
+        # del model_init_params['layers']
+        del model_init_params['learning_rate']
+        del model_init_params['loss_function']
+        del model_init_params['model']
+        del model_init_params['momentum']
+        del model_init_params['optimizer']
+        del model_init_params['version']
+        del model_init_params['patience']
+        del model_init_params['weight_decay']
+        model = FlexNet(model_init_params)
+        # model = model_class(**model_init_params)
+        if return_params is True:
+            return model, model_params
+
+        return model
     if 'input_channel' in model_params:
         input_channel = model_params['input_channel']
     else:
