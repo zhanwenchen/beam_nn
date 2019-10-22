@@ -20,7 +20,9 @@ from logging import basicConfig as logging_basicConfig, \
 from lib.process_single_scan_battery_keras import process_single_scan_battery_keras
 from lib.utils import copy_anything
 
-SCAN_BATTERIES_TARGETS_GLOB_STRING = 'data/BEAM_Reverb_20181004_L74_70mm/target_*_SCR_*_0dB'
+# SCAN_BATTERIES_TARGETS_GLOB_STRING = 'data/BEAM_Reverb_20181004_L74_70mm/target_*_SCR_*_0dB'
+
+# SCAN_BATTERIES_DIRNAME = 'data/BEAM_Reverb_20181004_L74_70mm_selected'
 SCAN_BATTERIES_DIRNAME = 'scan_batteries'
 MODEL_SAVE_FNAME = 'model.joblib'
 MODELS_DIRNAME = 'DNNs'
@@ -39,6 +41,8 @@ def evaluate_one_model_keras(model_dirpath):
 
     time_start = time_time()
 
+    # with Pool() as pool:
+    #     list(pool.imap_unordered(process_single_target, target_dirnames))
     for scan_battery_dirname in glob_glob(os_path_join(SCAN_BATTERIES_DIRNAME, '*')):
         process_single_scan_battery_keras(new_folder_name, scan_battery_dirname)
     print('{}: it took {:.2f} to evaluate model {} for all scan batteries'.format(SCRIPT_FNAME, time_time() - time_start, model_name))
@@ -56,7 +60,7 @@ if __name__ == '__main__':
     max_to_evaluate = args.max_to_evaluate
     verbose = args.verbose
 
-    logger = logging_getLogger(__name__)
+    logger = logging_getLogger('evaluate_keras')
     if verbose:
         logger.setLevel(logging_DEBUG)
     else:

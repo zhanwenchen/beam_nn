@@ -1,13 +1,23 @@
 from math import ceil as math_ceil
+from logging import getLogger as logging_getLogger
 
 from torch import stft as torch_stft
 from torch import arange as torch_arange # pylint: disable=E0611
 from torch import ones as torch_ones, float64 as torch_float64 # pylint: disable=E0611
 from torch import is_tensor as torch_is_tensor
+from torch import from_numpy as torch_from_numpy # pylint: disable=E0611
 
+# from logging import debug as logging_debug
+LOGGER = logging_getLogger('evaluate_keras')
 
 def stft(signal, len_each_section, frac_overlap, padding, window=None):
-    assert torch_is_tensor(signal)
+    try:
+        assert torch_is_tensor(signal)
+    except:
+        signal = torch_from_numpy(signal).double()
+    if signal.is_contiguous() is False:
+        LOGGER.debug('stft: signal is not contiguous')
+        signal = signal.contiguous()
     if window is None:
         window = torch_ones(len_each_section, dtype=torch_float64)
     else:

@@ -1,4 +1,5 @@
 import os
+from os.path import join as os_path_join
 import argparse
 import random
 import numpy as np
@@ -39,11 +40,11 @@ def train(identifier):
     for model_folder in models:
         new_model_folder_name = model_folder.replace('_created', '_training')
         shutil.move(model_folder, new_model_folder_name)
-        ks = glob(os.path.join(new_model_folder_name, 'k_*'))
+        ks = glob(os_path_join(new_model_folder_name, 'k_*'))
         for k in ks:
             # Load model
             print('train.py: training {}'.format(k))
-            model_params_path = os.path.join(k, model_params_fname)
+            model_params_path = os_path_join(k, model_params_fname)
             # print('train.py: training model', model_params_path, 'with hyperparams')
 
             # create model
@@ -62,14 +63,20 @@ def train(identifier):
             # save initial weights
             if 'save_initial' in model_params and model_params['save_initial'] and model_params['save_dir']:
                 suffix = '_initial'
-                path = add_suffix_to_path(model_params_fname['save_dir'], suffix)
+                path = add_suffix_to_path(model_params_fname['save_dir'], suffix) # pylint: disable=E1126
                 # print('Saving model weights in : ' + path)
                 ensure_dir(path)
                 torch.save(model.state_dict(), os.path.join(path, 'model.dat'))
                 save_model_params(os.path.join(path, model_params_fname), model_params)
 
             # loss
-            loss = model_params['cost_function']
+            if 'cost_function' in model_params:
+                loss = model_params['cost_function']
+            elif 'loss_function' in model_params:
+                loss = model_params['loss_function']
+            else:
+                raise ValueError('model_params missing key cost_function or loss_function')
+                
             if loss not in ['MSE', 'L1', 'SmoothL1']:
                 raise TypeError('Error must be MSE, L1, or SmoothL1. You gave ' + str(loss))
             if loss == 'MSE':
@@ -129,10 +136,10 @@ def main():
     parser.add_argument('identifier', help='Option to load model params from a file. Values in this file take precedence.')
     args = parser.parse_args()
 
+    # seed_everything()
     identifier = args.identifier
     train(identifier)
 
 
 if __name__ == '__main__':
-    seed_everything()
     main()

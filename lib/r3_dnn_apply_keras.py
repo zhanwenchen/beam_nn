@@ -1,7 +1,6 @@
 from os.path import dirname as os_path_dirname, join as os_path_join, basename as os_path_basename
 from h5py import File as h5py_File
-from logging import info as logging_info, getLogger as logging_getLogger, INFO as logging_INFO
-
+from logging import getLogger as logging_getLogger
 from joblib import load as joblib_load
 from numpy import reshape as np_reshape, \
                   moveaxis as np_moveaxis, \
@@ -20,11 +19,13 @@ SCRIPT_FNAME = os_path_basename(__file__)
 MODEL_SAVE_FNAME = 'model.joblib'
 # MODEL_PARAMS_FNAME = 'model_params.json'
 
+LOGGER = logging_getLogger('evaluate_keras')
 # logging_getLogger().setLevel(logging_INFO)
 
+# TODO: we don't actually need to store/pass stft_real and stft
 
-def r3_dnn_apply_keras(target_dirname, cuda=False, saving_to_disk=True):
-    logging_info('{}: r3: Denoising original stft with neural network model...'.format(target_dirname))
+def r3_dnn_apply_keras(target_dirname, old_stft_obj=None, cuda=False, saving_to_disk=True):
+    LOGGER.info('{}: r3: Denoising original stft with neural network model...'.format(target_dirname))
     '''
     r3_dnn_apply takes an old_stft object (or side effect load from disk)
     and saves a new_stft object
@@ -33,9 +34,13 @@ def r3_dnn_apply_keras(target_dirname, cuda=False, saving_to_disk=True):
     model_dirname = os_path_dirname(os_path_dirname(scan_battery_dirname))
 
     # load stft data
-    old_stft_fpath = os_path_join(target_dirname, 'old_stft.mat')
-    with h5py_File(old_stft_fpath, 'r') as f:
-        stft = np_concatenate([f['old_stft_real'][:], f['old_stft_imag'][:]], axis=1)
+    if old_stft_obj is None:
+        old_stft_fpath = os_path_join(target_dirname, 'old_stft.mat')
+        with h5py_File(old_stft_fpath, 'r') as f:
+            stft = np_concatenate([f['old_stft_real'][:], f['old_stft_imag'][:]], axis=1)
+    else:
+        stft = np_concatenate([old_stft_obj['old_stft_real'], old_stft_obj['old_stft_imag']], axis=1)
+
     N_beams, N_elements_2, N_segments, N_fft = stft.shape
     N_elements = N_elements_2 // 2
 
@@ -60,10 +65,6 @@ def r3_dnn_apply_keras(target_dirname, cuda=False, saving_to_disk=True):
     discard_mask[:, :, :, k_mask] = False # pylint: disable=E1137
     stft[discard_mask] = 0
     del discard_mask
-    # mask = np_zeros(stft.shape, dtype=np_float32)
-    # mask[:, :, :, k_mask] = 1
-    # stft = mask * stft
-    # del mask
 
     # mirror data to negative frequencies using conjugate symmetry
     end_index = N_fft // 2
@@ -90,7 +91,7 @@ def r3_dnn_apply_keras(target_dirname, cuda=False, saving_to_disk=True):
     if saving_to_disk is True:
         new_stft_fname = os_path_join(target_dirname, 'new_stft.mat')
         savemat(new_stft_fname, new_stft_obj)
-    logging_info('{}: r3 Done.'.format(target_dirname))
+    LOGGER.info('{}: r3 Done.'.format(target_dirname))
     return new_stft_obj
 
 
@@ -104,19 +105,15 @@ def process_each_frequency_keras(model_dirname, stft, frequency):
     loaded_model_pipeline = joblib_load(model_save_fpath)
 
     # 2. Get X_test
+    LOGGER.debug('r3.process_each_frequency_keras: stft.shape = {}'.format(stft.shape))
     aperture_data = stft[:, :, frequency] # or stft_frequency
 
     # 2.1. normalize by L1 norm
     aperture_data_norm = np_linalg_norm(aperture_data, ord=np_inf, axis=1)
-    aperture_data = aperture_data / aperture_data_norm[:, np_newaxis]
+    aperture_data /= aperture_data_norm[:, np_newaxis]
 
     X_test = aperture_data
-    # print('r3: X_test.shape =', X_test.shape)
 
-    # X_frequency_train = X_frequency_train.reshape(-1, X_frequency_train.shape[-2] * X_frequency_train.shape[-1])
-    # X_frequency_valid = X_frequency_valid.reshape(-1, X_frequency_valid.shape[-2] * X_frequency_valid.shape[-1])
-    # y_frequency_train = y_frequency_train.reshape(-1, y_frequency_train.shape[-2] * y_frequency_train.shape[-1])
-    # y_frequency_valid = y_frequency_valid.reshape(-1, y_frequency_valid.shape[-2] * y_frequency_valid.shape[-1])
     # 3. Predict
     y_hat = loaded_model_pipeline.predict(X_test)
 
@@ -125,25 +122,3 @@ def process_each_frequency_keras(model_dirname, stft, frequency):
 
     # rescale the data and store new data in stft
     stft[:, :, frequency] = aperture_data_new * aperture_data_norm[:, np_newaxis]
-
-
-# def get_X_per_frequency(stft, frequency):
-#     # select data by frequency
-#     stft_frequency = aperture_data = stft[:, :, frequency]
-#
-#     # normalize by L1 norm
-#     aperture_data_norm = np.linalg.norm(aperture_data, ord=np.inf, axis=1)
-#     aperture_data = aperture_data / aperture_data_norm[:, np.newaxis]
-#
-#     # load into torch and onto gpu
-#     # aperture_data = from_numpy(aperture_data).float()
-#     # aperture_data = aperture_data.to(my_device)
-#
-#     return aperture_data
-
-
-# def process_each_frequency_any(stft, frequency):
-#     any_model = AnyModel()
-#
-#     any_model.load()
-#     y_hat = any_model.get_yhat(X)

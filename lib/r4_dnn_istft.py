@@ -1,6 +1,6 @@
 from os.path import isdir as os_path_isdir, join as os_path_join
 # from copy import copy
-from logging import info as logging_info, getLogger as logging_getLogger, INFO as logging_INFO
+from logging import getLogger as logging_getLogger
 
 from scipy.io import loadmat, savemat
 # from numpy import zeros as np_zeros
@@ -20,10 +20,11 @@ LEN_EACH_SECTION = 16
 FRAC_OVERLAP = 0.9
 PADDING = 16
 CHANDAT_DNN_SAVE_FNAME = 'chandat_dnn.mat'
+LOGGER = logging_getLogger('evaluate_keras')
 
 
 def r4_dnn_istft(target_dirname, chandat_obj=None, new_stft_object=None, is_saving_chandat_dnn=True):
-    logging_info('{}: r4: Doing istft on denoised stft...'.format(target_dirname))
+    LOGGER.info('{}: r4: Doing istft on denoised stft...'.format(target_dirname))
     assert os_path_isdir(target_dirname)
     if chandat_obj is None:
         chandat_obj = loadmat(os_path_join(target_dirname, CHANDAT_FNAME))
@@ -68,5 +69,5 @@ def r4_dnn_istft(target_dirname, chandat_obj=None, new_stft_object=None, is_savi
     if is_saving_chandat_dnn is True:
         savemat(os_path_join(target_dirname, CHANDAT_DNN_SAVE_FNAME), chandat_dnn_object)
 
-    logging_info('{}: r4: Done'.format(target_dirname))
+    LOGGER.info('{}: r4: Done'.format(target_dirname))
     return chandat_dnn_object

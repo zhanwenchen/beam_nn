@@ -5,7 +5,7 @@ from time import time
 import os
 
 
-from torch import from_numpy, save
+from torch import from_numpy, save # pylint: disable=E0611
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 

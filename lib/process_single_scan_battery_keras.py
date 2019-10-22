@@ -10,13 +10,16 @@ from logging import info as logging_info
 
 from scipy.io import loadmat
 
+from lib.r2_dnn_stft import r2_dnn_stft
 from lib.r3_dnn_apply_keras import r3_dnn_apply_keras
 from lib.r4_dnn_istft import r4_dnn_istft
 from lib.r5_dnn_image import r5_dnn_image
 from lib.r6_dnn_image_display import r6_dnn_image_display
+from lib.utils import get_mat_obj_from_h5py
 
 SCRIPT_FNAME = os_path_basename(__file__) # for error messages. File name can change.
 
+OLD_STFT_FNAME = 'old_stft.mat'
 CHANDAT_FNAME = 'chandat.mat'
 SCAN_BATTERIES_DIRNAME = 'scan_batteries'
 TARGET_PREFIX = 'target_'
@@ -49,8 +52,8 @@ def process_single_scan_battery_keras(model_folder, source_scan_battery_dirname)
     if not target_dirnames:
         raise ValueError('{}: no targets found with prefix {}'.format(SCRIPT_FNAME, mode_scan_battery_target_prefix))
 
-    with Pool() as pool:
-        list(pool.imap_unordered(process_single_target, target_dirnames))
+    for target_dirname in target_dirnames:
+        process_single_target(target_dirname)
 
     # for target_dirname in target_dirnames:
     #     # print('{}: processing target directory {}'.format(SCRIPT_FNAME, target_dirname))
@@ -78,8 +81,23 @@ def process_single_scan_battery_keras(model_folder, source_scan_battery_dirname)
 
 
 def process_single_target(target_dirname):
-    chandat_obj = loadmat(os_path_join(target_dirname, CHANDAT_FNAME))
-    new_stft_object = r3_dnn_apply_keras(target_dirname, saving_to_disk=False)
+    # Load chandat
+    chandat_fpath = os_path_join(target_dirname, CHANDAT_FNAME)
+    try:
+        chandat_obj = get_mat_obj_from_h5py(chandat_fpath)
+    except OSError:
+        chandat_obj = loadmat(chandat_fpath)
+
+    # Load old_stft_obj
+    old_stft_fpath = os_path_join(target_dirname, OLD_STFT_FNAME)
+    if os_path_isfile(old_stft_fpath):
+        try:
+            old_stft_obj = get_mat_obj_from_h5py(old_stft_fpath)
+        except OSError:
+            old_stft_obj = loadmat(old_stft_fpath)
+    else:
+        old_stft_obj = r2_dnn_stft(target_dirname, saving_to_disk=False)
+    new_stft_object = r3_dnn_apply_keras(target_dirname, old_stft_obj=old_stft_obj, saving_to_disk=False)
     chandat_dnn_object = r4_dnn_istft(target_dirname, chandat_obj=chandat_obj, new_stft_object=new_stft_object, is_saving_chandat_dnn=False)
     chandat_image_obj = r5_dnn_image(target_dirname, chandat_obj=chandat_obj, chandat_dnn_obj=chandat_dnn_object, is_saving_chandat_image=False)
     r6_dnn_image_display(target_dirname, dnn_image_obj=chandat_image_obj, show_fig=False)

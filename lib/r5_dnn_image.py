@@ -1,5 +1,5 @@
 from os.path import join as os_path_join
-from logging import info as logging_info, getLogger as logging_getLogger, INFO as logging_INFO
+from logging import getLogger as logging_getLogger
 
 from scipy.io import loadmat, savemat
 from scipy.signal import butter, filtfilt
@@ -20,12 +20,11 @@ TARGET_PARAMETERS_KEY_SCALE_UPSAMPLE = 'scale_upsample'
 CHANDAT_FNAME = 'chandat.mat'
 CHANDAT_DNN_FNAME = 'chandat_dnn.mat'
 CHANDAT_IMAGE_SAVE_FNAME = 'dnn_image.mat'
-
-# logging_getLogger().setLevel(logging_INFO)
+LOGGER = logging_getLogger('evaluate_keras')
 
 
 def r5_dnn_image(target_dirname, chandat_obj=None, chandat_dnn_obj=None, is_saving_chandat_image=True):
-    logging_info('{}: r5: Turning chandat into upsampled envelope...'.format(target_dirname))
+    LOGGER.info('{}: r5: Turning chandat into upsampled envelope...'.format(target_dirname))
     if chandat_obj is None:
         chandat_obj = loadmat(os_path_join(target_dirname, CHANDAT_FNAME))
     f0 = chandat_obj['f0']
@@ -99,5 +98,5 @@ def r5_dnn_image(target_dirname, chandat_obj=None, chandat_dnn_obj=None, is_savi
     if is_saving_chandat_image is True:
         savemat(chandat_image_path, chandat_image_obj)
 
-    logging_info('{}: r5 Done'.format(target_dirname))
+    LOGGER.info('{}: r5 Done'.format(target_dirname))
     return chandat_image_obj

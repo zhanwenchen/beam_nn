@@ -10,9 +10,10 @@ from lib.print_layer import PrintLayer
 
 class FlexNet(Module):
     # def __init__(self, model_params_fname, printing=False):
-    def __init__(self, model_init_params, printing=True):
+    def __init__(self, model_init_params, printing=False):
         super(FlexNet, self).__init__()
         # model_params = get_dict_from_file_json(model_params_fname)
+        input_height, _, _, = self.input_dims = model_init_params['input_dims']
 
         if printing is True:
             pprint(model_init_params)
@@ -23,7 +24,10 @@ class FlexNet(Module):
         for layer in layers:
 
             if layer['type'] == 'upsample':
-                module = Upsample(scale_factor=(layer['scale_factor_height'], layer['scale_factor_width']))
+                if input_height == 2:
+                    module = Upsample(scale_factor=(layer['scale_factor_height'], layer['scale_factor_width']))
+                elif input_height == 1:
+                    module = Upsample(scale_factor=layer['scale_factor_width'])
 
             if layer['type'] not in ['conv1d', 'upsample', 'conv2d', 'maxpool2d', 'adaptiveavgpool2d', 'fcs']:
                 raise ValueError('Layer type of {} is not yet implemented'.format(layer['type']))
@@ -72,13 +76,13 @@ class FlexNet(Module):
 
             net = Sequential(*modules)
             self.net = net
-            self.input_dims = model_init_params['input_dims']
+            self.printing = printing
             # self.model = model_init_params['model']
 
     def forward(self, x):
         # batch_size = x.size(0)
         input_height, input_width, input_depth = self.input_dims
-        print('FlexNet: initial x.size() = ', x.size())
+        if self.printing: print('FlexNet: initial x.size() = ', x.size())
         if input_height == 1:
             # 1D
             x = x.view(-1, input_depth, input_width)

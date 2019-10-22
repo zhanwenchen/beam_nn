@@ -1,9 +1,7 @@
 from os.path import join as os_path_join
 from math import log10 as math_log10, sqrt as math_sqrt
 from json import dump as json_dump
-from logging import info as logging_info, \
-                    INFO as logging_INFO, \
-                    debug as loggin_debug
+from logging import getLogger as logging_getLogger
 
 from scipy.io import loadmat
 # from numpy import meshgrid as np_meshgrid
@@ -30,10 +28,11 @@ SPECKLE_STATS_FNAME = 'speckle_stats_dnn.txt'
 SPECKLE_STATS_DICT_FNAME = 'speckle_stats_dnn.json'
 DNN_IMAGE_SAVE_FNAME = 'dnn.png'
 MASKS_FNAME = 'masks.npz'
+LOGGER = logging_getLogger('evaluate_keras')
 
 
 def r6_dnn_image_display(target_dirname, dnn_image_obj=None, show_fig=False):
-    logging_info('{}: r6: Turning upsampled envelope into image...'.format(target_dirname))
+    LOGGER.info('{}: r6: Turning upsampled envelope into image...'.format(target_dirname))
     if dnn_image_obj is None:
         dnn_image_obj = loadmat(os_path_join(target_dirname, DNN_IMAGE_FNAME))
 
@@ -42,23 +41,23 @@ def r6_dnn_image_display(target_dirname, dnn_image_obj=None, show_fig=False):
     envUp_dB = dnn_image_obj['envUp_dB']
     env_up = dnn_image_obj['envUp']
 
-    loggin_debug('{}: r6: Finished loading vars'.format(target_dirname))
+    LOGGER.debug('{}: r6: Finished loading vars'.format(target_dirname))
     x = np_squeeze(beam_position_x_up) # beam_position_x_up
     y = np_squeeze(depth) # depth
 
-    loggin_debug('{}: r6: Finished squeezing x, y'.format(target_dirname))
+    LOGGER.debug('{}: r6: Finished squeezing x, y'.format(target_dirname))
     fig, ax = plt_subplots()
-    loggin_debug('{}: r6: Finished plt.figure'.format(target_dirname))
+    LOGGER.debug('{}: r6: Finished plt.figure'.format(target_dirname))
     image = ax.imshow(envUp_dB, vmin=-60, vmax=0, cmap='gray', aspect='auto', extent=[x[0]*1000, x[-1]*1000, y[-1]*1000, y[0]*1000])
     ax.set_aspect('equal')
-    loggin_debug('{}: r6: Finished plt.imshow'.format(target_dirname))
+    LOGGER.debug('{}: r6: Finished plt.imshow'.format(target_dirname))
     fig.colorbar(image)
-    loggin_debug('{}: r6: Finished plt.colorbar'.format(target_dirname))
+    LOGGER.debug('{}: r6: Finished plt.colorbar'.format(target_dirname))
     # plt_xlabel('lateral (mm)', fontsize=FONT_SIZE)
     ax.set_xlabel('lateral (mm)', fontsize=FONT_SIZE)
     # plt_ylabel('axial (mm)', fontsize=FONT_SIZE)
     ax.set_ylabel('axial (mm)', fontsize=FONT_SIZE)
-    loggin_debug('{}: r6: Finished plt.xlabel/ylabel'.format(target_dirname))
+    LOGGER.debug('{}: r6: Finished plt.xlabel/ylabel'.format(target_dirname))
 
     # if show_fig is True:
     # plt_show(block=False)
@@ -68,7 +67,7 @@ def r6_dnn_image_display(target_dirname, dnn_image_obj=None, show_fig=False):
     fig.savefig(dnn_image_path)
     plt_close(fig)
 
-    loggin_debug('{}: r6: Finished saving figure'.format(target_dirname))
+    LOGGER.debug('{}: r6: Finished saving figure'.format(target_dirname))
     # scan_battery_dirname = os_path_dirname(target_dirname)
     # process_scripts_dirpath = os_path_join(scan_battery_dirname, PROCESS_SCRIPTS_DIRNAME)
 
@@ -112,7 +111,7 @@ def r6_dnn_image_display(target_dirname, dnn_image_obj=None, show_fig=False):
     # Calculate image statistics
     # print('r6: env_up.shape =', env_up.shape)
     mask_in, mask_out = get_masks(target_dirname)
-    loggin_debug('{}: r6: Finished loading masks'.format(target_dirname))
+    LOGGER.debug('{}: r6: Finished loading masks'.format(target_dirname))
     # print('r6: mask_in.shape={}, mask_out.shape={}'.format(mask_in.shape, mask_out.shape))
     env_up_inside_lesion = env_up[mask_in]
     mean_in = env_up_inside_lesion.mean()
@@ -122,12 +121,12 @@ def r6_dnn_image_display(target_dirname, dnn_image_obj=None, show_fig=False):
     mean_out = env_up_outside_lesion.mean()
     var_out = env_up_outside_lesion.var(ddof=1) # ddof is important cuz Matlab
 
-    loggin_debug('{}: r6: Finished mean and var calculations'.format(target_dirname))
+    LOGGER.debug('{}: r6: Finished mean and var calculations'.format(target_dirname))
     CR = -20 * math_log10(mean_in / mean_out)
     CNR = 20 * math_log10(abs(mean_in - mean_out)/math_sqrt(var_in + var_out))
     SNR = mean_out / math_sqrt(var_out)
 
-    loggin_debug('{}: r6: Finished speckle stats calculations'.format(target_dirname))
+    LOGGER.debug('{}: r6: Finished speckle stats calculations'.format(target_dirname))
     # Save image statistics to file
     speckle_stats = [CR, CNR, SNR, mean_in, mean_out, var_in, var_out]
     speckle_stats_path = os_path_join(target_dirname, SPECKLE_STATS_FNAME)
@@ -135,7 +134,7 @@ def r6_dnn_image_display(target_dirname, dnn_image_obj=None, show_fig=False):
     with open(speckle_stats_path, 'w') as f:
         f.write("\n".join([str(item) for item in speckle_stats]))
 
-    loggin_debug('{}: r6: Finished saving .txt'.format(target_dirname))
+    LOGGER.debug('{}: r6: Finished saving .txt'.format(target_dirname))
     # Also save image statistics json as a redundant (but more readable) method
     speckle_stats_dict = {
         'CR': CR,
@@ -151,9 +150,9 @@ def r6_dnn_image_display(target_dirname, dnn_image_obj=None, show_fig=False):
 
     with open(speckle_stats_dict_path, 'w') as f:
         json_dump(speckle_stats_dict, f, indent=4)
-    loggin_debug('{}: r6: Finished saving .json'.format(target_dirname))
+    LOGGER.debug('{}: r6: Finished saving .json'.format(target_dirname))
 
-    logging_info('{}: r6 Done'.format(target_dirname))
+    LOGGER.info('{}: r6 Done'.format(target_dirname))
 
 
 # def get_circular_mask(xx, yy, circle_center, circle_radius):

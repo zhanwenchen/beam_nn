@@ -3,7 +3,7 @@ import os
 import h5py
 import numpy as np
 from torch.utils.data import Dataset
-from torch import from_numpy
+from torch import from_numpy # pylint: disable=E0611
 
 
 class ApertureDataset(Dataset):

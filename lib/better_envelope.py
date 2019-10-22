@@ -1,6 +1,7 @@
 from scipy.signal import remez, filtfilt, butter
 from numpy import sqrt as np_sqrt
 
+# Phase shift. Preserve shape.
 def better_envelope(rf_in):
     # cutoff == 0.2 and 0.8 from  fs = 20.832 MHz
     # f_cutoff = 0.2*(fs/2) = 2.0832MHz, 0.8*(fs/2) = 8.3328,
@@ -11,9 +12,10 @@ def better_envelope(rf_in):
     num_taps = 10
 
     # This is equivalent to B=firpm(10,[.2 .8],[1 1],'Hilbert');
+    # hilbert is a 90-phase transform.
     coefficients = remez(num_taps+1, [cutoff_low/2, cutoff_high/2], [1], type='hilbert')
 
-    Q = filtfilt(coefficients, 1, rf_in)
+    Q = filtfilt(coefficients, 1, rf_in) # zero-phase
 
     envelope = np_sqrt(rf_in ** 2 + Q ** 2)
 
