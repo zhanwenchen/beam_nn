@@ -1,18 +1,15 @@
 %% create_models.pl
-%%
-%% Usage 1: Under project directory (containing this file, create.pl)
+%% usage: Under project directory (containing this file, create.pl)
 %% $ swipl
 %% ?- ['create.pl']
 %% ?- main(50) % create 50 models (under project/DNNs/)
-%%
-%% Usage 2: Under project directory (containing this file, create.pl)
-%% $ swipl create.pl 50 % create 50 models
-%%
 %% v1.0: Implemented FCN
-%% v1.1: Implemented FCN with upsample layer dict. Use main/command-line args.
-%% v1.2: Fixed conv1d kernel, padding, stride height > 1 issue.
+%% v1.1: Implemented FCN with upsample layer dictionaries.
+%% v1.2: Fixed conv1d height (kernel, stride, padding) > 1 issue.
+%% v1.3: 1. Conv1, Conv2 now allow stride = 2. Conv3, Conv4 still force stride=1; 2. (1.) stride change enables normal conv kernel sizes between 3 and 8.
+%% v1.4: 1. Fixed conv2d stride height = 0 issue; 2. Narrowed conv2d stride height from [1, 3] to [1, 2]; 3. Narrowed conv2d padding height from [0, 3] to [0, 2].
+%% v1.5: Narrowed kernel height to 1 (conv1d) and [2, 3] (conv2d).
 %% TODO: combine conv1d and conv2d: it's just a matter of height=1.
-
 :- use_module(library(http/json)).
 :- set_prolog_flag(verbose, silent).
 :- initialization(main).
@@ -22,14 +19,15 @@ get_output_size([InputHeight, InputWidth, _], CurrentLayer, [OutputHeight, Outpu
   % Read variables from dictionary
   CurrentLayer.type == conv1d,
   OutChannels is CurrentLayer.out_channels,
-  KernelHeight is CurrentLayer.kernel_height,
-  KernelHeight == 1,
+  CurrentLayer.kernel_height == 1,
   KernelWidth is CurrentLayer.kernel_width,
-  PaddingHeight is CurrentLayer.padding_height,
-  PaddingHeight == 1,
+  % writeln(CurrentLayer.padding_height),
+  CurrentLayer.padding_height == 0,
+  CurrentLayer.stride_height == 0,
+  % writeln(CurrentLayer.kernel_height),
+  % PaddingHeight is 1,
   PaddingWidth is CurrentLayer.padding_width,
-  StrideHeight is CurrentLayer.stride_height,
-  StrideHeight == 1,
+  % StrideHeight is 1,
   StrideWidth is CurrentLayer.stride_width,
 
   OutputHeight is 1,
@@ -61,11 +59,9 @@ get_output_size([InputHeight, InputWidth, InputDepth], CurrentLayer, [OutputHeig
 
 get_output_size([InputHeight, InputWidth, InChannels], CurrentLayer, [OutputHeight, OutputWidth, OutputDepth]) :-
   CurrentLayer.type == maxpool1d,
-  KernelHeight is CurrentLayer.kernel_height,
-  KernelHeight == 1,
+  KernelHeight is 1,
   KernelWidth is CurrentLayer.kernel_width,
-  StrideHeight is CurrentLayer.stride_height,
-  StrideHeight == 1,
+  StrideHeight is 1,
   StrideWidth is CurrentLayer.stride_width,
 
   OutputHeight is 1,
@@ -107,15 +103,21 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
 
   % Conv1 sizes
   random_between(20, 100, Conv1NumKernels),
-  random_between(0, 2, Conv1PaddingHeight),
-  random_between(0, 2, Conv1PaddingWidth),
-  random_between(1, 2, Conv1StrideHeight),
-  Conv1StrideWidth is 1, % So that we no longer need pooling.
+  ((InputHeight = 1, Conv1PaddingHeight is 0) ; (InputHeight = 2, random_between(0, 2, Conv1PaddingHeight))),
+  % random_between(0, 3, Conv1PaddingHeight),
+  random_between(0, 3, Conv1PaddingWidth),
+  ((InputHeight = 1, Conv1StrideHeight is 0) ; (InputHeight = 2, random_between(1, 2, Conv1StrideHeight))),
+  % random_between(1, 5, Conv1StrideHeight),
+  random_member(Conv1StrideWidth, [1, 2]),
+  % Conv1StrideWidth is 1, % So that we no longer need pooling.
   % Limit upperbound of kernel sizes to positive output (W - **F** + 2P >= 0, that is, F <= W + 2P)
-  Conv1KernelHeightUpperBound is InputHeight + 2 * Conv1PaddingHeight,
-  Conv1KernelWidthUpperBound is InputWidth + 2 * Conv1PaddingWidth,
-  random_between(1, Conv1KernelHeightUpperBound, Conv1KernelHeight),
-  random_between(1, Conv1KernelWidthUpperBound, Conv1KernelWidth),
+  ((InputHeight = 1, Conv1KernelHeight is 1) ; (InputHeight = 2, random_between(2, 3, Conv1KernelHeight))),
+  % Conv1KernelHeightUpperBound is InputHeight + 2 * Conv1PaddingHeight,
+  % random_between(1, Conv1KernelHeightUpperBound, Conv1KernelHeight),
+
+  random_between(3, 8, Conv1KernelWidth),
+  % Conv1KernelWidthUpperBound is InputWidth + 2 * Conv1PaddingWidth,
+  % random_between(1, Conv1KernelWidthUpperBound, Conv1KernelWidth),
   OldConv1 = conv1{name: conv1, in_channels: InputChannels, type: conv2d, out_channels: Conv1NumKernels, kernel_height: Conv1KernelHeight, kernel_width: Conv1KernelWidth, padding_height: Conv1PaddingHeight, padding_width: Conv1PaddingWidth, stride_height: Conv1StrideHeight, stride_width: Conv1StrideWidth},
   ((InputHeight = 1, Conv1 = OldConv1.put(type, conv1d)) ; (InputHeight = 2, Conv1 = OldConv1.put(type, conv2d))),
   get_output_size([InputHeight, InputWidth, InputChannels], Conv1, [Conv2InputHeight, Conv2InputWidth, Conv2InputDepth]),
@@ -123,16 +125,21 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
   %% Conv2
   random_between(20, 100, Conv2NumKernels),
   Conv2NumKernels > Conv1NumKernels,
-  random_between(0, 2, Conv2PaddingHeight),
-  random_between(0, 2, Conv2PaddingWidth),
-  random_between(1, 2, Conv2StrideHeight),
-  Conv2StrideWidth is 1, % To eliminate the need for pooling.
+  ((InputHeight = 1, Conv2PaddingHeight is 0) ; (InputHeight = 2, random_between(0, 2, Conv2PaddingHeight))),
+  % random_between(0, 3, Conv2PaddingHeight),
+  random_between(0, 3, Conv2PaddingWidth),
+  ((InputHeight = 1, Conv2StrideHeight is 0) ; (InputHeight = 2, random_between(1, 2, Conv2StrideHeight))),
+  % random_between(1, 5, Conv2StrideHeight),
+  random_member(Conv2StrideWidth, [1, 2]),
+  % Conv2StrideWidth is 1, % To eliminate the need for pooling.
   % Limit upperbound of kernel sizes to positive output (W - **F** + 2P >= 0, that is, F <= W + 2P)
-  Conv2KernelHeightUpperBound is Conv2InputHeight + 2 * Conv2PaddingHeight,
-  Conv2KernelWidthUpperBound is Conv2InputWidth + 2 * Conv2PaddingWidth,
+  ((InputHeight = 1, Conv2KernelHeight is 1) ; (InputHeight = 2, random_between(2, 3, Conv2KernelHeight))),
+  % Conv2KernelHeightUpperBound is Conv2InputHeight + 2 * Conv2PaddingHeight,
+  % random_between(1, Conv2KernelHeightUpperBound, Conv2KernelHeight),
   % write(Conv2KernelHeightUpperBound),
-  random_between(1, Conv2KernelHeightUpperBound, Conv2KernelHeight),
-  random_between(1, Conv2KernelWidthUpperBound, Conv2KernelWidth),
+  random_between(3, 8, Conv2KernelWidth),
+  % Conv2KernelWidthUpperBound is Conv2InputWidth + 2 * Conv2PaddingWidth,
+  % random_between(1, Conv2KernelWidthUpperBound, Conv2KernelWidth),
   OldConv2 = conv2{name: conv2, in_channels: Conv1NumKernels, out_channels: Conv2NumKernels, kernel_height: Conv2KernelHeight, kernel_width: Conv2KernelWidth, padding_height: Conv2PaddingHeight, padding_width: Conv2PaddingWidth, stride_height: Conv2StrideHeight, stride_width: Conv2StrideWidth},
   ((InputHeight = 1, Conv2 = OldConv2.put(type, conv1d)) ; (InputHeight = 2, Conv2 = OldConv2.put(type, conv2d))),
   get_output_size([Conv2InputHeight, Conv2InputWidth, Conv2InputDepth], Conv2, [Upsample1InputHeight, Upsample1InputWidth, Upsample1InputDepth]),
@@ -149,17 +156,22 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
 
   % Conv3
   random_between(20, 100, Conv3NumKernels),
-  Conv3NumKernels > Conv2NumKernels,
-  random_between(0, 2, Conv3PaddingHeight),
-  random_between(0, 2, Conv3PaddingWidth),
-  random_between(1, 2, Conv3StrideHeight),
+  Conv3NumKernels < Conv2NumKernels,
+  ((InputHeight = 1, Conv3PaddingHeight is 0) ; (InputHeight = 2, random_between(0, 2, Conv3PaddingHeight))),
+  % random_between(0, 3, Conv3PaddingHeight),
+  random_between(0, 3, Conv3PaddingWidth),
+  ((InputHeight = 1, Conv3StrideHeight is 0) ; (InputHeight = 2, random_between(1, 2, Conv3StrideHeight))),
+  % random_between(1, 5, Conv3StrideHeight),
+  % random_member(Conv3StrideWidth, [1, 2]),
   Conv3StrideWidth is 1, % To eliminate the need for pooling.
+  ((InputHeight = 1, Conv3KernelHeight is 1) ; (InputHeight = 2, random_between(2, 3, Conv3KernelHeight))),
   % Limit upperbound of kernel sizes to positive output (W - **F** + 2P >= 0, that is, F <= W + 2P)
-  Conv3KernelHeightUpperBound is Conv3InputHeight + 2 * Conv3PaddingHeight,
-  Conv3KernelWidthUpperBound is Conv3InputWidth + 2 * Conv3PaddingWidth,
+  % Conv3KernelHeightUpperBound is Conv3InputHeight + 2 * Conv3PaddingHeight,
+  % random_between(1, Conv3KernelHeightUpperBound, Conv3KernelHeight),
   % write(Conv3KernelHeightUpperBound),
-  random_between(1, Conv3KernelHeightUpperBound, Conv3KernelHeight),
-  random_between(1, Conv3KernelWidthUpperBound, Conv3KernelWidth),
+  random_between(3, 8, Conv3KernelWidth),
+  % Conv3KernelWidthUpperBound is Conv3InputWidth + 2 * Conv3PaddingWidth,
+  % random_between(1, Conv3KernelWidthUpperBound, Conv3KernelWidth),
   OldConv3 = conv3{name: conv3, in_channels: Conv2NumKernels, out_channels: Conv3NumKernels, kernel_height: Conv3KernelHeight, kernel_width: Conv3KernelWidth, padding_height: Conv3PaddingHeight, padding_width: Conv3PaddingWidth, stride_height: Conv3StrideHeight, stride_width: Conv3StrideWidth},
   ((InputHeight = 1, Conv3 = OldConv3.put(type, conv1d)) ; (InputHeight = 2, Conv3 = OldConv3.put(type, conv2d))),
   get_output_size([Conv3InputHeight, Conv3InputWidth, Conv3InputDepth], Conv3, [Upsample2InputHeight, Upsample2InputWidth, Upsample2InputDepth]),
@@ -175,15 +187,19 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
 
   % Conv4
   Conv4NumKernels is InputChannels,
-  random_between(0, 2, Conv4PaddingHeight),
-  random_between(0, 2, Conv4PaddingWidth),
-  random_between(1, 2, Conv4StrideHeight),
+  ((InputHeight = 1, Conv4PaddingHeight is 0) ; (InputHeight = 2, random_between(0, 2, Conv4PaddingHeight))),
+  % random_between(0, 3, Conv4PaddingHeight),
+  random_between(0, 3, Conv4PaddingWidth),
+  ((InputHeight = 1, Conv4StrideHeight is 0) ; (InputHeight = 2, random_between(1, 2, Conv4StrideHeight))),
+  % random_between(1, 5, Conv4StrideHeight),
   Conv4StrideWidth is 1, % To eliminate the need for pooling.
+  ((InputHeight = 1, Conv4KernelHeight is 1) ; (InputHeight = 2, random_between(2, 3, Conv4KernelHeight))),
   % Limit upperbound of kernel sizes to positive output (W - **F** + 2P >= 0, that is, F <= W + 2P)
-  Conv4KernelHeightUpperBound is Conv4InputHeight + 2 * Conv4PaddingHeight,
-  Conv4KernelWidthUpperBound is Conv4InputWidth + 2 * Conv4PaddingWidth,
+  % Conv4KernelHeightUpperBound is Conv4InputHeight + 2 * Conv4PaddingHeight,
+  % random_between(1, Conv4KernelHeightUpperBound, Conv4KernelHeight),
   % write(Conv3KernelHeightUpperBound),
-  random_between(1, Conv4KernelHeightUpperBound, Conv4KernelHeight),
+  % random_between(3, 8, Conv4KernelWidth),
+  Conv4KernelWidthUpperBound is Conv4InputWidth + 2 * Conv4PaddingWidth,
   random_between(1, Conv4KernelWidthUpperBound, Conv4KernelWidth),
   OldConv4 = conv4{name: conv4, in_channels: Conv3NumKernels, out_channels: Conv4NumKernels, kernel_height: Conv4KernelHeight, kernel_width: Conv4KernelWidth, padding_height: Conv4PaddingHeight, padding_width: Conv4PaddingWidth, stride_height: Conv4StrideHeight, stride_width: Conv4StrideWidth},
   ((InputHeight = 1, Conv4 = OldConv4.put(type, conv1d)) ; (InputHeight = 2, Conv4 = OldConv4.put(type, conv2d))),
@@ -197,6 +213,7 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
 % model layers and training stuff
 find_full_fcn(FCN) :-
   random_member(InputDims, [[2, 65, 1], [1, 130,1], [1, 65, 2]]),
+  % random_member(InputDims, [[1, 130,1], [1, 65, 2]]),
   % (InputDims = [2, 65, 1]; InputDims = [1, 130, 1]; InputDims = [1, 65, 2]),
   find_fcn(Layers, InputDims),
 
@@ -213,7 +230,7 @@ find_full_fcn(FCN) :-
   atomic_list_concat([DataDirname, '/val_', NumScatter, '.h5'], DataVal),
 
   Momentum is 0,
-  % writeln(InputDims),
+  writeln(InputDims),
   % writeln(NumScatter),
 
   FCN = model{model: 'FCN',
