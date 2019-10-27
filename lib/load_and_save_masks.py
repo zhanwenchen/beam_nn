@@ -1,3 +1,7 @@
+"""
+Run r6_dnn_image_display.mat first to generate and save masks.mat and then
+use this load_and_save_masks to convert it from matlab (masks.mat) to numpy (masks.npz)
+"""
 from os.path import join as os_path_join
 
 from scipy.io import loadmat

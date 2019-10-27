@@ -15,6 +15,7 @@ from scipy.io import savemat
 from torch import load as torch_load
 from torch import device as torch_device # pylint: disable=E0611
 from torch import from_numpy as torch_from_numpy # pylint: disable=E0611
+from torch import no_grad as torch_no_grad
 from torch.cuda import is_available as torch_cuda_is_cuda_available
 
 from lib.utils import get_which_model_from_params_fname
@@ -115,7 +116,6 @@ def process_each_frequency(model_dirname, stft, frequency, using_cuda=True, scan
 
     model_save_fpath = os_path_join(model_dirname, 'k_' + str(frequency), MODEL_SAVE_FNAME)
     model = get_which_model_from_params_fname(model_params_fname)
-    # breakpoint()
     model.load_state_dict(torch_load(os_path_join(os_path_dirname(model_save_fpath), 'model.dat'), map_location=my_device), strict=False)
     model.eval()
     model = model.to(my_device)
@@ -145,11 +145,14 @@ def process_each_frequency(model_dirname, stft, frequency, using_cuda=True, scan
     aperture_data /= aperture_data_norm[:, np_newaxis]
 
     # load into torch and onto gpu
-    X_test = aperture_data = torch_from_numpy(aperture_data).float().to(my_device)
+    # X_test = aperture_data
+    aperture_data = torch_from_numpy(aperture_data).float().to(my_device)
 
     # 3. Predict
     # y_hat = loaded_model_pipeline.predict(X_test)
-    y_hat = aperture_data_new = model(X_test).cpu().data.numpy()
+    # y_hat is aperture_data_new
+    with torch_no_grad():
+        aperture_data_new = model(aperture_data).cpu().data.numpy()
 
     # if stft.shape[-1] == 2:
     #     breakpoint()
@@ -158,3 +161,4 @@ def process_each_frequency(model_dirname, stft, frequency, using_cuda=True, scan
     # 4. Postprocess on y_hat
     # rescale the data and store new data in stft
     stft[:, :, frequency] = aperture_data_new * aperture_data_norm[:, np_newaxis]
+    del aperture_data_new, aperture_data_norm

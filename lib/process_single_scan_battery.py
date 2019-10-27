@@ -102,10 +102,13 @@ def process_single_target(target_dirname):
     # print('old_stft_obj[\'old_stft_real\'].shape =', old_stft_obj['old_stft_real'].shape)
     # print('old_stft_obj[\'old_stft_imag\'].shape =', old_stft_obj['old_stft_imag'].shape)
     new_stft_object = r3_dnn_apply(target_dirname, old_stft_obj=old_stft_obj, saving_to_disk=False)
+    del old_stft_obj
     # print('process_single_scan_battery: new_stft_object[\'new_stft_real\'].shape =', new_stft_object['new_stft_real'].shape)
     # breakpoint()
     chandat_dnn_object = r4_dnn_istft(target_dirname, chandat_obj=chandat_obj, new_stft_object=new_stft_object, is_saving_chandat_dnn=False)
+    del new_stft_object
     chandat_image_obj = r5_dnn_image(target_dirname, chandat_obj=chandat_obj, chandat_dnn_obj=chandat_dnn_object, is_saving_chandat_image=False)
+    del chandat_obj, chandat_dnn_object
     r6_dnn_image_display(target_dirname, dnn_image_obj=chandat_image_obj, show_fig=False)
 
     # Remove target-level files and folders

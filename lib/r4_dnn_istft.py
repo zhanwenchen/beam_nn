@@ -41,9 +41,7 @@ def r4_dnn_istft(target_dirname, chandat_obj=None, new_stft_object=None, is_savi
 
     if new_stft_object is None:
         new_stft_object = loadmat(os_path_join(target_dirname, NEW_STFT_FNAME))
-    new_stft_real = torch_from_numpy(new_stft_object['new_stft_real']).double()
-    new_stft_imag = torch_from_numpy(new_stft_object['new_stft_imag']).double()
-    new_stft = torch_stack((new_stft_real, new_stft_imag), axis=-1)
+    new_stft = torch_stack((torch_from_numpy(new_stft_object['new_stft_real']), torch_from_numpy(new_stft_object['new_stft_imag'])), axis=-1)
     # new_stft = new_stft_real + 1j*new_stft_imag
 
     del new_stft_object

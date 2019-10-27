@@ -32,10 +32,12 @@ def r5_dnn_image(target_dirname, chandat_obj=None, chandat_dnn_obj=None, is_savi
         chandat_dnn_obj = loadmat(os_path_join(target_dirname, CHANDAT_DNN_FNAME))
     chandat_dnn = chandat_dnn_obj['chandat_dnn']
     beam_position_x = chandat_dnn_obj['beam_position_x']
+    depth = chandat_dnn_obj['depth']
     if f0.ndim and f0.ndim == 2:
         f0 = f0[0, 0]
 
     rf_data = chandat_dnn.sum(axis=1)
+    del chandat_dnn, chandat_dnn_obj['chandat_dnn']
     # design a bandpass filter
     n = 4
     order = n / 2
@@ -45,6 +47,7 @@ def r5_dnn_image(target_dirname, chandat_obj=None, chandat_dnn_obj=None, is_savi
     # chandat_dnn = chandat_dnn.astype(float, copy=False) # REVIEW: necessary?
 
     rf_data_filt = filtfilt(b, a, rf_data, axis=0, padtype='odd', padlen=3*(max(len(b),len(a))-1)) # Correct
+    del a, b
 
     env = np_apply_along_axis(better_envelope, 0, rf_data_filt)
     # print('r5: env.shape =', env.shape)
@@ -73,6 +76,7 @@ def r5_dnn_image(target_dirname, chandat_obj=None, chandat_dnn_obj=None, is_savi
 
     env_up = np_apply_along_axis(curried_pchip, 1, env)
     # print('r5: env_up.shape =', env_up.shape)
+    del curried_pchip, new_x, x
 
     clip_to_eps(env_up)
     # np_clip(env_up, np_spacing(1), None, out=env_up)
@@ -80,9 +84,8 @@ def r5_dnn_image(target_dirname, chandat_obj=None, chandat_dnn_obj=None, is_savi
     np_log10(env_up, out=env_up_dB)
     np_multiply(env_up_dB, 20, out=env_up_dB)
 
-    beam_position_x_up = np_linspace(beam_position_x.min(), beam_position_x.max(), env_up_dB.shape[1]) # pylint: disable=E1101
-
-    chandat_image_path = os_path_join(target_dirname, CHANDAT_IMAGE_SAVE_FNAME)
+    beam_position_x_up = np_linspace(beam_position_x.min(), beam_position_x.max(), env_up_dB.shape[1]) # pylint: disable=E1101, E1136
+    del beam_position_x
 
     chandat_image_obj = {
         'rf_data': rf_data,
@@ -92,10 +95,11 @@ def r5_dnn_image(target_dirname, chandat_obj=None, chandat_dnn_obj=None, is_savi
         'envUp': env_up,
         'envUp_dB': env_up_dB,
         'beam_position_x_up': beam_position_x_up,
-        'depth': chandat_dnn_obj['depth'],
+        'depth': depth,
     }
 
     if is_saving_chandat_image is True:
+        chandat_image_path = os_path_join(target_dirname, CHANDAT_IMAGE_SAVE_FNAME)
         savemat(chandat_image_path, chandat_image_obj)
 
     LOGGER.info('{}: r5 Done'.format(target_dirname))

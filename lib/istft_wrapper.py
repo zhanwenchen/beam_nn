@@ -13,9 +13,13 @@ def istft(stft_object):
     y, _, _ = stft_object['origSigSize']
     len_each_section = stft_data.size(0)
     window = torch_ones(len_each_section, dtype=torch_float64)
+    # CHANGED: Convert istft result back to double
+    stft_data = stft_data.double()
     return torch_istft(stft_data.view(len_each_section, num_frames, \
                        num_elements_beams, real_imag).permute(2, 0, 1, 3),
                        len_each_section, window=window,
                        hop_length=shift_length, center=False, onesided=False,
                        normalized=False, pad_mode='constant', length=y) \
-                       .view(num_elements, num_beams, y).permute(2, 0, 1)
+                       .float() \
+                       .view(num_elements, num_beams, y) \
+                       .permute(2, 0, 1)

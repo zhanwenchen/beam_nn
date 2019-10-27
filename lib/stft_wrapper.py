@@ -32,14 +32,18 @@ def stft(signal, len_each_section, frac_overlap, padding, window=None):
 
     num_elements_beams = num_elements*num_beams
     freq = torch_arange(padding)/padding
+    # CHANGED: Recast stft result to float
+    signal = signal.double()
     signal_stft = torch_stft(signal.view(y, num_elements_beams).permute(1, 0),
                              len_each_section, window=window,
                              hop_length=shift_length, center=False,
                              onesided=False, normalized=False,
                              pad_mode='constant') \
+                             .float() \
                              .permute(1, 2, 0, 3) \
                              .view(len_each_section, num_frames, num_elements, num_beams, 2)
 
+    del signal
     return {
         'stft': signal_stft,
         'freqs': freq,
