@@ -20,7 +20,7 @@ LEN_EACH_SECTION = 16
 FRAC_OVERLAP = 0.9
 PADDING = 16
 CHANDAT_DNN_SAVE_FNAME = 'chandat_dnn.mat'
-LOGGER = logging_getLogger('evaluate_keras')
+LOGGER = logging_getLogger()
 
 
 def r4_dnn_istft(target_dirname, chandat_obj=None, new_stft_object=None, is_saving_chandat_dnn=True):
@@ -31,7 +31,10 @@ def r4_dnn_istft(target_dirname, chandat_obj=None, new_stft_object=None, is_savi
     chandat_data = chandat_obj['chandat']
     num_rows, num_elements, num_beams = chandat_data.shape
     beam_position_x = chandat_obj['beam_position_x']
-    depth = chandat_obj['depth']
+    if 'depth' in chandat_obj:
+        depth = chandat_obj['depth']
+    else:
+        depth = chandat_obj['t'] / chandat_obj['fs'] * chandat_obj['c'] / 2
     f0 = chandat_obj['f0']
 
     del chandat_obj
@@ -52,7 +55,6 @@ def r4_dnn_istft(target_dirname, chandat_obj=None, new_stft_object=None, is_savi
     # chandat_stft_new = copy(chandat_stft)
     # chandat_stft_new['stft'] = new_stft
     chandat_stft['stft'] = new_stft
-
     chandat_new = istft(chandat_stft)
     # chandat_new = non_iter_ls_inv_stft(chandat_stft)
     # what = istft(chandat_stft, N, window=window, hop_length=2, center=False, onesided=False, normalized=False, pad_mode='constant', length=y)

@@ -5,14 +5,11 @@ from torch.nn import Conv1d, Conv2d, MaxPool2d, AdaptiveAvgPool2d, ReLU, Sequent
 from lib.fully_connected_net import FullyConnectedNet
 from lib.flatten import Flatten
 from lib.print_layer import PrintLayer
-# from lib.utils import get_dict_from_file_json
 
 
 class FlexNet(Module):
-    # def __init__(self, model_params_fname, printing=False):
     def __init__(self, model_init_params, printing=False):
         super(FlexNet, self).__init__()
-        # model_params = get_dict_from_file_json(model_params_fname)
         input_height, _, _, = self.input_dims = model_init_params['input_dims']
 
         if printing is True:
@@ -80,14 +77,17 @@ class FlexNet(Module):
             # self.model = model_init_params['model']
 
     def forward(self, x):
-        # batch_size = x.size(0)
+        batch_size = x.size(0)
         input_height, input_width, input_depth = self.input_dims
-        if self.printing: print('FlexNet: initial x.size() = ', x.size())
+        if self.printing:
+            print('FlexNet: initial x.size() = ', x.size())
         if input_height == 1:
             # 1D
-            x = x.view(-1, input_depth, input_width)
+            x = x.view(batch_size, input_depth, input_width)
         elif input_height == 2:
-            x = x.view(-1, input_depth, input_height, input_width)
+            x = x.view(batch_size, input_depth, input_height, input_width)
+        if self.printing:
+            print('FlexNet: after first view, x.size() = ', x.size())
         # x = x.view(-1, input_height, input_width, input_num_channels)
         x = self.net(x)
         # if self.model == 'FCN':
@@ -97,4 +97,6 @@ class FlexNet(Module):
             x = x.view(-1, input_depth * input_width)
         elif input_height == 2:
             x = x.view(-1, input_depth * input_height * input_width)
+        if self.printing:
+            print('FlexNet: finally x.size() = ', x.size())
         return x

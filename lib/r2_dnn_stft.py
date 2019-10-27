@@ -14,10 +14,10 @@ PADDING = 16
 CHANDAT_DNN_SAVE_FNAME = 'chandat_dnn_test.mat'
 OLD_STFT_SAVE_FNAME = 'old_stft.mat'
 
-LOGGER = logging_getLogger('evaluate_keras')
+LOGGER = logging_getLogger()
 
 
-def r2_dnn_stft(target_dirname, saving_to_disk=True):
+def r2_dnn_stft(target_dirname, saving_to_disk=False):
     LOGGER.info('{}: r2: Generating old_stft from chandat'.format(target_dirname))
     assert os_path_isdir(target_dirname)
     chandat_obj = loadmat(os_path_join(target_dirname, CHANDAT_FNAME))
@@ -28,14 +28,14 @@ def r2_dnn_stft(target_dirname, saving_to_disk=True):
     chandat_stft = stft(chandat, LEN_EACH_SECTION, FRAC_OVERLAP, PADDING)
     chandat_stft['origSigSize'] = [y, num_elements, num_beams]
 
+    chandat_stft['stft'] = chandat_stft['stft'].permute(3, 2, 1, 0, 4) # should be num_beams, num_elements, num_frames, num_frequencies, real_imag
     chandat_obj = {
-        'old_stft_real': chandat_stft['stft'][:, :, :, 0],
-        'old_stft_imag': chandat_stft['stft'][:, :, :, 1],
+        'old_stft_real': chandat_stft['stft'][:, :, :, :, 0],
+        'old_stft_imag': chandat_stft['stft'][:, :, :, :, 1],
     }
 
     if saving_to_disk is True:
         savemat(os_path_join(target_dirname, OLD_STFT_SAVE_FNAME), chandat_obj)
 
     LOGGER.info('{}: r2: Done'.format(target_dirname))
-    breakpoint()
     return chandat_obj

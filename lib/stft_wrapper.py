@@ -8,7 +8,7 @@ from torch import is_tensor as torch_is_tensor
 from torch import from_numpy as torch_from_numpy # pylint: disable=E0611
 
 # from logging import debug as logging_debug
-LOGGER = logging_getLogger('evaluate_keras')
+LOGGER = logging_getLogger()
 
 def stft(signal, len_each_section, frac_overlap, padding, window=None):
     try:

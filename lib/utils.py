@@ -1,5 +1,5 @@
 import os
-from os.path import join as os_path_join
+from os.path import join as os_path_join, exists as os_path_exists
 from json import load as json_load, dump
 import shutil
 import errno
@@ -130,7 +130,7 @@ def _decode(o):
 def read_model_params(model_params_fname):
     """Read and return model params from json (text) file."""
     # print('read_model_params: model_params_fname = {}'.format(model_params_fname))
-    if not os.path.exists(model_params_fname):
+    if not os_path_exists(model_params_fname):
         raise OSError('utils.read_model_params: {} doesn\'t exist'.format(model_params_fname))
 
     with open(model_params_fname, 'r') as f:
@@ -166,7 +166,8 @@ def read_model_params(model_params_fname):
                 #     else:
                 #         value = float(value)
                 model_params[key] = value
-
+        else:
+            raise IOError('read_model_params: got incorrect model_params_fname: {}'.format(model_params_fname))
     return model_params
 
 
