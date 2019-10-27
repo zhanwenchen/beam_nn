@@ -16,7 +16,7 @@ from torch import load as torch_load
 from torch import device as torch_device # pylint: disable=E0611
 from torch import from_numpy as torch_from_numpy # pylint: disable=E0611
 from torch import no_grad as torch_no_grad
-from torch.cuda import is_available as torch_cuda_is_cuda_available
+from torch.cuda import is_available as torch_cuda_is_cuda_available, empty_cache as torch_cuda_empty_cache
 
 from lib.utils import get_which_model_from_params_fname
 # from lib.any_model import AnyModel
@@ -85,18 +85,18 @@ def r3_dnn_apply(target_dirname, old_stft_obj=None, using_cuda=True, saving_to_d
 
     # change variable names
     # new_stft_real = stft[:, :N_elements, :, :]
-    new_stft_real = stft[:, :N_elements, :, :].transpose()
+    # new_stft_real = stft[:, :N_elements, :, :].transpose()
     # new_stft_imag = stft[:, N_elements:, :, :]
-    new_stft_imag = stft[:, N_elements:, :, :].transpose()
+    # new_stft_imag = stft[:, N_elements:, :, :].transpose()
 
-    del stft
 
     # change dimensions
     # new_stft_real = new_stft_real.transpose()
     # new_stft_imag = new_stft_imag.transpose()
 
     # save new stft data
-    new_stft_obj = {'new_stft_real': new_stft_real, 'new_stft_imag': new_stft_imag}
+    new_stft_obj = {'new_stft_real': stft[:, :N_elements, :, :].transpose(), 'new_stft_imag': stft[:, N_elements:, :, :].transpose()}
+    del stft
     if saving_to_disk is True:
         new_stft_fname = os_path_join(target_dirname, 'new_stft.mat')
         savemat(new_stft_fname, new_stft_obj)
@@ -104,7 +104,7 @@ def r3_dnn_apply(target_dirname, old_stft_obj=None, using_cuda=True, saving_to_d
     return new_stft_obj
 
 
-def process_each_frequency(model_dirname, stft, frequency, using_cuda=True, scan_battery_is_reverb=False):
+def process_each_frequency(model_dirname, stft, frequency, using_cuda=True):
     '''
     Setter method on stft.
     '''
@@ -157,7 +157,8 @@ def process_each_frequency(model_dirname, stft, frequency, using_cuda=True, scan
     # if stft.shape[-1] == 2:
     #     breakpoint()
     del aperture_data, model
-
+    if is_using_cuda is True:
+        torch_cuda_empty_cache()
     # 4. Postprocess on y_hat
     # rescale the data and store new data in stft
     stft[:, :, frequency] = aperture_data_new * aperture_data_norm[:, np_newaxis]
