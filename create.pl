@@ -102,7 +102,7 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
   % repeat, % So that random_between can run more than once.
 
   % Conv1 sizes
-  random_between(20, 100, Conv1NumKernels),
+  random_between(10, 50, Conv1NumKernels),
   ((InputHeight = 1, Conv1PaddingHeight is 0) ; (InputHeight = 2, random_between(0, 2, Conv1PaddingHeight))),
   % random_between(0, 3, Conv1PaddingHeight),
   random_between(0, 3, Conv1PaddingWidth),
@@ -115,7 +115,7 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
   % Conv1KernelHeightUpperBound is InputHeight + 2 * Conv1PaddingHeight,
   % random_between(1, Conv1KernelHeightUpperBound, Conv1KernelHeight),
 
-  random_between(3, 8, Conv1KernelWidth),
+  random_between(2, 9, Conv1KernelWidth),
   % Conv1KernelWidthUpperBound is InputWidth + 2 * Conv1PaddingWidth,
   % random_between(1, Conv1KernelWidthUpperBound, Conv1KernelWidth),
   OldConv1 = conv1{name: conv1, in_channels: InputChannels, type: conv2d, out_channels: Conv1NumKernels, kernel_height: Conv1KernelHeight, kernel_width: Conv1KernelWidth, padding_height: Conv1PaddingHeight, padding_width: Conv1PaddingWidth, stride_height: Conv1StrideHeight, stride_width: Conv1StrideWidth},
@@ -123,7 +123,7 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
   get_output_size([InputHeight, InputWidth, InputChannels], Conv1, [Conv2InputHeight, Conv2InputWidth, Conv2InputDepth]),
 
   %% Conv2
-  random_between(20, 100, Conv2NumKernels),
+  random_between(Conv1NumKernels, 100, Conv2NumKernels),
   Conv2NumKernels > Conv1NumKernels,
   ((InputHeight = 1, Conv2PaddingHeight is 0) ; (InputHeight = 2, random_between(0, 2, Conv2PaddingHeight))),
   % random_between(0, 3, Conv2PaddingHeight),
@@ -137,7 +137,7 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
   % Conv2KernelHeightUpperBound is Conv2InputHeight + 2 * Conv2PaddingHeight,
   % random_between(1, Conv2KernelHeightUpperBound, Conv2KernelHeight),
   % write(Conv2KernelHeightUpperBound),
-  random_between(3, 8, Conv2KernelWidth),
+  random_between(2, 9, Conv2KernelWidth),
   % Conv2KernelWidthUpperBound is Conv2InputWidth + 2 * Conv2PaddingWidth,
   % random_between(1, Conv2KernelWidthUpperBound, Conv2KernelWidth),
   OldConv2 = conv2{name: conv2, in_channels: Conv1NumKernels, out_channels: Conv2NumKernels, kernel_height: Conv2KernelHeight, kernel_width: Conv2KernelWidth, padding_height: Conv2PaddingHeight, padding_width: Conv2PaddingWidth, stride_height: Conv2StrideHeight, stride_width: Conv2StrideWidth},
@@ -155,7 +155,7 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
   get_output_size([Upsample1InputHeight, Upsample1InputWidth, Upsample1InputDepth], Upsample1, [Conv3InputHeight, Conv3InputWidth, Conv3InputDepth]),
 
   % Conv3
-  random_between(20, 100, Conv3NumKernels),
+  random_between(10, Conv2NumKernels, Conv3NumKernels),
   Conv3NumKernels < Conv2NumKernels,
   ((InputHeight = 1, Conv3PaddingHeight is 0) ; (InputHeight = 2, random_between(0, 2, Conv3PaddingHeight))),
   % random_between(0, 3, Conv3PaddingHeight),
@@ -169,7 +169,7 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
   % Conv3KernelHeightUpperBound is Conv3InputHeight + 2 * Conv3PaddingHeight,
   % random_between(1, Conv3KernelHeightUpperBound, Conv3KernelHeight),
   % write(Conv3KernelHeightUpperBound),
-  random_between(3, 8, Conv3KernelWidth),
+  random_between(2, 9, Conv3KernelWidth),
   % Conv3KernelWidthUpperBound is Conv3InputWidth + 2 * Conv3PaddingWidth,
   % random_between(1, Conv3KernelWidthUpperBound, Conv3KernelWidth),
   OldConv3 = conv3{name: conv3, in_channels: Conv2NumKernels, out_channels: Conv3NumKernels, kernel_height: Conv3KernelHeight, kernel_width: Conv3KernelWidth, padding_height: Conv3PaddingHeight, padding_width: Conv3PaddingWidth, stride_height: Conv3StrideHeight, stride_width: Conv3StrideWidth},

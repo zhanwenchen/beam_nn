@@ -151,6 +151,8 @@ def process_each_frequency(model_dirname, stft, frequency, using_cuda=True):
     # 3. Predict
     # y_hat = loaded_model_pipeline.predict(X_test)
     # y_hat is aperture_data_new
+    if is_using_cuda is True:
+        torch_cuda_empty_cache()
     with torch_no_grad():
         aperture_data_new = model(aperture_data).cpu().data.numpy()
 
