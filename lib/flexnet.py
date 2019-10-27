@@ -68,13 +68,15 @@ class FlexNet(Module):
                 modules.append(PrintLayer(module))
             modules.append(module)
 
-            if layer['type'] == 'conv2d':
+            if layer['type'] in ['conv1d', 'conv2d']:
                 modules.append(ReLU(inplace=True))
 
-            net = Sequential(*modules)
-            self.net = net
-            self.printing = printing
-            # self.model = model_init_params['model']
+            del module
+            
+        self.net = Sequential(*modules)
+        del modules
+        self.printing = printing
+        # self.model = model_init_params['model']
 
     def forward(self, x):
         batch_size = x.size(0)
