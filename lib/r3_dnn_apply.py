@@ -62,7 +62,6 @@ def r3_dnn_apply(target_dirname, old_stft_obj=None, using_cuda=True, saving_to_d
     # process stft with networks
 
     k_mask = list(range(3, 6))
-    # breakpoint()
     for frequency in k_mask:
         process_each_frequency(model_dirname, stft, frequency, using_cuda=using_cuda)
 
@@ -116,11 +115,11 @@ def process_each_frequency(model_dirname, stft, frequency, using_cuda=True):
 
     model_save_fpath = os_path_join(model_dirname, 'k_' + str(frequency), MODEL_SAVE_FNAME)
     model = get_which_model_from_params_fname(model_params_fname)
-    model.load_state_dict(torch_load(os_path_join(os_path_dirname(model_save_fpath), 'model.dat'), map_location=my_device), strict=False)
+    model.load_state_dict(torch_load(os_path_join(os_path_dirname(model_save_fpath), 'model.dat'), map_location=my_device), strict=True)
     model.eval()
     model = model.to(my_device)
 
-    if False:
+    if True:
         model.printing = True
         from lib.print_layer import PrintLayer
         new_model_net = []
@@ -132,7 +131,6 @@ def process_each_frequency(model_dirname, stft, frequency, using_cuda=True):
         model.net = Sequential(*new_model_net)
     # 2. Get X_test
     LOGGER.debug('r3.process_each_frequency: stft.shape = {}'.format(stft.shape))
-    # breakpoint()
 
     # Reverb data k = [0, 1, 2]. But model dirname use k = [3,4,5] regardless
     # if stft.shape[-1] == 2:
@@ -156,8 +154,6 @@ def process_each_frequency(model_dirname, stft, frequency, using_cuda=True):
     with torch_no_grad():
         aperture_data_new = model(aperture_data).cpu().data.numpy()
 
-    # if stft.shape[-1] == 2:
-    #     breakpoint()
     del aperture_data, model
     if is_using_cuda is True:
         torch_cuda_empty_cache()

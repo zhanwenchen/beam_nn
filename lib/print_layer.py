@@ -7,5 +7,5 @@ class PrintLayer(Module):
         self.prev_layer = prev_layer
 
     def forward(self, x):
-        print('After prev_layer = {}, x.size() = {}'.format(self.prev_layer, x.size()))
+        print('After prev_layer = {}, x.size() = {}, x.mean() = {}'.format(self.prev_layer, x.size(), x.mean()))
         return x
