@@ -1,6 +1,6 @@
 from pprint import pprint
 
-from torch.nn import Conv1d, Conv2d, MaxPool2d, AdaptiveAvgPool2d, ReLU, Sequential, Module, Upsample
+from torch.nn import Conv1d, Conv2d, MaxPool2d, AdaptiveAvgPool2d, LeakyReLU, Sequential, Module, Upsample
 
 from lib.fully_connected_net import FullyConnectedNet
 from lib.flatten import Flatten
@@ -69,10 +69,10 @@ class FlexNet(Module):
             modules.append(module)
 
             if layer['type'] in ['conv1d', 'conv2d']:
-                modules.append(ReLU(inplace=True))
+                modules.append(LeakyReLU())
 
             del module
-            
+
         self.net = Sequential(*modules)
         del modules
         self.printing = printing
