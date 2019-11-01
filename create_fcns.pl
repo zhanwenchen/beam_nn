@@ -124,7 +124,7 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
 
   %% Conv2
   random_between(Conv1NumKernels, 100, Conv2NumKernels),
-  Conv2NumKernels > Conv1NumKernels,
+  % Conv2NumKernels > Conv1NumKernels,
   ((InputHeight = 1, Conv2PaddingHeight is 0) ; (InputHeight = 2, random_between(0, 2, Conv2PaddingHeight))),
   % random_between(0, 3, Conv2PaddingHeight),
   random_between(0, 3, Conv2PaddingWidth),
@@ -245,7 +245,7 @@ find_full_fcn(FCN) :-
               data_is_target: 0,
               batch_size: 32,
               data_noise_gaussian: 1,
-              patience: 50,
+              patience: 30,
               data_train: DataTrain,
               data_val: DataVal,
               momentum: Momentum,
