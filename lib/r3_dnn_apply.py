@@ -119,7 +119,7 @@ def process_each_frequency(model_dirname, stft, frequency, using_cuda=True):
     model.eval()
     model = model.to(my_device)
 
-    if True:
+    if False:
         model.printing = True
         from lib.print_layer import PrintLayer
         new_model_net = []
