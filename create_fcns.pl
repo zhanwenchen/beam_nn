@@ -11,8 +11,10 @@
 %% v1.5: Narrowed kernel height to 1 (conv1d) and [2, 3] (conv2d).
 %% TODO: combine conv1d and conv2d: it's just a matter of height=1.
 :- use_module(library(http/json)).
+:- use_module(utils, [get_dict_from_json_file/2]).
 :- set_prolog_flag(verbose, silent).
 :- initialization(main).
+
 
 % For conv1d, set all heights to 1 so that we have a record.
 get_output_size([InputHeight, InputWidth, _], CurrentLayer, [OutputHeight, OutputWidth, OutputDepth]) :-
@@ -100,6 +102,7 @@ is_network_legal(InputSizes, [CurrentLayer|RestLayers]) :-
 % Predicate to find fully-convolutional networks
 find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
   % repeat, % So that random_between can run more than once.
+  get_dict_from_json_file('DNNs/test/k_4/model_params.json', ModelParamsRangesDict),
 
   % Conv1 sizes
   random_between(10, 50, Conv1NumKernels),
