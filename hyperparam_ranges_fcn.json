@@ -1,0 +1,7 @@
+{
+  "conv1_kernel_width": [3, 15],
+  "conv2_kernel_width": [3, 15],
+  "conv3_kernel_width": [3, 15],
+  "conv4_kernel_width": [3, 15],
+  "learning_rate": [0.1, 0.01, 0.001, 0.0001, 0.00001],
+}
