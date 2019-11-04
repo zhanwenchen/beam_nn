@@ -1,3 +1,8 @@
+# Versions
+
+- 1.6.1 Remove default LeakyReLU after last layer because regression should not have nonlinear output activation. Also added batch norm.
+- 1.6.2 Input normalization and output denormalization.
+
 # Approximating Low-Pass Filters with Neural Networks
 
 ## Project TODOs:

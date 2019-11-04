@@ -267,7 +267,7 @@ find_full_fcn(FCN) :-
   writeln(InputDims),
   % writeln(NumScatter),
 
-  Version = '1.6.0',
+  Version = '1.6.1',
 
   FCN = model{model: 'FCN',
               input_dims: InputDims,
@@ -295,7 +295,7 @@ write_model_to_file_per_k(Dict, Dirname, K) :-
   close(Stream).
 
 write_model_to_file(Dict) :-
-  Version = '1.6.0',
+  Version = '1.6.1',
   timestring(Timestring),
   atomic_list_concat(['DNNs/', 'fcn_v', Version, '_', Timestring, '_created'], Dirname),
   make_directory(Dirname),
