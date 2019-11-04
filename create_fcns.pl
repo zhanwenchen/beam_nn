@@ -10,6 +10,8 @@
 %% v1.4: 1. Fixed conv2d stride height = 0 issue; 2. Narrowed conv2d stride height from [1, 3] to [1, 2]; 3. Narrowed conv2d padding height from [0, 3] to [0, 2].
 %% v1.5: Narrowed kernel height to 1 (conv1d) and [2, 3] (conv2d).
 %% v1.6.0: 1. Authoritative change to conv kernel widths: between [3, 15]. 2 is too small, and 15 is pretty big already. 2. Implemented get_dict_from_json_file to read in JSON Prolog dicts. 3. Refactored get_dict_from_json_file to utils.pl module. 4. Integrated hyperparam_ranges_fcn.json file to parameterize search ranges (partially).
+%  v1.6.1 Remove default LeakyReLU after last layer because regression should not have nonlinear output activation. Also added batch norm.
+%  v1.6.2 Narrowed learning rate to either 1e-04 or 1e-05.
 %% TODO: combine conv1d and conv2d: it's just a matter of height=1.
 %% BUG: Potential mixup between random_member and random_between.
 :- use_module(library(http/json)).
@@ -267,7 +269,7 @@ find_full_fcn(FCN) :-
   writeln(InputDims),
   % writeln(NumScatter),
 
-  Version = '1.6.1',
+  Version = '1.6.2',
 
   FCN = model{model: 'FCN',
               input_dims: InputDims,
@@ -295,7 +297,7 @@ write_model_to_file_per_k(Dict, Dirname, K) :-
   close(Stream).
 
 write_model_to_file(Dict) :-
-  Version = '1.6.1',
+  Version = '1.6.2',
   timestring(Timestring),
   atomic_list_concat(['DNNs/', 'fcn_v', Version, '_', Timestring, '_created'], Dirname),
   make_directory(Dirname),
