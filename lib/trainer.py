@@ -10,7 +10,6 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 
 class Trainer():
-
     def __init__(self, model, loss, optimizer, loader_train, patience=None,
                     loader_train_eval=None, loader_val=None, cuda=None,
                     logger=None, data_noise_gaussian=None, save_dir=None):
@@ -27,7 +26,7 @@ class Trainer():
         self.logger = logger
         self.data_noise_gaussian = data_noise_gaussian
         self.save_dir = save_dir
-        self.scheduler = ReduceLROnPlateau(optimizer, 'min')
+        self.scheduler = ReduceLROnPlateau(optimizer, mode='min', verbose=True)
 
 
     def train_epoch(self):
@@ -40,7 +39,6 @@ class Trainer():
 
         total_loss = 0
         for batch_idx, data in enumerate(self.loader_train):
-
             # add gaussian noise if enabled
             if self.data_noise_gaussian:
                 X = data[0].numpy()
