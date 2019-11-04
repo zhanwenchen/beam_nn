@@ -24,9 +24,10 @@ CHANDAT_FNAME = 'chandat.mat'
 SCAN_BATTERIES_DIRNAME = 'scan_batteries'
 TARGET_PREFIX = 'target_'
 PROCESS_SCRIPTS_DIRNAME = 'process_scripts'
-TARGET_FILES_TO_REMOVE = ['old_stft.mat', 'new_stft.mat', 'chandat.mat', 'chandat_dnn.mat', 'dnn_image.mat', 'box_left_max.txt', 'box_left_min.txt', 'box_right_max.txt', 'box_right_min.txt', 'circle_out_radius.txt', 'circle_out_xc.txt', 'circle_out_zc.txt', 'region_in.txt', 'circle_radius.txt', 'circle_xc.txt', 'circle_zc.txt']
-SCAN_BATTERY_FOLDERS_TO_REMOVE = ['process_scripts', 'creation_scripts', 'phantoms']
-SCAN_BATTERY_FILES_TO_REMOVE = ['delete_files.sh', 'folders_in_battery.txt', 'model_dirs.txt']
+TARGET_FILES_TO_REMOVE = ['old_stft.mat', 'new_stft.mat', 'chandat.mat', 'chandat_dnn.mat', 'dnn_image.mat', 'box_left_max.txt', 'box_left_min.txt', 'box_right_max.txt', 'box_right_min.txt', 'circle_out_radius.txt', 'circle_out_xc.txt', 'circle_out_zc.txt', 'region_in.txt', 'circle_radius.txt', 'circle_xc.txt', 'circle_zc.txt',
+                          'chandat_clean.mat', 'das_image.mat', 'masks.mat', 'masks.npz', 'startOffsets.mat']
+SCAN_BATTERY_FOLDERS_TO_REMOVE = ['process_scripts', 'creation_scripts', 'phantoms', 'reverb', 'reverb_from_Kaz']
+SCAN_BATTERY_FILES_TO_REMOVE = ['delete_files.sh', 'folders_in_battery.txt', 'model_dirs.txt', 'k_analyze.txt', 'N_window.txt', 'train_targets_X_y.npz']
 
 
 def process_single_scan_battery(model_folder, source_scan_battery_dirname):
@@ -104,7 +105,6 @@ def process_single_target(target_dirname):
     new_stft_object = r3_dnn_apply(target_dirname, old_stft_obj=old_stft_obj, saving_to_disk=False)
     del old_stft_obj
     # print('process_single_scan_battery: new_stft_object[\'new_stft_real\'].shape =', new_stft_object['new_stft_real'].shape)
-    # breakpoint()
     chandat_dnn_object = r4_dnn_istft(target_dirname, chandat_obj=chandat_obj, new_stft_object=new_stft_object, is_saving_chandat_dnn=False)
     del new_stft_object
     chandat_image_obj = r5_dnn_image(target_dirname, chandat_obj=chandat_obj, chandat_dnn_obj=chandat_dnn_object, is_saving_chandat_image=False)

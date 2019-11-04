@@ -4,9 +4,15 @@
 
 -[] Try Dropout1d instead of current Dropout2d
 -[] Verify image and speckle stats correctness vs. Matlab
--[] 
+-[]
 
-## Training instructions
+# Instructions
+## 1. Create Models
+To use the create_fcns.pl to create any number of Fully-Convolutional Networks ()
+
+
+
+## 2.  Training instructions
 
 
 # Approach 1: Use create_50_models_and_train.sh
