@@ -111,7 +111,7 @@ def process_each_frequency(model_dirname, stft, frequency, using_cuda=True):
     model.eval()
     model = model.to(my_device)
 
-    if True:
+    if False:
         model.printing = True
         from lib.print_layer import PrintLayer
         new_model_net = []
@@ -124,10 +124,6 @@ def process_each_frequency(model_dirname, stft, frequency, using_cuda=True):
     # 2. Get X_test
     LOGGER.debug('r3.process_each_frequency: stft.shape = {}'.format(stft.shape))
 
-    # Reverb data k = [0, 1, 2]. But model dirname use k = [3,4,5] regardless
-    # if stft.shape[-1] == 2:
-    #     frequency -= 3
-
     aperture_data = stft[:, :, frequency] # or stft_frequency
 
     # 2.1. normalize by L1 norm
@@ -135,25 +131,14 @@ def process_each_frequency(model_dirname, stft, frequency, using_cuda=True):
     aperture_data /= aperture_data_norm[:, np_newaxis]
 
     # load into torch and onto gpu
-    # X_test = aperture_data
-    # aperture_data = torch_from_numpy(aperture_data).float().to(my_device)
     aperture_dataset_eval = ApertureDatasetEval(aperture_data)
     aperture_dataset_loader = DataLoader(aperture_dataset_eval, batch_size=EVAL_BATCH_SIZE, shuffle=False, num_workers=DATALOADER_NUM_WORKERS, pin_memory=using_cuda)
 
     # 3. Predict
-    # y_hat = loaded_model_pipeline.predict(X_test)
-    # y_hat is aperture_data_new
     if is_using_cuda is True:
         torch_cuda_empty_cache()
-    # with torch_no_grad():
-    #     aperture_data_new = model(aperture_data).cpu().data.numpy()
 
     aperture_data_new = predict(model, aperture_dataset_loader, my_device)
-
-    # for batch_index, x in enumerate(aperture_dataset_loader):
-    #     if is_using_cuda is True:
-    #         x = x.cuda()
-    #     y_hat = model(x)
 
     del aperture_data, model, aperture_dataset_eval, aperture_dataset_loader, my_device
     if is_using_cuda is True:
@@ -177,7 +162,5 @@ def predict(model, dataloader, device):
             end = num_elements
         with torch_no_grad():
             predictions[start:end, :] = model(x)
-        breakpoint()
-        # predictions[start:end] = pred
 
     return predictions
