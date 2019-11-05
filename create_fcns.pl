@@ -298,7 +298,7 @@ write_model_to_file(Dict) :-
   timestring(Timestring),
   atomic_list_concat(['DNNs/', 'fcn_v', Version, '_', Timestring, '_created'], Dirname),
   make_directory(Dirname),
-  maplist(write_model_to_file_per_k(Dict, Dirname), [3, 4, 5]).
+  maplist(write_model_to_file_per_k(Dict, Dirname), [3, 4, 5]),
   write(Dirname).
 
 timestring(Timestring) :-
