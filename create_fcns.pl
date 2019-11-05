@@ -12,6 +12,7 @@
 %% v1.6.0: 1. Authoritative change to conv kernel widths: between [3, 15]. 2 is too small, and 15 is pretty big already. 2. Implemented get_dict_from_json_file to read in JSON Prolog dicts. 3. Refactored get_dict_from_json_file to utils.pl module. 4. Integrated hyperparam_ranges_fcn.json file to parameterize search ranges (partially).
 %  v1.6.1 Remove default LeakyReLU after last layer because regression should not have nonlinear output activation. Also added batch norm.
 %  v1.6.2 Narrowed learning rate to either 1e-04 or 1e-05.
+%  v1.6.3 Reduced patience from 30 to 20 in order to churn out more models
 %% TODO: combine conv1d and conv2d: it's just a matter of height=1.
 %% BUG: Potential mixup between random_member and random_between.
 :- use_module(library(http/json)).
@@ -201,10 +202,6 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
 
 
   % Upsample2
-  % Upsample2FactorWidth is 2,
-  % Conv4InputHeight is Upsample2InputHeight,
-  % Conv4InputWidth is Upsample2InputWidth * 2,
-  % Conv4InputDepth is Upsample2InputDepth,
   Upsample2 = upsample2{name: upsample2, type: upsample, scale_factor_height: 1, scale_factor_width: 2},
   get_output_size([Upsample2InputHeight, Upsample2InputWidth, Upsample2InputDepth], Upsample2, [Conv4InputHeight, Conv4InputWidth, Conv4InputDepth]),
 
@@ -269,7 +266,7 @@ find_full_fcn(FCN) :-
   writeln(InputDims),
   % writeln(NumScatter),
 
-  Version = '1.6.2',
+  Version = '1.6.3',
 
   FCN = model{model: 'FCN',
               input_dims: InputDims,
@@ -281,7 +278,7 @@ find_full_fcn(FCN) :-
               data_is_target: 0,
               batch_size: 32,
               data_noise_gaussian: 1,
-              patience: 30,
+              patience: 20,
               data_train: DataTrain,
               data_val: DataVal,
               momentum: Momentum,
@@ -297,7 +294,7 @@ write_model_to_file_per_k(Dict, Dirname, K) :-
   close(Stream).
 
 write_model_to_file(Dict) :-
-  Version = '1.6.2',
+  Version = '1.6.3',
   timestring(Timestring),
   atomic_list_concat(['DNNs/', 'fcn_v', Version, '_', Timestring, '_created'], Dirname),
   make_directory(Dirname),
