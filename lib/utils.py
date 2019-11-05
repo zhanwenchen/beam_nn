@@ -5,9 +5,13 @@ import shutil
 import errno
 from math import floor
 from copy import copy as copy_copy
+from random import seed as random_seed
 
 from h5py import File as h5py_File
-from numpy import clip as np_clip, spacing as np_spacing, array as np_array
+from numpy import clip as np_clip, \
+                  spacing as np_spacing, \
+                  array as np_array
+from torch import manual_seed as torch_manual_seed
 from torch.nn import Conv2d, MaxPool2d, ReLU
 EPS = np_spacing(1)
 
@@ -82,51 +86,6 @@ def _decode(o):
         return o
 
 
-# def read_model_params(model_params_fpath):
-#     """Read and return model params from json (text) file."""
-#     # print('read_model_params: model_params_fname = {}'.format(model_params_fname))
-#     if model_params_fpath.endswith('.json') and os_path_exists(model_params_fpath):
-#         try:
-#             with open(model_params_fpath, 'r') as f:
-#                 model_params = json_load(f)
-#         except:
-#             raise
-#
-#
-#     if not os.path.exists(model_params_fname):
-#         raise OSError('utils.read_model_params: {} doesn\'t exist'.format(model_params_fname))
-#
-#
-#         elif model_params_fname.endswith('.txt'):
-#             model_params = {}
-#             for line in f:
-#                 [key, value] = line.split(',')
-#                 value = value.rstrip()
-#
-#                 # Try to read string values
-#                 if isinstance(value, str):
-#                     # If value can be turned into a float, then it could also
-#                     # be an integer.
-#                     try:
-#                         value = float(value)
-#                         if value.is_integer():
-#                             value = int(value)
-#                     except ValueError:
-#                         # If value cannot be turned into a float, then it must
-#                         # not be a number. In this case, don't do anything and
-#                         # pass it on as string.
-#                         pass
-#
-#                 # if isinstance(value, (int, float)):
-#                 #     if value.isdigit():
-#                 #         value = int(value)
-#                 #     else:
-#                 #         value = float(value)
-#                 model_params[key] = value
-#
-#     return model_params
-
-
 def read_model_params(model_params_fname):
     """Read and return model params from json (text) file."""
     # print('read_model_params: model_params_fname = {}'.format(model_params_fname))
@@ -136,10 +95,9 @@ def read_model_params(model_params_fname):
     with open(model_params_fname, 'r') as f:
         if model_params_fname.endswith('.json'):
             try:
-                # model_params = json.load(f, object_hook=_decode)
                 model_params = json_load(f)
-            except:
-                raise
+            except Exception as e:
+                raise e
         elif model_params_fname.endswith('.txt'):
             model_params = {}
             for line in f:
@@ -160,11 +118,6 @@ def read_model_params(model_params_fname):
                         # pass it on as string.
                         pass
 
-                # if isinstance(value, (int, float)):
-                #     if value.isdigit():
-                #         value = int(value)
-                #     else:
-                #         value = float(value)
                 model_params[key] = value
         else:
             raise IOError('read_model_params: got incorrect model_params_fname: {}'.format(model_params_fname))
@@ -229,7 +182,6 @@ def get_which_model_from_params_fname(model_params_fname, return_params=False):
         del model_init_params['data_train']
         del model_init_params['data_val']
         del model_init_params['k']
-        # del model_init_params['layers']
         del model_init_params['learning_rate']
         del model_init_params['loss_function']
         del model_init_params['model']
@@ -239,7 +191,6 @@ def get_which_model_from_params_fname(model_params_fname, return_params=False):
         del model_init_params['patience']
         del model_init_params['weight_decay']
         model = FlexNet(model_init_params)
-        # model = model_class(**model_init_params)
         if return_params is True:
             return model, model_params
 
@@ -257,14 +208,7 @@ def get_which_model_from_params_fname(model_params_fname, return_params=False):
         from lib.lenet_1d import LeNet_1D # Circular dependency
         model_class = LeNet_1D
 
-    # model_params_init = {k:v for k,v in model_params.items() if k not in EXCLUDE_MODEL_PARAMS_KEYS}
-
     try:
-        # if model_class is FlexNet:
-        #     model = model_class(**model_params_init)
-        # else:
-        # print('get_which_model_from_params_fname: model_class =', model_class)
-        # print('get_which_model_from_params_fname: input_channel =', input_channel)
         model = model_class(input_channel,
                             # model_params['input'],
                             model_params['output_size'],
@@ -392,10 +336,6 @@ def copy_create_destination(src, dest):
 
 # https://stackoverflow.com/a/1994840/3853537
 def copy_anything(src, dst):
-    # if os.path.exists(dst):
-        # print('utils.py: {} exists'.format(dst))
-        # shutil.rmtree(dst)
-        # shutil.copytree(src, dst)
     try:
         shutil.copytree(src, dst)
     except OSError as exc: # python >2.5
@@ -481,35 +421,9 @@ def get_pool_output_dims(input_dims, kernel_dims, stride_dims):
 
     pool_output_height = floor((pool_input_height - pool_kernel_height)/pool_stride_height + 1)
     pool_output_width = floor((pool_input_width - pool_kernel_width)/pool_stride_width + 1)
-    # print('{pool_output_width} = floor(({pool_input_width} - {pool_kernel_width})/{pool_stride_width} + 1)'.format(pool_output_width=pool_output_width, pool_input_width=pool_input_width, pool_kernel_width=pool_kernel_width, pool_stride_width=pool_stride_width))
     pool_output_dims = pool_input_dims
 
     return pool_output_height, pool_output_width, pool_output_dims
-
-
-def get_pool_output_dims_old(input_dims, kernel_dims, stride_dims):
-    '''
-    Calculate pooling layer output sizes, according to
-    http://cs231n.github.io/convolutional-networks/
-
-    Inputs must be ((W_in, H_in, D_in), (W_kernel, H_kernel), (W_stride, H_stride)
-
-    W2=(W1−F)/S+1
-    H2=(H1−F)/S+1
-    D2=D1
-    '''
-    try:
-        pool_input_width, pool_input_height, pool_input_dims = input_dims
-        pool_kernel_width, pool_kernel_height = kernel_dims
-        pool_stride_width, pool_stride_height = stride_dims
-    except:
-        raise ValueError('{}.get_pooling_output_dims: inputs must be ((W_in, H_in, D_in), (W_kernel, H_kernel), (W_stride, H_stride))'.format(__name__))
-
-    pool_output_width = (pool_input_width - pool_kernel_width)/pool_stride_width + 1
-    pool_output_height = (pool_input_height - pool_kernel_height)/pool_stride_height + 1
-    pool_output_dims = pool_input_dims
-
-    return pool_output_width, pool_output_height, pool_output_dims
 
 
 def get_conv_output_dims(input_dims, pad_dims, kernel_dims, stride_dims, num_kernels):
@@ -538,3 +452,11 @@ def get_conv_output_dims(input_dims, pad_dims, kernel_dims, stride_dims, num_ker
     conv_output_dims = num_kernels
 
     return conv_output_height, conv_output_width, conv_output_dims
+
+
+def seed_everything(seed=1234):
+    random_seed(seed)
+    torch_manual_seed(seed)
+    # torch.cuda.manual_seed_all(seed)
+    # np.random.seed(seed)
+    # os.environ['PYTHONHASHSEED'] = str(seed)
