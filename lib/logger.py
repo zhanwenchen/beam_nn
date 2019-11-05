@@ -1,6 +1,4 @@
-
 class Logger:
-
     def __init__(self):
         self.entries = {}
 
@@ -17,16 +15,15 @@ class Logger:
         return self.entries[idx]
 
     def append(self, path):
-
         epoch = len(self.entries)
-        line = [epoch]
-        line.append( self.entries[epoch]['loss_train'] )
-        line.append( self.entries[epoch]['loss_train_eval'] )
-        line.append( self.entries[epoch]['loss_val'] )
-        line = [str(item) for item in line]
-        line = ','.join(line)
-        line += '\n'
+        entry = self.entries[epoch]
+        line = [epoch, entry['loss_train'], entry['loss_train_eval'], entry['loss_val']]
+        # line.append( entry['loss_train'] )
+        # line.append( entry['loss_train_eval'] )
+        # line.append( entry['loss_val'] )
+        # line = [str(item) for item in line]
+        line = ','.join([str(item) for item in line]) + '\n'
+        # line += '\n'
 
-        f = open(path, 'a')
-        f.write(line)
-        f.close()
+        with open(path, 'a') as f:
+            f.write(line)

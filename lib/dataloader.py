@@ -8,7 +8,6 @@ from torch import from_numpy # pylint: disable=E0611
 
 class ApertureDataset(Dataset):
     """Aperture domain dataset."""
-
     def __init__(self, fname, num_samples, k=4, target_is_data=False):
         """
         Args:
