@@ -299,7 +299,7 @@ write_model_to_file(Dict) :-
   atomic_list_concat(['DNNs/', 'fcn_v', Version, '_', Timestring, '_created'], Dirname),
   make_directory(Dirname),
   maplist(write_model_to_file_per_k(Dict, Dirname), [3, 4, 5]),
-  write(Dirname).
+  writeln(Dirname).
 
 timestring(Timestring) :-
   get_time(Timestamp), format_time(atom(Timestring), '%Y%m%d%H%M%S%f', Timestamp).
