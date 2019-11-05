@@ -13,11 +13,11 @@ from numpy.linalg import norm as np_linalg_norm
 from scipy.io import savemat
 from torch import load as torch_load
 from torch import device as torch_device # pylint: disable=E0611
-from torch import from_numpy as torch_from_numpy # pylint: disable=E0611
+# from torch import from_numpy as torch_from_numpy # pylint: disable=E0611
 from torch import no_grad as torch_no_grad
 from torch import zeros as torch_zeros # pylint: disable=E0611
 from torch.cuda import is_available as torch_cuda_is_cuda_available, empty_cache as torch_cuda_empty_cache
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader
 
 from lib.aperture_dataset_eval import ApertureDatasetEval
 from lib.utils import get_which_model_from_params_fname
@@ -169,13 +169,14 @@ def predict(model, dataloader, device):
     num_batches = len(dataloader)
     batch_size = dataloader.batch_size
     predictions = torch_zeros(num_elements, device=device)
-    for i, batch in enumerate(dataloader):
+    for i, x in enumerate(dataloader):
+        x = x.to(device=device)
         start = i * batch_size
         end = start + batch_size
         if i == num_batches - 1:
             end = num_elements
         with torch_no_grad():
-            predictions[start:end] = model(batch)
+            predictions[start:end] = model(x)
         # predictions[start:end] = pred
 
     return predictions
