@@ -1,3 +1,4 @@
+# TODO: change the numpy code to torch
 from os.path import dirname as os_path_dirname, join as os_path_join, basename as os_path_basename
 from logging import getLogger as logging_getLogger, INFO as logging_INFO
 
@@ -163,4 +164,4 @@ def predict(model, dataloader, device):
         with torch_no_grad():
             predictions[start:end, :] = model(x)
 
-    return predictions
+    return predictions.cpu().data.numpy()
