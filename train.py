@@ -6,8 +6,7 @@ from glob import glob
 from torch import save as torch_save
 from torch.utils.data import DataLoader
 from torch.cuda import is_available as torch_cuda_is_available
-from torch import multiprocessing as mp
-# from torch.multiprocessing import Pool
+from torch.multiprocessing import Pool, cpu_count
 
 from lib.utils import save_model_params, ensure_dir, add_suffix_to_path, get_which_model_from_params_fname
 from lib.dataloader import ApertureDataset
@@ -21,7 +20,7 @@ MODEL_DATA_FNAME = 'model.dat'
 NUM_SAMPLES_TRAIN = 10 ** 5
 NUM_SAMPLES_TRAIN_EVAL = 10 ** 4
 NUM_SAMPLES_VALID = 10 ** 4
-DATALOADER_NUM_WORKERS = 4
+DATALOADER_NUM_WORKERS = 0
 
 
 def train(identifier, num_concurrent_models=-1):
@@ -31,9 +30,9 @@ def train(identifier, num_concurrent_models=-1):
         raise ValueError('train.py: given identifier {} matched no models.'.format(identifier))
 
     if num_concurrent_models == -1:
-        num_concurrent_models = mp.cpu_count()
+        num_concurrent_models = cpu_count()
 
-    with mp.Pool(processes=num_concurrent_models) as pool:
+    with Pool(processes=num_concurrent_models) as pool:
         list(pool.imap_unordered(train_one, models))
 
 
