@@ -24,16 +24,16 @@ NUM_SAMPLES_VALID = 10 ** 4
 DATALOADER_NUM_WORKERS = 4
 
 
-def train(identifier, num_current_models=-1):
+def train(identifier, num_concurrent_models=-1):
     models = glob(os_path_join(model_parent_folder, str(identifier) + '_created'))
 
     if not models:
         raise ValueError('train.py: given identifier {} matched no models.'.format(identifier))
 
-    if num_current_models == -1:
-        num_current_models = mp.cpu_count()
+    if num_concurrent_models == -1:
+        num_concurrent_models = mp.cpu_count()
 
-    with mp.Pool(processes=num_current_models) as pool:
+    with mp.Pool(processes=num_concurrent_models) as pool:
         list(pool.imap_unordered(train_one, models))
 
 
@@ -130,11 +130,13 @@ def train_one(model_folder):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('identifier', help='Option to load model params from a file. Values in this file take precedence.')
+    parser.add_argument('num_concurrent_models', type=int, help='Number of models to train at the same time')
     args = parser.parse_args()
 
     # seed_everything()
     identifier = args.identifier
-    train(identifier)
+    num_concurrent_models = args.num_concurrent_models
+    train(identifier, num_concurrent_models=num_concurrent_models)
 
 
 if __name__ == '__main__':
