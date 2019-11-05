@@ -1,8 +1,7 @@
 from os.path import dirname as os_path_dirname, join as os_path_join, basename as os_path_basename
-from h5py import File as h5py_File
 from logging import getLogger as logging_getLogger, INFO as logging_INFO
-# from joblib import load as joblib_load
 
+from h5py import File as h5py_File
 from numpy import reshape as np_reshape, \
                   moveaxis as np_moveaxis, \
                   flip as np_flip, \
@@ -16,15 +15,19 @@ from torch import load as torch_load
 from torch import device as torch_device # pylint: disable=E0611
 from torch import from_numpy as torch_from_numpy # pylint: disable=E0611
 from torch import no_grad as torch_no_grad
+from torch import zeros as torch_zeros # pylint: disable=E0611
 from torch.cuda import is_available as torch_cuda_is_cuda_available, empty_cache as torch_cuda_empty_cache
+from torch.utils.data import Dataset, DataLoader
 
+from lib.aperture_dataset_eval import ApertureDatasetEval
 from lib.utils import get_which_model_from_params_fname
-# from lib.any_model import AnyModel
 
 SCRIPT_FNAME = os_path_basename(__file__)
 MODEL_SAVE_FNAME = 'model.dat'
 MODEL_PARAMS_FNAME = 'model_params.json'
 # MODEL_PARAMS_FNAME = 'model_params.json'
+DATALOADER_NUM_WORKERS = 4
+EVAL_BATCH_SIZE = 32
 
 LOGGER = logging_getLogger()
 LOGGER.setLevel(logging_INFO)
@@ -82,17 +85,6 @@ def r3_dnn_apply(target_dirname, old_stft_obj=None, using_cuda=True, saving_to_d
     # move element position axis
     stft = np_moveaxis(stft, 1, 2) # TODO: Duplicate?
 
-    # change variable names
-    # new_stft_real = stft[:, :N_elements, :, :]
-    # new_stft_real = stft[:, :N_elements, :, :].transpose()
-    # new_stft_imag = stft[:, N_elements:, :, :]
-    # new_stft_imag = stft[:, N_elements:, :, :].transpose()
-
-
-    # change dimensions
-    # new_stft_real = new_stft_real.transpose()
-    # new_stft_imag = new_stft_imag.transpose()
-
     # save new stft data
     new_stft_obj = {'new_stft_real': stft[:, :N_elements, :, :].transpose(), 'new_stft_imag': stft[:, N_elements:, :, :].transpose()}
     del stft
@@ -144,20 +136,46 @@ def process_each_frequency(model_dirname, stft, frequency, using_cuda=True):
 
     # load into torch and onto gpu
     # X_test = aperture_data
-    aperture_data = torch_from_numpy(aperture_data).float().to(my_device)
+    # aperture_data = torch_from_numpy(aperture_data).float().to(my_device)
+    aperture_dataset_eval = ApertureDatasetEval(aperture_data)
+    aperture_dataset_loader = DataLoader(aperture_dataset_eval, batch_size=EVAL_BATCH_SIZE, shuffle=False, num_workers=DATALOADER_NUM_WORKERS, pin_memory=using_cuda)
 
     # 3. Predict
     # y_hat = loaded_model_pipeline.predict(X_test)
     # y_hat is aperture_data_new
     if is_using_cuda is True:
         torch_cuda_empty_cache()
-    with torch_no_grad():
-        aperture_data_new = model(aperture_data).cpu().data.numpy()
+    # with torch_no_grad():
+    #     aperture_data_new = model(aperture_data).cpu().data.numpy()
 
-    del aperture_data, model
+    aperture_data_new = predict(model, aperture_dataset_loader, my_device)
+
+    # for batch_index, x in enumerate(aperture_dataset_loader):
+    #     if is_using_cuda is True:
+    #         x = x.cuda()
+    #     y_hat = model(x)
+
+    del aperture_data, model, aperture_dataset_eval, aperture_dataset_loader, my_device
     if is_using_cuda is True:
         torch_cuda_empty_cache()
     # 4. Postprocess on y_hat
     # rescale the data and store new data in stft
     stft[:, :, frequency] = aperture_data_new * aperture_data_norm[:, np_newaxis]
     del aperture_data_new, aperture_data_norm
+
+
+def predict(model, dataloader, device):
+    num_elements = len(dataloader.dataset)
+    num_batches = len(dataloader)
+    batch_size = dataloader.batch_size
+    predictions = torch_zeros(num_elements, device=device)
+    for i, batch in enumerate(dataloader):
+        start = i * batch_size
+        end = start + batch_size
+        if i == num_batches - 1:
+            end = num_elements
+        with torch_no_grad():
+            predictions[start:end] = model(batch)
+        # predictions[start:end] = pred
+
+    return predictions
