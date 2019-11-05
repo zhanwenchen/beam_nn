@@ -1,73 +1,60 @@
-import os
+from os import rename as os_rename
 from os.path import join as os_path_join
+from shutil import move as shutil_move
 import argparse
-import random
-import numpy as np
 from glob import glob
-# import warnings
 
-# from pprint import pprint
-import shutil
-import torch
-
+from torch import save as torch_save
+from torch.utils.data import DataLoader
+from torch.cuda import is_available as torch_cuda_is_available
 
 from lib.utils import save_model_params, ensure_dir, add_suffix_to_path, get_which_model_from_params_fname
 from lib.dataloader import ApertureDataset
-# from lib.lenet import LeNet
-# from lib.alexnet import AlexNet
 from lib.logger import Logger
 from lib.trainer import Trainer
 
 
 model_parent_folder = 'DNNs'
 model_params_fname = 'model_params.json'
-
-
-def seed_everything(seed=1234):
-    random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    np.random.seed(seed)
-    os.environ['PYTHONHASHSEED'] = str(seed)
+MODEL_DATA_FNAME = 'model.dat'
+NUM_SAMPLES_TRAIN = 10 ** 5
+NUM_SAMPLES_TRAIN_EVAL = 10 ** 4
+NUM_SAMPLES_VALID = 10 ** 4
+DATALOADER_NUM_WORKERS = 4
 
 
 def train(identifier):
-    models = glob(os.path.join(model_parent_folder, str(identifier) + '_created'))
+    models = glob(os_path_join(model_parent_folder, str(identifier) + '_created'))
 
     if not models:
         raise ValueError('train.py: given identifier {} matched no models.'.format(identifier))
 
     for model_folder in models:
         new_model_folder_name = model_folder.replace('_created', '_training')
-        shutil.move(model_folder, new_model_folder_name)
-        ks = glob(os_path_join(new_model_folder_name, 'k_*'))
-        for k in ks:
+        shutil_move(model_folder, new_model_folder_name)
+        frequencies = glob(os_path_join(new_model_folder_name, 'k_*'))
+        for frequency in frequencies:
             # Load model
-            print('train.py: training {}'.format(k))
-            model_params_path = os_path_join(k, model_params_fname)
-            # print('train.py: training model', model_params_path, 'with hyperparams')
+            print('train.py: training {}'.format(frequency))
+            model_params_path = os_path_join(frequency, model_params_fname)
 
             # create model
-            # model, model_params = get_which_model_from_params_fname(LeNet, model_params_path, return_params=True)
             model, model_params = get_which_model_from_params_fname(model_params_path, return_params=True)
-            # summary(model, (130,))
-            # configure cuda
             if 'cuda' in model_params:
-                using_cuda = model_params['cuda'] and torch.cuda.is_available()
+                using_cuda = model_params['cuda'] and torch_cuda_is_available()
             else:
-                using_cuda = torch.cuda.is_available()
+                using_cuda = torch_cuda_is_available()
+
             if using_cuda is True:
-                # print('train.py: Using device ', torch.cuda.get_device_name(0))
                 model.cuda()
 
             # save initial weights
             if 'save_initial' in model_params and model_params['save_initial'] and model_params['save_dir']:
                 suffix = '_initial'
                 path = add_suffix_to_path(model_params_fname['save_dir'], suffix) # pylint: disable=E1126
-                # print('Saving model weights in : ' + path)
                 ensure_dir(path)
-                torch.save(model.state_dict(), os.path.join(path, 'model.dat'))
-                save_model_params(os.path.join(path, model_params_fname), model_params)
+                torch_save(model.state_dict(), os_path_join(path, MODEL_DATA_FNAME))
+                save_model_params(os_path_join(path, model_params_fname), model_params)
 
             # loss
             if 'cost_function' in model_params:
@@ -76,21 +63,26 @@ def train(identifier):
                 loss = model_params['loss_function']
             else:
                 raise ValueError('model_params missing key cost_function or loss_function')
-                
+
             if loss not in ['MSE', 'L1', 'SmoothL1']:
                 raise TypeError('Error must be MSE, L1, or SmoothL1. You gave ' + str(loss))
             if loss == 'MSE':
-                loss = torch.nn.MSELoss()
+                from torch.nn import MSELoss
+                loss = MSELoss()
             elif loss == 'L1':
-                loss = torch.nn.L1Loss()
+                from torch.nn import L1Loss
+                loss = L1Loss()
             elif loss == 'SmoothL1':
-                loss = torch.nn.SmoothL1Loss()
+                from torch.nn import SmoothL1Loss
+                loss = SmoothL1Loss()
 
             # optimizer
             if model_params['optimizer'] == 'Adam':
-                optimizer = torch.optim.Adam(model.parameters(), lr=model_params['learning_rate'], weight_decay=model_params['weight_decay'])
+                from torch.optim import Adam
+                optimizer = Adam(model.parameters(), lr=model_params['learning_rate'], weight_decay=model_params['weight_decay'])
             elif model_params['optimizer'] == 'SGD':
-                optimizer = torch.optim.SGD(model.parameters(), lr=model_params['learning_rate'], momentum=model_params['momentum'], weight_decay=model_params['weight_decay'])
+                from torch.optim import SGD
+                optimizer = SGD(model.parameters(), lr=model_params['learning_rate'], momentum=model_params['momentum'], weight_decay=model_params['weight_decay'])
             else:
                 raise ValueError('model_params[\'optimizer\'] must be either Adam or SGD. Got ' + model_params['optimizer'])
 
@@ -98,20 +90,16 @@ def train(identifier):
 
             # Load training, validation, and test data
             # Load primary training data
-            num_samples = 10 ** 5
-            dat_train = ApertureDataset(model_params['data_train'], num_samples, k=model_params['k'], target_is_data=model_params['data_is_target'])
-            loader_train = torch.utils.data.DataLoader(dat_train, batch_size=model_params['batch_size'], shuffle=True, num_workers=1)
+            dat_train = ApertureDataset(model_params['data_train'], NUM_SAMPLES_TRAIN, k=model_params['k'], target_is_data=model_params['data_is_target'])
+            loader_train = DataLoader(dat_train, batch_size=model_params['batch_size'], shuffle=True, num_workers=DATALOADER_NUM_WORKERS)
 
             # Load secondary training data - used to evaluate training loss after every epoch
-            num_samples = 10 ** 4
-            dat_train2 = ApertureDataset(model_params['data_train'], num_samples, k=model_params['k'], target_is_data=model_params['data_is_target'])
-            loader_train_eval = torch.utils.data.DataLoader(dat_train2, batch_size=model_params['batch_size'], shuffle=False, num_workers=1)
+            dat_train2 = ApertureDataset(model_params['data_train'], NUM_SAMPLES_TRAIN_EVAL, k=model_params['k'], target_is_data=model_params['data_is_target'])
+            loader_train_eval = DataLoader(dat_train2, batch_size=model_params['batch_size'], shuffle=False, num_workers=DATALOADER_NUM_WORKERS)
 
             # Load validation data - used to evaluate validation loss after every epoch
-            num_samples = 10 ** 4
-            dat_val = ApertureDataset(model_params['data_val'], num_samples, k=model_params['k'], target_is_data=model_params['data_is_target'])
-            loader_val = torch.utils.data.DataLoader(dat_val, batch_size=model_params['batch_size'], shuffle=False, num_workers=1)
-
+            dat_val = ApertureDataset(model_params['data_val'], NUM_SAMPLES_VALID, k=model_params['k'], target_is_data=model_params['data_is_target'])
+            loader_val = DataLoader(dat_val, batch_size=model_params['batch_size'], shuffle=False, num_workers=DATALOADER_NUM_WORKERS)
 
             trainer = Trainer(model=model,
                               loss=loss,
@@ -123,12 +111,12 @@ def train(identifier):
                               cuda=using_cuda,
                               logger=logger,
                               data_noise_gaussian=model_params['data_noise_gaussian'],
-                              save_dir=k)
+                              save_dir=frequency)
 
             # run training
             trainer.train()
 
-        os.rename(new_model_folder_name, new_model_folder_name.replace('_training', '_trained'))
+        os_rename(new_model_folder_name, new_model_folder_name.replace('_training', '_trained'))
 
 
 def main():
