@@ -1,6 +1,5 @@
 from os import rename as os_rename
 from os.path import join as os_path_join
-from shutil import move as shutil_move
 import argparse
 from glob import glob
 
@@ -31,7 +30,7 @@ def train(identifier):
 
     for model_folder in models:
         new_model_folder_name = model_folder.replace('_created', '_training')
-        shutil_move(model_folder, new_model_folder_name)
+        os_rename(model_folder, new_model_folder_name)
         frequencies = glob(os_path_join(new_model_folder_name, 'k_*'))
         for frequency in frequencies:
             # Load model
