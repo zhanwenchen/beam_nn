@@ -90,15 +90,15 @@ def train(identifier):
             # Load training, validation, and test data
             # Load primary training data
             dat_train = ApertureDataset(model_params['data_train'], NUM_SAMPLES_TRAIN, k=model_params['k'], target_is_data=model_params['data_is_target'])
-            loader_train = DataLoader(dat_train, batch_size=model_params['batch_size'], shuffle=True, num_workers=DATALOADER_NUM_WORKERS)
+            loader_train = DataLoader(dat_train, batch_size=model_params['batch_size'], shuffle=True, num_workers=DATALOADER_NUM_WORKERS, pin_memory=using_cuda)
 
             # Load secondary training data - used to evaluate training loss after every epoch
             dat_train2 = ApertureDataset(model_params['data_train'], NUM_SAMPLES_TRAIN_EVAL, k=model_params['k'], target_is_data=model_params['data_is_target'])
-            loader_train_eval = DataLoader(dat_train2, batch_size=model_params['batch_size'], shuffle=False, num_workers=DATALOADER_NUM_WORKERS)
+            loader_train_eval = DataLoader(dat_train2, batch_size=model_params['batch_size'], shuffle=False, num_workers=DATALOADER_NUM_WORKERS, pin_memory=using_cuda)
 
             # Load validation data - used to evaluate validation loss after every epoch
             dat_val = ApertureDataset(model_params['data_val'], NUM_SAMPLES_VALID, k=model_params['k'], target_is_data=model_params['data_is_target'])
-            loader_val = DataLoader(dat_val, batch_size=model_params['batch_size'], shuffle=False, num_workers=DATALOADER_NUM_WORKERS)
+            loader_val = DataLoader(dat_val, batch_size=model_params['batch_size'], shuffle=False, num_workers=DATALOADER_NUM_WORKERS, pin_memory=using_cuda)
 
             trainer = Trainer(model=model,
                               loss=loss,
