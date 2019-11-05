@@ -164,6 +164,7 @@ class Trainer():
 
             # stop training if we lose patience:
             if num_epochs_increased > self.patience:
+                print('trainer.py: Ran out of patience={}. Training for model={} is now complete.'.format(self.patience, self.save_dir))
                 break
 
             # advance epoch counter
