@@ -15,7 +15,7 @@ from torch import load as torch_load
 from torch import device as torch_device # pylint: disable=E0611
 # from torch import from_numpy as torch_from_numpy # pylint: disable=E0611
 from torch import no_grad as torch_no_grad
-from torch import zeros as torch_zeros # pylint: disable=E0611
+from torch import zeros_like as torch_zeros_like # pylint: disable=E0611
 from torch.cuda import is_available as torch_cuda_is_cuda_available, empty_cache as torch_cuda_empty_cache
 from torch.utils.data import DataLoader
 
@@ -111,7 +111,7 @@ def process_each_frequency(model_dirname, stft, frequency, using_cuda=True):
     model.eval()
     model = model.to(my_device)
 
-    if False:
+    if True:
         model.printing = True
         from lib.print_layer import PrintLayer
         new_model_net = []
@@ -168,7 +168,7 @@ def predict(model, dataloader, device):
     num_elements = len(dataloader.dataset)
     num_batches = len(dataloader)
     batch_size = dataloader.batch_size
-    predictions = torch_zeros(num_elements, device=device)
+    predictions = torch_zeros_like(dataloader.dataset.x, device=device)
     for i, x in enumerate(dataloader):
         x = x.to(device=device)
         start = i * batch_size
@@ -176,7 +176,8 @@ def predict(model, dataloader, device):
         if i == num_batches - 1:
             end = num_elements
         with torch_no_grad():
-            predictions[start:end] = model(x)
+            predictions[start:end, :] = model(x)
+        breakpoint()
         # predictions[start:end] = pred
 
     return predictions
