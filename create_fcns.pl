@@ -13,6 +13,7 @@
 %  v1.6.1 Remove default LeakyReLU after last layer because regression should not have nonlinear output activation. Also added batch norm.
 %  v1.6.2 Narrowed learning rate to either 1e-04 or 1e-05.
 %  v1.6.3 Reduced patience from 30 to 20 in order to churn out more models
+%  v1.6.4 Use new dataset - reject-only point targets.
 %% TODO: combine conv1d and conv2d: it's just a matter of height=1.
 %% BUG: Potential mixup between random_member and random_between.
 :- use_module(library(http/json)).
@@ -258,7 +259,7 @@ find_full_fcn(FCN) :-
   % Training and validation data locations
   random_between(1, 3, NumScatter),
   % TODO: switchable training data.
-  DataDirname = '/Users/zhanwenchen/Documents/projects/beam_nn/data/20180402_L74_70mm',
+  DataDirname = 'data/20180402_L74_70mm_reject_only',
   atomic_list_concat([DataDirname, '/train_', NumScatter, '.h5'], DataTrain),
   atomic_list_concat([DataDirname, '/val_', NumScatter, '.h5'], DataVal),
 
