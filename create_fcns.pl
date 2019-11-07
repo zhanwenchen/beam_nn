@@ -258,7 +258,7 @@ find_full_fcn(FCN) :-
   WeightDecay is 0,
 
   % Training and validation data locations
-  random_between(1, 2, NumScatter),
+  random_between(2, 3, NumScatter),
   % TODO: switchable training data.
   DataDirname = 'data/20180402_L74_70mm_smooth_only',
   atomic_list_concat([DataDirname, '/train_', NumScatter, '.h5'], DataTrain),
