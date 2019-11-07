@@ -14,6 +14,7 @@
 %  v1.6.2 Narrowed learning rate to either 1e-04 or 1e-05.
 %  v1.6.3 Reduced patience from 30 to 20 in order to churn out more models
 %  v1.6.4 Use new dataset - reject-only point targets.
+%  v1.6.5 Use new dataset - smooth-only point targets.
 %% TODO: combine conv1d and conv2d: it's just a matter of height=1.
 %% BUG: Potential mixup between random_member and random_between.
 :- use_module(library(http/json)).
@@ -257,7 +258,7 @@ find_full_fcn(FCN) :-
   WeightDecay is 0,
 
   % Training and validation data locations
-  random_between(1, 3, NumScatter),
+  random_between(1, 2, NumScatter),
   % TODO: switchable training data.
   DataDirname = 'data/20180402_L74_70mm_reject_only',
   atomic_list_concat([DataDirname, '/train_', NumScatter, '.h5'], DataTrain),
@@ -267,7 +268,7 @@ find_full_fcn(FCN) :-
   writeln(InputDims),
   % writeln(NumScatter),
 
-  Version = '1.6.4',
+  Version = '1.6.5',
 
   FCN = model{model: 'FCN',
               input_dims: InputDims,
@@ -295,7 +296,7 @@ write_model_to_file_per_k(Dict, Dirname, K) :-
   close(Stream).
 
 write_model_to_file(Dict) :-
-  Version = '1.6.4',
+  Version = '1.6.5',
   timestring(Timestring),
   atomic_list_concat(['DNNs/', 'fcn_v', Version, '_', Timestring, '_created'], Dirname),
   make_directory(Dirname),
