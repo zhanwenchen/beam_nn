@@ -260,7 +260,7 @@ find_full_fcn(FCN) :-
   % Training and validation data locations
   random_between(1, 2, NumScatter),
   % TODO: switchable training data.
-  DataDirname = 'data/20180402_L74_70mm_reject_only',
+  DataDirname = 'data/20180402_L74_70mm_smooth_only',
   atomic_list_concat([DataDirname, '/train_', NumScatter, '.h5'], DataTrain),
   atomic_list_concat([DataDirname, '/val_', NumScatter, '.h5'], DataVal),
 
