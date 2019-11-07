@@ -15,6 +15,7 @@
 %  v1.6.3 Reduced patience from 30 to 20 in order to churn out more models
 %  v1.6.4 Use new dataset - reject-only point targets.
 %  v1.6.5 Use new dataset - smooth-only point targets.
+%  v1.6.6 Non-random everything except for kernel sizes.
 %% TODO: combine conv1d and conv2d: it's just a matter of height=1.
 %% BUG: Potential mixup between random_member and random_between.
 :- use_module(library(http/json)).
@@ -112,23 +113,36 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
   get_dict_from_json_file(ModelParamsRangesDict, 'hyperparam_ranges_fcn.json'),
 
   % Conv1 sizes
-  random_between(10, 50, Conv1NumKernels),
-  ((InputHeight = 1, Conv1PaddingHeight is 0) ; (InputHeight = 2, random_between(0, 2, Conv1PaddingHeight))),
+  % random_between(10, 50, Conv1NumKernels),
+  Conv1NumKernels is 18,
+  Conv1KernelHeight is 1,
+  random_between(3, 65, Conv1KernelWidth),
+  % Conv1KernelWidth // 2,
+  % Conv1KernelWidth is 3,
+  Conv1PaddingHeight is 0,
+  Conv1PaddingWidthUpper is Conv1KernelWidth // 2,
+  random_between(0, Conv1PaddingWidthUpper, Conv1PaddingWidth),
+  % Conv1PaddingWidth is 1,
+  % ((InputHeight = 1, Conv1PaddingHeight is 0) ; (InputHeight = 2, random_between(0, 2, Conv1PaddingHeight))),
   % random_between(0, 3, Conv1PaddingHeight),
-  random_between(0, 3, Conv1PaddingWidth),
-  ((InputHeight = 1, Conv1StrideHeight is 0) ; (InputHeight = 2, random_between(1, 2, Conv1StrideHeight))),
+  % random_between(0, 3, Conv1PaddingWidth),
+  Conv1StrideHeight is 0,
+  Conv1StrideWidth is 2,
+  % ((InputHeight = 1, Conv1StrideHeight is 0) ; (InputHeight = 2, random_between(1, 2, Conv1StrideHeight))),
   % random_between(1, 5, Conv1StrideHeight),
-  random_member(Conv1StrideWidth, [1, 2]),
+  % random_member(Conv1StrideWidth, [1, 2]),
   % Conv1StrideWidth is 1, % So that we no longer need pooling.
   % Limit upperbound of kernel sizes to positive output (W - **F** + 2P >= 0, that is, F <= W + 2P)
-  ((InputHeight = 1, Conv1KernelHeight is 1) ; (InputHeight = 2, random_between(2, 3, Conv1KernelHeight))),
+  % Conv1KernelHeight is 1,
+  % Conv1KernelWidth is 3,
+  % ((InputHeight = 1, Conv1KernelHeight is 1) ; (InputHeight = 2, random_between(2, 3, Conv1KernelHeight))),
   % Conv1KernelHeightUpperBound is InputHeight + 2 * Conv1PaddingHeight,
   % random_between(1, Conv1KernelHeightUpperBound, Conv1KernelHeight),
 
   % Conv1KernelWidthRange is ModelParamsRangesDict.conv1_kernel_width,
   % random_member(Conv1KernelWidth, Conv1KernelWidthRange),
-  get_lower_upper_bounds_from_list(Conv1KernelWidthLower, Conv1KernelWidthUpper, ModelParamsRangesDict.conv1_kernel_width),
-  random_between(Conv1KernelWidthLower, Conv1KernelWidthUpper, Conv1KernelWidth),
+  % get_lower_upper_bounds_from_list(Conv1KernelWidthLower, Conv1KernelWidthUpper, ModelParamsRangesDict.conv1_kernel_width),
+  % random_between(Conv1KernelWidthLower, Conv1KernelWidthUpper, Conv1KernelWidth),
   % random_member(Conv1KernelWidth, ModelParamsRangesDict.conv1_kernel_width),
   % random_between(2, 11, Conv1KernelWidth),
   % Conv1KernelWidthUpperBound is InputWidth + 2 * Conv1PaddingWidth,
@@ -138,23 +152,34 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
   get_output_size([InputHeight, InputWidth, InputChannels], Conv1, [Conv2InputHeight, Conv2InputWidth, Conv2InputDepth]),
 
   %% Conv2
-  random_between(Conv1NumKernels, 100, Conv2NumKernels),
+  % random_between(Conv1NumKernels, 100, Conv2NumKernels),
+  Conv2NumKernels is 91,
+  Conv2KernelHeight is 1,
+  Conv2KernelWidth = Conv1KernelWidth,
   % Conv2NumKernels > Conv1NumKernels,
-  ((InputHeight = 1, Conv2PaddingHeight is 0) ; (InputHeight = 2, random_between(0, 2, Conv2PaddingHeight))),
+  Conv2PaddingHeight is 0,
+  % Conv2PaddingWidth is 3,
+  Conv2PaddingWidthUpper is Conv2KernelWidth // 2,
+  random_between(0, Conv2PaddingWidthUpper, Conv2PaddingWidth),
+  % ((InputHeight = 1, Conv2PaddingHeight is 0) ; (InputHeight = 2, random_between(0, 2, Conv2PaddingHeight))),
   % random_between(0, 3, Conv2PaddingHeight),
-  random_between(0, 3, Conv2PaddingWidth),
-  ((InputHeight = 1, Conv2StrideHeight is 0) ; (InputHeight = 2, random_between(1, 2, Conv2StrideHeight))),
+  % random_between(0, 3, Conv2PaddingWidth),
+  % ((InputHeight = 1, Conv2StrideHeight is 0) ; (InputHeight = 2, random_between(1, 2, Conv2StrideHeight))),
   % random_between(1, 5, Conv2StrideHeight),
-  random_member(Conv2StrideWidth, [1, 2]),
+  Conv2StrideHeight is 0,
+  Conv2StrideWidth is 2,
+  % random_member(Conv2StrideWidth, [1, 2]),
   % Conv2StrideWidth is 1, % To eliminate the need for pooling.
   % Limit upperbound of kernel sizes to positive output (W - **F** + 2P >= 0, that is, F <= W + 2P)
-  ((InputHeight = 1, Conv2KernelHeight is 1) ; (InputHeight = 2, random_between(2, 3, Conv2KernelHeight))),
+
+  % Conv2KernelWidth is 11,
+  % ((InputHeight = 1, Conv2KernelHeight is 1) ; (InputHeight = 2, random_between(2, 3, Conv2KernelHeight))),
   % Conv2KernelHeightUpperBound is Conv2InputHeight + 2 * Conv2PaddingHeight,
   % random_between(1, Conv2KernelHeightUpperBound, Conv2KernelHeight),
   % write(Conv2KernelHeightUpperBound),
   % Conv2KernelWidthRange is ModelParamsRangesDict.conv2_kernel_width,
-  get_lower_upper_bounds_from_list(Conv2KernelWidthLower, Conv2KernelWidthUpper, ModelParamsRangesDict.conv2_kernel_width),
-  random_between(Conv2KernelWidthLower, Conv2KernelWidthUpper, Conv2KernelWidth),
+  % get_lower_upper_bounds_from_list(Conv2KernelWidthLower, Conv2KernelWidthUpper, ModelParamsRangesDict.conv2_kernel_width),
+  % random_between(Conv2KernelWidthLower, Conv2KernelWidthUpper, Conv2KernelWidth),
   % random_member(Conv2KernelWidth, ModelParamsRangesDict.conv2_kernel_width),
 
   % random_member(Conv2KernelWidth, Conv2KernelWidthRange),
@@ -176,22 +201,32 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
   get_output_size([Upsample1InputHeight, Upsample1InputWidth, Upsample1InputDepth], Upsample1, [Conv3InputHeight, Conv3InputWidth, Conv3InputDepth]),
 
   % Conv3
-  random_between(10, Conv2NumKernels, Conv3NumKernels),
-  Conv3NumKernels < Conv2NumKernels,
-  ((InputHeight = 1, Conv3PaddingHeight is 0) ; (InputHeight = 2, random_between(0, 2, Conv3PaddingHeight))),
+  % random_between(10, Conv2NumKernels, Conv3NumKernels),
+  % Conv3NumKernels < Conv2NumKernels,
+  Conv3NumKernels is 88,
+  Conv3KernelHeight is 1,
+  Conv3KernelWidth = Conv2KernelWidth,
+  Conv3PaddingHeight is 0,
+  Conv3PaddingWidthUpper is Conv3KernelWidth // 2,
+  random_between(0, Conv3PaddingWidthUpper, Conv3PaddingWidth),
+  % Conv3PaddingWidth is 3,
+  % ((InputHeight = 1, Conv3PaddingHeight is 0) ; (InputHeight = 2, random_between(0, 2, Conv3PaddingHeight))),
   % random_between(0, 3, Conv3PaddingHeight),
-  random_between(0, 3, Conv3PaddingWidth),
-  ((InputHeight = 1, Conv3StrideHeight is 0) ; (InputHeight = 2, random_between(1, 2, Conv3StrideHeight))),
+  % random_between(0, 3, Conv3PaddingWidth),
+  Conv3StrideHeight is 0,
+  Conv3StrideWidth is 1, % To eliminate the need for pooling.
+  % ((InputHeight = 1, Conv3StrideHeight is 0) ; (InputHeight = 2, random_between(1, 2, Conv3StrideHeight))),
   % random_between(1, 5, Conv3StrideHeight),
   % random_member(Conv3StrideWidth, [1, 2]),
-  Conv3StrideWidth is 1, % To eliminate the need for pooling.
-  ((InputHeight = 1, Conv3KernelHeight is 1) ; (InputHeight = 2, random_between(2, 3, Conv3KernelHeight))),
+  % Conv3KernelWidth is 5,
+
+  % ((InputHeight = 1, Conv3KernelHeight is 1) ; (InputHeight = 2, random_between(2, 3, Conv3KernelHeight))),
   % Limit upperbound of kernel sizes to positive output (W - **F** + 2P >= 0, that is, F <= W + 2P)
   % Conv3KernelHeightUpperBound is Conv3InputHeight + 2 * Conv3PaddingHeight,
   % random_between(1, Conv3KernelHeightUpperBound, Conv3KernelHeight),
   % write(Conv3KernelHeightUpperBound),
-  get_lower_upper_bounds_from_list(Conv3KernelWidthLower, Conv3KernelWidthUpper, ModelParamsRangesDict.conv3_kernel_width),
-  random_between(Conv3KernelWidthLower, Conv3KernelWidthUpper, Conv3KernelWidth),
+  % get_lower_upper_bounds_from_list(Conv3KernelWidthLower, Conv3KernelWidthUpper, ModelParamsRangesDict.conv3_kernel_width),
+  % random_between(Conv3KernelWidthLower, Conv3KernelWidthUpper, Conv3KernelWidth),
   % random_member(Conv3KernelWidth, ModelParamsRangesDict.conv3_kernel_width),
   % Conv3KernelWidthRange is ModelParamsRangesDict.conv3_kernel_width,
   % random_member(Conv3KernelWidth, Conv3KernelWidthRange),
@@ -209,20 +244,28 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
 
   % Conv4
   Conv4NumKernels is InputChannels,
-  ((InputHeight = 1, Conv4PaddingHeight is 0) ; (InputHeight = 2, random_between(0, 2, Conv4PaddingHeight))),
+  Conv4KernelHeight is 1,
+  Conv4KernelWidth = Conv3KernelWidth,
+  Conv4PaddingHeight is 0,
+  Conv4PaddingWidthUpper is Conv4KernelWidth // 2,
+  random_between(0, Conv4PaddingWidthUpper, Conv4PaddingWidth),
+  % Conv4PaddingWidth is 2,
+  % ((InputHeight = 1, Conv4PaddingHeight is 0) ; (InputHeight = 2, random_between(0, 2, Conv4PaddingHeight))),
   % random_between(0, 3, Conv4PaddingHeight),
-  random_between(0, 3, Conv4PaddingWidth),
-  ((InputHeight = 1, Conv4StrideHeight is 0) ; (InputHeight = 2, random_between(1, 2, Conv4StrideHeight))),
+  % random_between(0, 3, Conv4PaddingWidth),
+  % ((InputHeight = 1, Conv4StrideHeight is 0) ; (InputHeight = 2, random_between(1, 2, Conv4StrideHeight))),
   % random_between(1, 5, Conv4StrideHeight),
+  Conv4StrideHeight is 0,
   Conv4StrideWidth is 1, % To eliminate the need for pooling.
-  ((InputHeight = 1, Conv4KernelHeight is 1) ; (InputHeight = 2, random_between(2, 3, Conv4KernelHeight))),
+  % ((InputHeight = 1, Conv4KernelHeight is 1) ; (InputHeight = 2, random_between(2, 3, Conv4KernelHeight))),
   % Limit upperbound of kernel sizes to positive output (W - **F** + 2P >= 0, that is, F <= W + 2P)
   % Conv4KernelHeightUpperBound is Conv4InputHeight + 2 * Conv4PaddingHeight,
   % random_between(1, Conv4KernelHeightUpperBound, Conv4KernelHeight),
   % write(Conv3KernelHeightUpperBound),
   % random_between(3, 8, Conv4KernelWidth),
-  get_lower_upper_bounds_from_list(Conv4KernelWidthLower, Conv4KernelWidthUpper, ModelParamsRangesDict.conv4_kernel_width),
-  random_between(Conv4KernelWidthLower, Conv4KernelWidthUpper, Conv4KernelWidth),
+  % Conv4KernelWidth is 3,
+  % get_lower_upper_bounds_from_list(Conv4KernelWidthLower, Conv4KernelWidthUpper, ModelParamsRangesDict.conv4_kernel_width),
+  % random_between(Conv4KernelWidthLower, Conv4KernelWidthUpper, Conv4KernelWidth),
   % random_member(Conv4KernelWidth, ModelParamsRangesDict.conv4_kernel_width),
   % Conv4KernelWidthRange is ModelParamsRangesDict.conv4_kernel_width,
   % random_member(Conv4KernelWidth, Conv4KernelWidthRange),
@@ -237,30 +280,34 @@ find_fcn(FCN, [InputHeight, InputWidth, InputChannels]) :-
   % TODO: implement is_network_legal for upsample dicts
   FCN = [Conv1, Conv2, Upsample1, Conv3, Upsample2, Conv4],
   % is_network_legal([InputHeight, InputWidth, InputChannels], FCN), writeln(Conv1NumKernels).
-  is_network_legal([InputHeight, InputWidth, InputChannels], FCN).
+  is_network_legal([InputHeight, InputWidth, InputChannels], FCN), writeln(Conv4KernelWidth).
 
 % model layers and training stuff
 find_full_fcn(FCN) :-
   get_dict_from_json_file(ModelParamsRangesDict, 'hyperparam_ranges_fcn.json'),
 
-  random_member(InputDims, [[2, 65, 1], [1, 130,1], [1, 65, 2]]),
+  % random_member(InputDims, [[1, 130,1]]),
+  InputDims = [1, 130, 1],
   % random_member(InputDims, [[1, 130,1], [1, 65, 2]]),
   % (InputDims = [2, 65, 1]; InputDims = [1, 130, 1]; InputDims = [1, 65, 2]),
   find_fcn(Layers, InputDims),
 
-  random_member(LossFunction, ['MSE', 'SmoothL1']),
+  LossFunction = 'MSE',
+  % random_member(LossFunction, ['MSE', 'SmoothL1']),
   Optimizer = 'Adam',
 
   % LearningRateRange is ModelParamsRangesDict.learning_rate,
-  random_member(LearningRate, ModelParamsRangesDict.learning_rate),
+  LearningRate is 1E-5,
+  % random_member(LearningRate, ModelParamsRangesDict.learning_rate),
 
   % LearningRate is 0.001,
   WeightDecay is 0,
 
   % Training and validation data locations
-  random_between(2, 3, NumScatter),
+  NumScatter is 1,
+  % random_between(1, 3, NumScatter),
   % TODO: switchable training data.
-  DataDirname = 'data/20180402_L74_70mm_smooth_only',
+  DataDirname = 'data/20180402_L74_70mm',
   atomic_list_concat([DataDirname, '/train_', NumScatter, '.h5'], DataTrain),
   atomic_list_concat([DataDirname, '/val_', NumScatter, '.h5'], DataVal),
 
@@ -268,7 +315,7 @@ find_full_fcn(FCN) :-
   writeln(InputDims),
   % writeln(NumScatter),
 
-  Version = '1.6.5',
+  Version = '1.6.6',
 
   FCN = model{model: 'FCN',
               input_dims: InputDims,
@@ -296,7 +343,7 @@ write_model_to_file_per_k(Dict, Dirname, K) :-
   close(Stream).
 
 write_model_to_file(Dict) :-
-  Version = '1.6.5',
+  Version = '1.6.6',
   timestring(Timestring),
   atomic_list_concat(['DNNs/', 'fcn_v', Version, '_', Timestring, '_created'], Dirname),
   make_directory(Dirname),
