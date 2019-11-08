@@ -189,6 +189,7 @@ def get_which_model_from_params_fname(model_params_fname, return_params=False):
         model = FlexNet(model_init_params)
         if return_params is True:
             return model, model_params
+        return model
 
     elif model_params['model'] == 'FCN':
         from lib.flexnet import FlexNet
