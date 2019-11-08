@@ -27,11 +27,10 @@ class FlexNet(Module):
         modules = []
 
         # batch_norm_enable = model_init_params['batch_norm_enable']
-        try:
+        if 'dropout' in model_init_params:
             dropout = model_init_params['dropout']
-        except:
-            raise ValueError('No entry for dropout. model_init_params={}'.format(model_init_params))
-        assert 0 <= dropout <= 1
+        else:
+            dropout = None
 
         for index, layer in enumerate(layers):
             layer_type = layer['type']
@@ -98,7 +97,8 @@ class FlexNet(Module):
                 modules.append(LeakyReLU())
 
             # After activation, apply dropout
-            modules.append(Dropout(p=dropout))
+            if dropout is not None:
+                modules.append(Dropout(p=dropout))
 
             del module
 
