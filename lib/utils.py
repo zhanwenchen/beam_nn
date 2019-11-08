@@ -168,13 +168,31 @@ def get_which_model_from_params_fname(model_params_fname, return_params=False):
         # print('get_which_model_from_params_fname: using AlexNet')
         from lib.alexnet import AlexNet
         model_class = AlexNet
-
-    elif model_params['model'] == 'FCN':
-        # from lib.fcn import FCN
-        # model_class = FCN
+    elif model_params['model'] == 'MLPB5':
         from lib.flexnet import FlexNet
         model_init_params = copy_copy(model_params)
-        # model_class = FlexNet
+        # Delete training parameters
+        del model_init_params['batch_size']
+        del model_init_params['data_is_target']
+        del model_init_params['data_noise_gaussian']
+        del model_init_params['data_train']
+        del model_init_params['data_val']
+        del model_init_params['k']
+        del model_init_params['learning_rate']
+        del model_init_params['loss_function']
+        del model_init_params['model']
+        del model_init_params['momentum']
+        del model_init_params['optimizer']
+        del model_init_params['version']
+        del model_init_params['patience']
+        del model_init_params['weight_decay']
+        model = FlexNet(model_init_params)
+        if return_params is True:
+            return model, model_params
+
+    elif model_params['model'] == 'FCN':
+        from lib.flexnet import FlexNet
+        model_init_params = copy_copy(model_params)
         # Delete training parameters
         del model_init_params['batch_size']
         del model_init_params['data_is_target']

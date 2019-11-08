@@ -1,6 +1,6 @@
 from pprint import pprint
 
-from torch.nn import Conv1d, Conv2d, MaxPool2d, AdaptiveAvgPool2d, LeakyReLU, Sequential, Module, Upsample, BatchNorm1d, BatchNorm2d
+from torch.nn import Conv1d, Conv2d, MaxPool2d, AdaptiveAvgPool2d, LeakyReLU, Sequential, Module, Upsample, BatchNorm1d, BatchNorm2d, Linear, Dropout
 
 from lib.fully_connected_net import FullyConnectedNet
 from lib.flatten import Flatten
@@ -11,14 +11,27 @@ from lib.print_layer import PrintLayer
 class FlexNet(Module):
     def __init__(self, model_init_params, printing=False):
         super(FlexNet, self).__init__()
-        input_height, _, _, = self.input_dims = model_init_params['input_dims']
+        if 'input_dims' in model_init_params:
+            input_height, _, _, = self.input_dims = model_init_params['input_dims']
+        elif 'input_size' in model_init_params:
+            input_size = model_init_params['input_size']
 
         if printing is True:
             pprint(model_init_params)
 
-        layers = model_init_params['layers']
+        try:
+            layers = model_init_params['layers']
+        except:
+            raise ValueError('Problem reading layers. model_init_params={}'.format(model_init_params))
         num_layers = len(layers)
         modules = []
+
+        # batch_norm_enable = model_init_params['batch_norm_enable']
+        try:
+            dropout = model_init_params['dropout']
+        except:
+            raise ValueError('No entry for dropout. model_init_params={}'.format(model_init_params))
+        assert 0 <= dropout <= 1
 
         for index, layer in enumerate(layers):
             layer_type = layer['type']
@@ -28,7 +41,7 @@ class FlexNet(Module):
                 elif input_height == 1:
                     module = Upsample(scale_factor=layer['scale_factor_width'])
 
-            if layer_type not in ['conv1d', 'upsample', 'conv2d', 'maxpool2d', 'adaptiveavgpool2d', 'fcs']:
+            if layer_type not in ['fc', 'conv1d', 'upsample', 'conv2d', 'maxpool2d', 'adaptiveavgpool2d', 'fcs']:
                 raise ValueError('Layer type of {} is not yet implemented'.format(layer['type']))
 
             if layer_type == 'conv1d':
@@ -54,6 +67,9 @@ class FlexNet(Module):
             if layer_type == 'adaptiveavgpool2d':
                 module = AdaptiveAvgPool2d((layer['out_height'], layer['out_width']))
 
+            if layer_type == 'fc':
+                module = Linear(layer['in_channels'], layer['out_channels'])
+
             if layer_type == 'fcs':
                 flatten = Flatten()
                 modules.append(flatten)
@@ -70,7 +86,7 @@ class FlexNet(Module):
                 modules.append(PrintLayer(module))
             modules.append(module)
 
-            if index != num_layers - 1 and layer_type in ['conv1d', 'conv2d']:
+            if index != num_layers - 1 and layer_type in ['fc', 'conv1d', 'conv2d']:
                 # For layers other than the last layer, add BatchNorm followed by LeakyReLU
                 # Last layer of regression should not have nonlinear activation
                 layer_out_channels = layer['out_channels']
@@ -81,6 +97,9 @@ class FlexNet(Module):
 
                 modules.append(LeakyReLU())
 
+            # After activation, apply dropout
+            modules.append(Dropout(p=dropout))
+
             del module
 
         self.net = Sequential(*modules)
@@ -90,25 +109,30 @@ class FlexNet(Module):
 
     def forward(self, x):
         batch_size = x.size(0)
-        input_height, input_width, input_depth = self.input_dims
+        # First layer is conv
+        if hasattr(self, 'input_dims'):
+            input_height, input_width, input_depth = self.input_dims
+            if input_height == 1:
+                # 1D
+                x = x.view(batch_size, input_depth, input_width)
+            elif input_height == 2:
+                x = x.view(batch_size, input_depth, input_height, input_width)
+        # First layer is FC
+
         if self.printing:
             print('FlexNet: initial x.size() = ', x.size())
-        if input_height == 1:
-            # 1D
-            x = x.view(batch_size, input_depth, input_width)
-        elif input_height == 2:
-            x = x.view(batch_size, input_depth, input_height, input_width)
+
         if self.printing:
             print('FlexNet: after first view, x.size() = ', x.size())
-        # x = x.view(-1, input_height, input_width, input_num_channels)
         x = self.net(x)
-        # if self.model == 'FCN':
-        #     x = self.view(batch_size, -1)
-        if input_height == 1:
+        if hasattr(self, 'input_dims'):
+            # BUG: Is this a problem with destoying convolution? This is just flatten for training and test.
+            #      Maye this shouldn't be "viewed" at all and the compute cost in trainer should be modified.
+            if input_height == 1:
             # 1D
-            x = x.view(-1, input_depth * input_width)
-        elif input_height == 2:
-            x = x.view(-1, input_depth * input_height * input_width)
+                x = x.view(-1, input_depth * input_width)
+            elif input_height == 2:
+                x = x.view(-1, input_depth * input_height * input_width)
         if self.printing:
             print('FlexNet: finally x.size() = ', x.size())
         return x
