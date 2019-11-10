@@ -63,7 +63,7 @@ class FullyConnectedNet(Module):
 
         for i in range(len(self.layers) - 1):
             x = self.layers[i](x)
-            if self.batch_norm is True:
+            if self.batch_norm is True or self.batch_norm == 1:
                 x = self.batch_norm_layers[i](x)
             x = self.relu(x)
             x = self.dropout(x) # is dropout learnable?
