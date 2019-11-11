@@ -191,7 +191,7 @@ def get_which_model_from_params_fname(model_params_fname, return_params=False):
             return model, model_params
         return model
 
-    elif model_params['model'] == 'FCN':
+    elif model_params['model'] in ['FCN', 'FCNN']:
         from lib.flexnet import FlexNet
         model_init_params = copy_copy(model_params)
         # Delete training parameters
